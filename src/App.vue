@@ -10,7 +10,7 @@ const gamecanvas = ref<HTMLDivElement>();
 
 const camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 1000 );
 const renderer = new THREE.WebGLRenderer();
-renderer.setSize( 512, 512 );
+renderer.setSize( 256, 256 );
 
 const scene = new THREE.Scene();
 const imgLoader = new THREE.TextureLoader();
