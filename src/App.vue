@@ -48,6 +48,7 @@ function mainLoop()
 {
   var now = new Date().getTime();
   gameTime.deltaTime = (now - lastTickTime) / 1000;
+  gameTime.deltaTime = Math.min(1/12, gameTime.deltaTime); // Prevent big time jumps
   gameTime.time += gameTime.deltaTime;
   gameTime.serverTime += gameTime.deltaTime;
   lastTickTime = now;
