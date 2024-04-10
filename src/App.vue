@@ -7,40 +7,62 @@ import skyTexture from './assets/sky_gradient.png';
 
 const gamecanvas = ref<HTMLDivElement>();
 
+const camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 1000 );
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize( 512, 512 );
+
+
 const scene = new THREE.Scene();
 const imgLoader = new THREE.TextureLoader();
 imgLoader.loadAsync(skyTexture).then((tex) => {
   tex.magFilter = THREE.LinearFilter;
   scene.background = tex;
 });
-const camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 1000 );
+const player = new GreenCube(scene);
 
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize( 512, 512 );
+camera.position.z = 7;
+camera.position.y = 7;
+camera.lookAt(new THREE.Vector3(0,0,0));
+camera.updateProjectionMatrix();
+const cameraPivot = new THREE.Object3D();
+cameraPivot.add(camera);
+scene.add(cameraPivot);
 
-const cube = new GreenCube(scene);
+const floor = new THREE.Object3D();
+const worldBoundaries = new THREE.Box2(new THREE.Vector2(-5, -3), new THREE.Vector2(5, 3));
+var worldSize = new THREE.Vector2();
+worldBoundaries.getSize(worldSize);
+floor.add(new THREE.Mesh(new THREE.PlaneGeometry(worldSize.width,worldSize.height), new THREE.MeshBasicMaterial({color : 0x775577})));
+floor.rotation.x -= Math.PI/2;
+scene.add(floor);
 
-camera.position.z = 5;
-
-var GameTime = <Time>({
+var gameTime = <Time>({
   deltaTime: 0,
-  time: 0
+  time: 0,
+  serverTime: 0
 });
 
-var lastTickTime = new Date().getTime();;
+var lastTickTime = new Date().getTime();
 
-function mainLoop() {
+function mainLoop()
+{
   var now = new Date().getTime();
-  GameTime.deltaTime = (now - lastTickTime) / 1000;
-  GameTime.time += GameTime.deltaTime;
+  gameTime.deltaTime = (now - lastTickTime) / 1000;
+  gameTime.time += gameTime.deltaTime;
+  gameTime.serverTime += gameTime.deltaTime;
   lastTickTime = now;
 
-
   // update
-	cube.update(GameTime);
+	player.update(gameTime, worldBoundaries);
+
+  cameraPivot.position.copy(player.object.position);
+  //cameraPivot.updateMatrix();
+  camera.updateProjectionMatrix();
 
   // draw
 	renderer.render( scene, camera );
+
+  // TODO send info to the server every X milliseconds
 
   //
   requestAnimationFrame(mainLoop);
