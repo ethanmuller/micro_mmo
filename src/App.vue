@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { GreenCube } from './game/greencube';
 import { Time } from './game/Time';
 import skyTexture from './assets/sky_gradient.png';
+import mouseTexture from "./assets/mouse_texture.png";
 
 const gamecanvas = ref<HTMLDivElement>();
 
@@ -11,14 +12,13 @@ const camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 1000 );
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( 512, 512 );
 
-
 const scene = new THREE.Scene();
 const imgLoader = new THREE.TextureLoader();
 imgLoader.loadAsync(skyTexture).then((tex) => {
   tex.magFilter = THREE.LinearFilter;
   scene.background = tex;
 });
-const player = new GreenCube(scene);
+const player = new GreenCube(scene, imgLoader);
 
 camera.position.z = 7;
 camera.position.y = 7;
@@ -28,11 +28,13 @@ const cameraPivot = new THREE.Object3D();
 cameraPivot.add(camera);
 scene.add(cameraPivot);
 
+//scene.add(new THREE.DirectionalLight());
+
 const floor = new THREE.Object3D();
 const worldBoundaries = new THREE.Box2(new THREE.Vector2(-5, -3), new THREE.Vector2(5, 3));
 var worldSize = new THREE.Vector2();
 worldBoundaries.getSize(worldSize);
-floor.add(new THREE.Mesh(new THREE.PlaneGeometry(worldSize.width,worldSize.height), new THREE.MeshBasicMaterial({color : 0x775577})));
+floor.add(new THREE.Mesh(new THREE.PlaneGeometry(worldSize.width,worldSize.height), new THREE.MeshBasicMaterial({color : 0x775577, map: imgLoader.load(mouseTexture), })));
 floor.rotation.x -= Math.PI/2;
 scene.add(floor);
 
