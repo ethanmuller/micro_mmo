@@ -4,17 +4,24 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "multiplayer-server": "ts-node src/server/multiplayer-server.ts",
+    "dev": "vite --host",
     "build": "vue-tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "cors": "^2.8.5",
+    "express": "4",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5",
     "three": "^0.163.0",
     "vue": "^3.4.21"
   },
   "devDependencies": {
     "@types/three": "^0.163.0",
     "@vitejs/plugin-vue": "^5.0.4",
+    "nodemon": "^3.1.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.2.2",
     "vite": "^5.2.0",
     "vue-tsc": "^2.0.6"

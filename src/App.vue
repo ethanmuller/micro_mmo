@@ -5,6 +5,9 @@ import { GreenCube } from './game/greencube';
 import { Time } from './game/Time';
 import skyTexture from './assets/sky_gradient.png';
 import mouseTexture from "./assets/mouse_texture.png";
+import { MultiplayerClient } from './game/MultiplayerClient';
+
+const logs = ref("Not connected to the multiplayer server")
 
 const gamecanvas = ref<HTMLDivElement>();
 
@@ -28,6 +31,10 @@ camera.updateProjectionMatrix();
 const cameraPivot = new THREE.Object3D();
 cameraPivot.add(camera);
 scene.add(cameraPivot);
+
+const mp = new MultiplayerClient()
+
+camera.position.z = 5;
 
 //scene.add(new THREE.DirectionalLight());
 
@@ -93,7 +100,10 @@ addEventListener("resize",onWindowResize,false);
 </script>
 
 <template>
-  <div ref="gamecanvas" id="gamecanvas"></div>
+  <div>
+    <div ref="gamecanvas" id="gamecanvas"></div>
+    <div id="logbox">{{ mp.playersOnline.value }}</div>
+  </div>
 </template>
 
 <style scoped>
@@ -101,5 +111,14 @@ addEventListener("resize",onWindowResize,false);
     position:absolute;
     left: 0;
     top:0;
+  }
+  #logbox {
+    position:absolute;
+    left: 0;
+    top:0;
+    mix-blend-mode: difference;
+    font-family: monospace;
+    font-size: 1rem;
+    padding: 1rem;
   }
 </style>
