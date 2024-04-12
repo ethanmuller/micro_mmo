@@ -33,6 +33,17 @@ cameraPivot.add(camera);
 scene.add(cameraPivot);
 
 const mp = new MultiplayerClient()
+let playerIdToPlayerObj : Map<string, GreenCube> = new Map<string, GreenCube>();
+mp.onRemotePlayerConnected((id) => {
+  playerIdToPlayerObj.set(id, new GreenCube(scene, imgLoader));
+});
+mp.onRemotePlayerDisconnected((id) => {
+  let pO = playerIdToPlayerObj.get(id);
+  if (pO) {
+    pO.dispose();
+  }
+  playerIdToPlayerObj.delete(id);
+});
 
 camera.position.z = 5;
 
@@ -65,6 +76,10 @@ function mainLoop()
 
   // update
 	player.update(gameTime, worldBoundaries);
+
+  playerIdToPlayerObj.forEach((plObj : GreenCube, id: string) => {
+    plObj.update(gameTime, worldBoundaries);
+  })
 
   cameraPivot.position.copy(player.object.position);
   //cameraPivot.updateMatrix();
@@ -106,7 +121,7 @@ addEventListener("resize",onWindowResize,false);
 <template>
   <div>
     <div ref="gamecanvas" id="gamecanvas"></div>
-    <div id="logbox">{{ mp.playersOnline.value }}</div>
+    <div id="logbox">{{ mp.localPlayerDisplayString.value }} {{ mp.playersOnline.value }}</div>
   </div>
 </template>
 

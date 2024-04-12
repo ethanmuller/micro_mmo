@@ -8,6 +8,7 @@ export class GreenCube {
     rotationSpeed : number = 1;
     velocity : Vector2;
     radius : number = 0.5;
+    scene: Scene;
 
     constructor(scene : Scene, loader : TextureLoader)
     {
@@ -19,6 +20,7 @@ export class GreenCube {
         this.object.position.x += Math.random()* 5 - 2.5;
         this.object.position.z += Math.random()* 5 - 2.5;
         scene.add( this.object );
+        this.scene = scene;
 
         this.velocity = new Vector2(1,1);
         this.instantRotation = new Quaternion();
@@ -55,5 +57,10 @@ export class GreenCube {
         this.instantRotation2.setFromAxisAngle(this.forward, this.rotationSpeed * this.velocity.x / this.radius * time.deltaTime);
         this.instantRotation.multiply(this.instantRotation2);
         this.mesh.quaternion.premultiply(this.instantRotation);
+    }
+
+    dispose() {
+        this.mesh.geometry.dispose();
+        this.scene.remove(this.object);
     }
 }

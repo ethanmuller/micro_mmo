@@ -2,6 +2,7 @@ import express from 'express';
 import { createServer } from 'node:http';
 import { Server } from "socket.io";
 import cors from 'cors'
+import { MessageType } from './MessageType.ts';
 
 const app = express();
 app.use(cors())
@@ -17,12 +18,15 @@ app.get('/', (_req, res) => {
 io.on('connection', async (socket) => {
   const sockets = await io.fetchSockets();
   console.log(`CLIENT CONNECTED.    total sockets: ${sockets.length}`)
-  io.emit('clientList', sockets.length)
+  const idList = sockets.map((socket) => socket.id);
+  io.emit(MessageType.clientList, idList)
+  io.emit(MessageType.onPlayerConnected, socket.id);
 
   socket.on('disconnect', async () => {
     const sockets = await io.fetchSockets();
     console.log(`CLIENT DISCONNECTED. total sockets: ${sockets.length}`)
-    io.emit('clientList', sockets.length)
+    io.emit(MessageType.clientList, idList)
+    io.emit(MessageType.onPlayerDisconnected, socket.id);
   });
 });
 
