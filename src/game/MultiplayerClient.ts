@@ -8,9 +8,15 @@ export class MultiplayerClient {
 
   constructor() {
     console.log('setting up multiplayer client...')
-    this.connection = socket.io(`localhost:3000`);
+    //TODO should we do better than hostname here
+    this.connection = socket.io(window.location.hostname+`:3000`);
     this.connection.on('clientList', (payload) => {
       this.playersOnline.value = `Players online: ${payload}`
     })
+  }
+
+  disconnect() {
+    if (this.connection)
+      this.connection.close();
   }
 }

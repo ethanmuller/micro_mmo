@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, onMounted} from 'vue'
+import {ref, onMounted, onBeforeUnmount} from 'vue'
 import * as THREE from 'three';
 import { GreenCube } from './game/greencube';
 import { Time } from './game/Time';
@@ -86,6 +86,10 @@ onMounted(() => {
     mainLoop();
   }
 });
+
+onBeforeUnmount(() => {
+  mp.disconnect();
+})
 
 function onWindowResize () : void {
     renderer.setSize(window.innerWidth, window.innerHeight);
