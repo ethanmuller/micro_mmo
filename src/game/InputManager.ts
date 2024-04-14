@@ -1,3 +1,8 @@
+import { Vector2 } from 'three';
+
+import Hammer from 'hammerjs'
+
+
 class ButtonInput {
     pressed : boolean = false;
     pressedThisFrame : boolean = false;
@@ -7,6 +12,14 @@ class ButtonInput {
     constructor(keys : string[]) {
         this.keycodes = keys;
     }
+}
+
+class TrackballInput {
+  velocity : Vector2;
+
+  constructor() {
+    this.velocity = new Vector2(0, 0)
+  }
 }
 
 let reference : InputManager;
@@ -19,8 +32,9 @@ export class InputManager {
     down : ButtonInput;
     left : ButtonInput;
     right : ButtonInput;
+    trackball : TrackballInput;
 
-    constructor() {
+    constructor(trackballElement : HTMLElement) {
         reference = this;
 
         window.addEventListener('keydown', this.onkeydown);
@@ -30,6 +44,19 @@ export class InputManager {
         this.buttons.push(this.down = new ButtonInput(["ArrowDown", "S"]));
         this.buttons.push(this.left = new ButtonInput(["ArrowLeft", "A"]));
         this.buttons.push(this.right = new ButtonInput(["ArrowRight", "D"]));
+
+        this.trackball = new TrackballInput()
+
+        const mc = new Hammer.Manager(trackballElement)
+        mc.add( new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 0 }) );
+        mc.add( new Hammer.Press({ time: 0 }) );
+
+        mc.on('pan', (e: HammerInput) => {
+            this.trackball.velocity = new Vector2(e.velocityX, e.velocityY).multiplyScalar(32)
+        })
+        mc.on('press', (e: HammerInput) => {
+            this.trackball.velocity = new Vector2(0, 0)
+        })
     }
 
     private onkeydown(event : Event)

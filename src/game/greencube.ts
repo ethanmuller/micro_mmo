@@ -46,12 +46,14 @@ export class GreenCube {
     {
         if (input) { // Local players
             this.velocity.x = 0;
+            this.velocity.x = input.trackball.velocity.x
             if (input.left.pressed)
                 this.velocity.x -= this.maxSpeed;
             if (input.right.pressed)
                 this.velocity.x += this.maxSpeed;
             
             this.velocity.y = 0;
+            this.velocity.y = input.trackball.velocity.y
             if (input.down.pressed)
                 this.velocity.y += this.maxSpeed;
             if (input.up.pressed)

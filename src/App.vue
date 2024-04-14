@@ -7,13 +7,13 @@ import skyTexture from './assets/sky_gradient.png';
 import mouseTexture from "./assets/mouse_texture.png";
 import { MultiplayerClient } from './game/MultiplayerClient';
 import { InputManager } from './game/InputManager';
-
 const NETWORK_TIME_BETWEEN_UPDATES = 1/15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
 
 const logs = ref("Not connected to the multiplayer server")
 
 const gamecanvas = ref<HTMLDivElement>();
+const trackballEl = ref<HTMLDivElement>();
 
 const camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 1000 );
 const renderer = new THREE.WebGLRenderer();
@@ -76,7 +76,7 @@ var gameTime = <Time>({
 });
 
 let lastTickTime = new Date().getTime();
-let input = new InputManager();
+let input: InputManager
 
 function mainLoop()
 {
@@ -116,6 +116,10 @@ function mainLoop()
 }
 
 onMounted(() => {
+  if (trackballEl.value) {
+    input = new InputManager(trackballEl.value);
+  }
+
   if (gamecanvas.value) {
     gamecanvas.value.appendChild( renderer.domElement );
     onWindowResize();
@@ -142,7 +146,11 @@ addEventListener("resize",onWindowResize,false);
 <template>
   <div>
     <div ref="gamecanvas" id="gamecanvas"></div>
-    <div id="logbox">{{ mp.localPlayerDisplayString.value }} {{ mp.playersOnline.value }}</div>
+    <div id="logbox">
+      {{ mp.localPlayerDisplayString.value }}
+      {{ mp.playersOnline.value }}
+    </div>
+    <div ref="trackballEl" id="trackball"></div>
   </div>
 </template>
 
@@ -160,5 +168,12 @@ addEventListener("resize",onWindowResize,false);
     font-family: monospace;
     font-size: 1rem;
     padding: 1rem;
+  }
+  #trackball {
+    position:absolute;
+    left: 0;
+    top:0;
+    width: 100%;
+    height: 100dvh;
   }
 </style>
