@@ -28,8 +28,8 @@ imgLoader.loadAsync(skyTexture).then((tex) => {
 });
 const player = new GreenCube(scene, imgLoader);
 
-camera.position.z = 7;
-camera.position.y = 7;
+camera.position.z = 10;
+camera.position.y = 10;
 camera.lookAt(new THREE.Vector3(0,0,0));
 camera.updateProjectionMatrix();
 const cameraPivot = new THREE.Object3D();
@@ -46,7 +46,7 @@ mp.onRemotePlayerFrameData((id, data, sentTimeMs) => {
   if (playerObj) {
     
     let info = data as SerializedPlayerData;
-    playerObj.onRemotePlayerData(info, (mp.serverTimeMs() - sentTimeMs)/1000);
+    playerObj.onRemotePlayerData(info, (mp.serverTimeMs() - sentTimeMs)/1000, gameTime);
   }
 });
 mp.onRemotePlayerDisconnected((id) => {

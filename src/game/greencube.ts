@@ -12,11 +12,29 @@ export class GreenCube {
     material : Material;
     mesh : Mesh;
     public object : Object3D;
-    rotationSpeed : number = 1;
+    visualRotationSpeedMultiplier : number = 1;
     velocity : Vector2;
-    radius : number = 0.5;
+    radius : number = 1;
     scene: Scene;
-    maxSpeed : number = 24;
+    maxSpeed : number = 20;
+
+    const = {
+        right: new Vector3(1,0,0),
+        forward: new Vector3(0,0,-1),
+    }
+
+    var = {
+        rot1: new Quaternion(),
+        rot2: new Quaternion(),
+        v1: new Vector3(),
+    }
+
+    smoothing = {
+        wantedPosition: new Vector3(),
+        lastInfoTime: 0,
+        lerpTime: 0.3, // const
+        lerping: false,
+    }
 
     constructor(scene : Scene, loader : TextureLoader)
     {
@@ -31,19 +49,12 @@ export class GreenCube {
         this.scene = scene;
 
         this.velocity = new Vector2();
-        this.instantRotation = new Quaternion();
-        this.instantRotation2 = new Quaternion();
-        this.right = new Vector3(1,0,0);
-        this.forward = new Vector3(0,0,-1);
     }
-
-    instantRotation : Quaternion;
-    instantRotation2 : Quaternion;
-    right : Vector3;
-    forward : Vector3;
 
     update(time : Time, worldBoundaries : Box2, input? : InputManager)
     {
+        let positionBefore = this.var.v1.copy(this.object.position);
+
         if (input) { // Local players
             this.velocity.x = 0;
             this.velocity.x = input.trackball.velocity.x
@@ -59,13 +70,25 @@ export class GreenCube {
             if (input.up.pressed)
                 this.velocity.y -= this.maxSpeed;
         }
-        else { // Other players
+
+        if (!input && this.smoothing.lerping) { // Other players and interpolating
+            let lerpTime = time.time - this.smoothing.lastInfoTime;
+            let lerpFactor = Math.min(1, Math.max(0, lerpTime/this.smoothing.lerpTime));
+
+            this.smoothing.wantedPosition.x += this.velocity.x * time.deltaTime;
+            this.smoothing.wantedPosition.z += this.velocity.y * time.deltaTime;
+
+            this.object.position.lerp(this.smoothing.wantedPosition, lerpFactor);
             
+            if (lerpFactor >= 1)
+                this.smoothing.lerping = false;
+        }
+        else {
+            this.object.position.x += this.velocity.x * time.deltaTime;
+            this.object.position.z += this.velocity.y * time.deltaTime;
         }
 
         // Move and collide against AABB world boundaries
-        this.object.position.x += this.velocity.x * time.deltaTime;
-        this.object.position.z += this.velocity.y * time.deltaTime;
 
         let bounciness = 0.9;
  
@@ -93,10 +116,12 @@ export class GreenCube {
         }
 
         // Visually update
-        this.instantRotation.setFromAxisAngle(this.right, this.rotationSpeed * this.velocity.y / this.radius * time.deltaTime);
-        this.instantRotation2.setFromAxisAngle(this.forward, this.rotationSpeed * this.velocity.x / this.radius * time.deltaTime);
-        this.instantRotation.multiply(this.instantRotation2);
-        this.mesh.quaternion.premultiply(this.instantRotation);
+        let frameDisplacement = positionBefore.sub(this.object.position).multiplyScalar(-1);
+
+        let zMovementRotation = this.var.rot1.setFromAxisAngle(this.const.right, frameDisplacement.z / this.radius * this.visualRotationSpeedMultiplier);
+        let xMovementRotation = this.var.rot2.setFromAxisAngle(this.const.forward, frameDisplacement.x / this.radius * this.visualRotationSpeedMultiplier);
+        zMovementRotation.multiply(xMovementRotation);
+        this.mesh.quaternion.premultiply(zMovementRotation);
     }
 
     serializePlayerData() : SerializedPlayerData {
@@ -106,10 +131,13 @@ export class GreenCube {
         }
     }
 
-    onRemotePlayerData(data : SerializedPlayerData, timeSinceItWasSent : number) {
-        this.object.position.copy(data.position);
-        this.object.position.x += data.velocity.x * timeSinceItWasSent;
-        this.object.position.z += data.velocity.y * timeSinceItWasSent;
+    onRemotePlayerData(data : SerializedPlayerData, timeSinceItWasSent : number, time : Time)
+    {
+        this.smoothing.wantedPosition.copy(data.position);
+        this.smoothing.wantedPosition.x += data.velocity.x * timeSinceItWasSent;
+        this.smoothing.wantedPosition.z += data.velocity.y * timeSinceItWasSent;
+        this.smoothing.lastInfoTime = time.time;
+        this.smoothing.lerping = true;
         this.velocity.copy(data.velocity);
     }
 

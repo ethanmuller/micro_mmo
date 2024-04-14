@@ -40,10 +40,10 @@ export class InputManager {
         window.addEventListener('keydown', this.onkeydown);
         window.addEventListener('keyup', this.onkeyup);
 
-        this.buttons.push(this.up = new ButtonInput(["ArrowUp", "W"]));
-        this.buttons.push(this.down = new ButtonInput(["ArrowDown", "S"]));
-        this.buttons.push(this.left = new ButtonInput(["ArrowLeft", "A"]));
-        this.buttons.push(this.right = new ButtonInput(["ArrowRight", "D"]));
+        this.buttons.push(this.up = new ButtonInput(["ArrowUp", "KeyW"]));
+        this.buttons.push(this.down = new ButtonInput(["ArrowDown", "KeyS"]));
+        this.buttons.push(this.left = new ButtonInput(["ArrowLeft", "KeyA"]));
+        this.buttons.push(this.right = new ButtonInput(["ArrowRight", "KeyD"]));
 
         this.trackball = new TrackballInput()
 
