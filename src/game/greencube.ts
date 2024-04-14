@@ -123,8 +123,6 @@ export class GreenCube {
     onRemotePlayerData(data : SerializedPlayerData, timeSinceItWasSent : number, time : Time)
     {
         this.smoothing.wantedPosition.copy(data.position);
-        this.smoothing.wantedPosition.x += data.velocity.x * timeSinceItWasSent;
-        this.smoothing.wantedPosition.z += data.velocity.y * timeSinceItWasSent;
         this.smoothing.lastInfoTime = time.time;
         this.smoothing.lerping = true;
         this.velocity.copy(data.velocity);
