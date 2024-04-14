@@ -128,6 +128,7 @@ export class GreenCube {
         this.smoothing.lastInfoTime = time.time;
         this.smoothing.lerping = true;
         this.velocity.copy(data.velocity);
+        console.log(`timeSinceItWasSent (seconds): ${timeSinceItWasSent}`);
     }
 
     dispose() {
