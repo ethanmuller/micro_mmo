@@ -16,7 +16,7 @@ export class GreenCube {
     velocity : Vector2;
     radius : number = 0.5;
     scene: Scene;
-    maxSpeed : number = 2;
+    maxSpeed : number = 24;
 
     constructor(scene : Scene, loader : TextureLoader)
     {

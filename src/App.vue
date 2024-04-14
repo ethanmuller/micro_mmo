@@ -62,7 +62,7 @@ camera.position.z = 5;
 //scene.add(new THREE.DirectionalLight());
 
 const floor = new THREE.Object3D();
-const worldBoundaries = new THREE.Box2(new THREE.Vector2(-5, -3), new THREE.Vector2(5, 3));
+const worldBoundaries = new THREE.Box2(new THREE.Vector2(-50, -30), new THREE.Vector2(50, 30));
 var worldSize = new THREE.Vector2();
 worldBoundaries.getSize(worldSize);
 floor.add(new THREE.Mesh(new THREE.PlaneGeometry(worldSize.width,worldSize.height), new THREE.MeshBasicMaterial({color : 0x775577, map: imgLoader.load(mouseTexture), })));
