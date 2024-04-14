@@ -3,7 +3,9 @@ export enum MessageType {
    * Callback for the number of players
    */
   clientList = "clientList",
+  serverInfo = "serverInfo",
   onPlayerConnected = "playerConnected",
   onPlayerDisconnected = "playerDisconnected",
-  playerFrameData = "playerFrameUpdate"
+  playerSentFrameData = "playerSentFrameData",
+  serverSentPlayerFrameData = "serverSentPlayerFrameData",
 }

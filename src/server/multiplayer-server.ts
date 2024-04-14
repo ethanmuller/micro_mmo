@@ -19,7 +19,8 @@ io.on('connection', async (socket) => {
   const sockets = await io.fetchSockets();
   console.log(`CLIENT CONNECTED.    total sockets: ${sockets.length}`)
   const idList = sockets.map((socket) => socket.id);
-  io.emit(MessageType.clientList, idList)
+  io.emit(MessageType.serverInfo, Date.now()); // TODO send more relevant info
+  io.emit(MessageType.clientList, idList);
   io.emit(MessageType.onPlayerConnected, socket.id);
 
   socket.on('disconnect', async () => {
@@ -29,8 +30,8 @@ io.on('connection', async (socket) => {
     io.emit(MessageType.onPlayerDisconnected, socket.id);
   });
 
-  socket.on(MessageType.playerFrameData, (data : any) => {
-    socket.broadcast.emit(MessageType.playerFrameData, socket.id, data);
+  socket.on(MessageType.playerSentFrameData, (data : any, dataServerTime : number) => {
+    socket.broadcast.emit(MessageType.serverSentPlayerFrameData, Date.now(), socket.id, data, dataServerTime);
   });
 });
 

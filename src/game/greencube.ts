@@ -58,7 +58,7 @@ export class GreenCube {
                 this.velocity.y -= this.maxSpeed;
         }
         else { // Other players
-
+            
         }
 
         // Move and collide against AABB world boundaries
@@ -104,8 +104,10 @@ export class GreenCube {
         }
     }
 
-    onRemotePlayerData(data : SerializedPlayerData) {
+    onRemotePlayerData(data : SerializedPlayerData, timeSinceItWasSent : number) {
         this.object.position.copy(data.position);
+        this.object.position.x += data.velocity.x * timeSinceItWasSent;
+        this.object.position.z += data.velocity.y * timeSinceItWasSent;
         this.velocity.copy(data.velocity);
     }
 

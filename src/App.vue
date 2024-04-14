@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, onMounted, onBeforeUnmount} from 'vue'
+import {ref, onMounted, onBeforeUnmount} from 'vue';
 import * as THREE from 'three';
 import { GreenCube, SerializedPlayerData } from './game/greencube';
 import { Time } from './game/Time';
@@ -41,12 +41,12 @@ let playerIdToPlayerObj : Map<string, GreenCube> = new Map<string, GreenCube>();
 mp.onRemotePlayerConnected((id) => {
   playerIdToPlayerObj.set(id, new GreenCube(scene, imgLoader));
 });
-mp.onRemotePlayerFrameData((id, data) => {
+mp.onRemotePlayerFrameData((id, data, sentTimeMs) => {
   let playerObj = playerIdToPlayerObj.get(id);
   if (playerObj) {
     
     let info = data as SerializedPlayerData;
-    playerObj.onRemotePlayerData(info);
+    playerObj.onRemotePlayerData(info, (mp.serverTimeMs() - sentTimeMs)/1000);
   }
 });
 mp.onRemotePlayerDisconnected((id) => {
@@ -84,7 +84,8 @@ function mainLoop()
   gameTime.deltaTime = (now - lastTickTime) / 1000;
   gameTime.deltaTime = Math.min(1/12, gameTime.deltaTime); // Prevent big time jumps
   gameTime.time += gameTime.deltaTime;
-  gameTime.serverTime += gameTime.deltaTime;
+  //gameTime.serverTime += gameTime.deltaTime; Maybe unessesary?
+  gameTime.serverTime = mp.serverTimeMs()/1000;
   lastTickTime = now;
 
   input.update();
