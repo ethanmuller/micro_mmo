@@ -25,6 +25,7 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.2.2",
     "vite": "^5.2.0",
+    "vite-plugin-qrcode": "^0.2.3",
     "vue-tsc": "^2.0.6"
   }
 }

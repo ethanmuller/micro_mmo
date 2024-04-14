@@ -25,7 +25,6 @@ export class MultiplayerClient {
         this.localPlayerDisplayString.value = `Local player: ${id}`;
 
         // Check players list and instantiate necessary information of other players
-        console.log(this.playerList);
         this.playerList.forEach(playerId => {
           if (playerId != this.localPlayerId)
             this.processNewRemotePlayer(playerId);
