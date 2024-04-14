@@ -6,6 +6,7 @@ import { Time } from './game/Time';
 import skyTexture from './assets/sky_gradient.png';
 import mouseTexture from "./assets/mouse_texture.png";
 import { MultiplayerClient } from './game/MultiplayerClient';
+import { InputManager } from './game/InputManager';
 
 const logs = ref("Not connected to the multiplayer server")
 
@@ -63,7 +64,8 @@ var gameTime = <Time>({
   serverTime: 0
 });
 
-var lastTickTime = new Date().getTime();
+let lastTickTime = new Date().getTime();
+let input = new InputManager();
 
 function mainLoop()
 {
@@ -74,8 +76,10 @@ function mainLoop()
   gameTime.serverTime += gameTime.deltaTime;
   lastTickTime = now;
 
+  input.update();
+
   // update
-	player.update(gameTime, worldBoundaries);
+	player.update(gameTime, worldBoundaries, input);
 
   playerIdToPlayerObj.forEach((plObj : GreenCube, id: string) => {
     plObj.update(gameTime, worldBoundaries);

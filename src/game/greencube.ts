@@ -1,6 +1,7 @@
 import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, Object3D, Vector2, Box2, MeshNormalMaterial, Material, MeshLambertMaterial, TextureLoader, Quaternion, Vector3, Euler } from "three";
 import { Time } from "./Time";
 import mouseTexture from "../assets/mouse_texture.png";
+import { InputManager } from "./InputManager";
 export class GreenCube {
     material : Material;
     mesh : Mesh;
@@ -9,6 +10,7 @@ export class GreenCube {
     velocity : Vector2;
     radius : number = 0.5;
     scene: Scene;
+    maxSpeed : number = 2;
 
     constructor(scene : Scene, loader : TextureLoader)
     {
@@ -22,7 +24,7 @@ export class GreenCube {
         scene.add( this.object );
         this.scene = scene;
 
-        this.velocity = new Vector2(1,1);
+        this.velocity = new Vector2();
         this.instantRotation = new Quaternion();
         this.instantRotation2 = new Quaternion();
         this.right = new Vector3(1,0,0);
@@ -34,22 +36,52 @@ export class GreenCube {
     right : Vector3;
     forward : Vector3;
 
-    update(time : Time, worldBoundaries : Box2) {
-        // TODO change velocity given a specific input, probably passed as parameter
+    update(time : Time, worldBoundaries : Box2, input? : InputManager)
+    {
+        if (input) { // Local players
+            this.velocity.x = 0;
+            if (input.left.pressed)
+                this.velocity.x -= this.maxSpeed;
+            if (input.right.pressed)
+                this.velocity.x += this.maxSpeed;
+            
+            this.velocity.y = 0;
+            if (input.down.pressed)
+                this.velocity.y += this.maxSpeed;
+            if (input.up.pressed)
+                this.velocity.y -= this.maxSpeed;
+        }
+        else { // Other players
+
+        }
 
         // Move and collide against AABB world boundaries
         this.object.position.x += this.velocity.x * time.deltaTime;
         this.object.position.z += this.velocity.y * time.deltaTime;
+
+        let bounciness = 0.9;
  
-        if ((this.object.position.x + this.radius > worldBoundaries.max.x && this.velocity.x > 0) ||
-            (this.object.position.x - this.radius < worldBoundaries.min.x && this.velocity.x < 0))
+        if (this.object.position.x + this.radius > worldBoundaries.max.x)
         {
-            this.velocity.x *= -1;
+            this.object.position.x = worldBoundaries.max.x - this.radius;
+            if (this.velocity.x > 0)
+                this.velocity.x = -bounciness * this.velocity.x;
         }
-        if ((this.object.position.z + this.radius > worldBoundaries.max.y && this.velocity.y > 0) ||
-            (this.object.position.z - this.radius< worldBoundaries.min.y && this.velocity.y < 0))
+        else if (this.object.position.x - this.radius < worldBoundaries.min.x) {
+            this.object.position.x = worldBoundaries.min.x + this.radius;
+            if (this.velocity.x < 0)
+                this.velocity.x = -bounciness * this.velocity.x;
+        }
+        if (this.object.position.z + this.radius > worldBoundaries.max.y)
         {
-            this.velocity.y *= -1;
+            this.object.position.z = worldBoundaries.max.y - this.radius;
+            if (this.velocity.y > 0)
+                this.velocity.y = -bounciness * this.velocity.y;
+        }
+        else if (this.object.position.z - this.radius < worldBoundaries.min.y) {
+            this.object.position.z = worldBoundaries.min.y + this.radius;
+            if (this.velocity.y < 0)
+                this.velocity.y = -bounciness * this.velocity.y;
         }
 
         // Visually update
