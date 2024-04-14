@@ -88,31 +88,20 @@ export class GreenCube {
             this.object.position.z += this.velocity.y * time.deltaTime;
         }
 
-        // Move and collide against AABB world boundaries
-
-        let bounciness = 0.9;
- 
+        // Move and collide against AABB world boundaries 
         if (this.object.position.x + this.radius > worldBoundaries.max.x)
         {
             this.object.position.x = worldBoundaries.max.x - this.radius;
-            if (this.velocity.x > 0)
-                this.velocity.x = -bounciness * this.velocity.x;
         }
         else if (this.object.position.x - this.radius < worldBoundaries.min.x) {
             this.object.position.x = worldBoundaries.min.x + this.radius;
-            if (this.velocity.x < 0)
-                this.velocity.x = -bounciness * this.velocity.x;
         }
         if (this.object.position.z + this.radius > worldBoundaries.max.y)
         {
             this.object.position.z = worldBoundaries.max.y - this.radius;
-            if (this.velocity.y > 0)
-                this.velocity.y = -bounciness * this.velocity.y;
         }
         else if (this.object.position.z - this.radius < worldBoundaries.min.y) {
             this.object.position.z = worldBoundaries.min.y + this.radius;
-            if (this.velocity.y < 0)
-                this.velocity.y = -bounciness * this.velocity.y;
         }
 
         // Visually update
