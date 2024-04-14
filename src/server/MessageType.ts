@@ -5,4 +5,5 @@ export enum MessageType {
   clientList = "clientList",
   onPlayerConnected = "playerConnected",
   onPlayerDisconnected = "playerDisconnected",
+  playerFrameData = "playerFrameUpdate"
 }

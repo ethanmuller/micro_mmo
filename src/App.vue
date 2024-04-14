@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import {ref, onMounted, onBeforeUnmount} from 'vue'
 import * as THREE from 'three';
-import { GreenCube } from './game/greencube';
+import { GreenCube, SerializedPlayerData } from './game/greencube';
 import { Time } from './game/Time';
 import skyTexture from './assets/sky_gradient.png';
 import mouseTexture from "./assets/mouse_texture.png";
 import { MultiplayerClient } from './game/MultiplayerClient';
 import { InputManager } from './game/InputManager';
+
+const NETWORK_TIME_BETWEEN_UPDATES = 1/15; // 1/timesPerSecond
+let lastNetworkUpdate = 0;
 
 const logs = ref("Not connected to the multiplayer server")
 
@@ -37,6 +40,14 @@ const mp = new MultiplayerClient()
 let playerIdToPlayerObj : Map<string, GreenCube> = new Map<string, GreenCube>();
 mp.onRemotePlayerConnected((id) => {
   playerIdToPlayerObj.set(id, new GreenCube(scene, imgLoader));
+});
+mp.onRemotePlayerFrameData((id, data) => {
+  let playerObj = playerIdToPlayerObj.get(id);
+  if (playerObj) {
+    
+    let info = data as SerializedPlayerData;
+    playerObj.onRemotePlayerData(info);
+  }
 });
 mp.onRemotePlayerDisconnected((id) => {
   let pO = playerIdToPlayerObj.get(id);
@@ -85,15 +96,20 @@ function mainLoop()
     plObj.update(gameTime, worldBoundaries);
   })
 
+  // Camera updates
   cameraPivot.position.copy(player.object.position);
-  //cameraPivot.updateMatrix();
   camera.updateProjectionMatrix();
 
   // draw
 	renderer.render( scene, camera );
 
-  // TODO send info to the server every X milliseconds
+  // send info to the server if it's time
+  if (gameTime.time - lastNetworkUpdate > NETWORK_TIME_BETWEEN_UPDATES)
+  {
+    mp.sendLocalPlayerFrameData(player.serializePlayerData());
 
+    lastNetworkUpdate = gameTime.time;
+  }
   //
   requestAnimationFrame(mainLoop);
 }

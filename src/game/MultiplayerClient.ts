@@ -37,6 +37,9 @@ export class MultiplayerClient {
       console.log(`player ${id} disconnected`);
       this.onRemotePlayerDisconnectedCallbacks.forEach(cb => cb(id));
     })
+    this.connection.on(MessageType.playerFrameData, (id, data) => {
+      this.onRemotePlayerFrameDataCallbacks.forEach(cb => cb(id, data));
+    })
   }
 
   processNewRemotePlayer(playerId : string) {
@@ -51,6 +54,16 @@ export class MultiplayerClient {
   private onRemotePlayerDisconnectedCallbacks : ((id: string) => void)[] = [];
   onRemotePlayerDisconnected(cb : (id: string) => void) {
     this.onRemotePlayerDisconnectedCallbacks.push(cb);
+  }
+
+  // Frame data
+  sendLocalPlayerFrameData(data: any) {
+    this.connection.emit(MessageType.playerFrameData, data);
+  }
+
+  private onRemotePlayerFrameDataCallbacks : ((id: string, data: any) => void)[] = [];
+  onRemotePlayerFrameData(cb: (id: string, data: any) => void) {
+    this.onRemotePlayerFrameDataCallbacks.push(cb);
   }
 
   disconnect() {

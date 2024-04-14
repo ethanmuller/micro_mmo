@@ -2,6 +2,12 @@ import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, Object3D, Vector2, Box2
 import { Time } from "./Time";
 import mouseTexture from "../assets/mouse_texture.png";
 import { InputManager } from "./InputManager";
+
+export type SerializedPlayerData = {
+    position: Vector3,
+    velocity: Vector2
+}
+
 export class GreenCube {
     material : Material;
     mesh : Mesh;
@@ -89,6 +95,18 @@ export class GreenCube {
         this.instantRotation2.setFromAxisAngle(this.forward, this.rotationSpeed * this.velocity.x / this.radius * time.deltaTime);
         this.instantRotation.multiply(this.instantRotation2);
         this.mesh.quaternion.premultiply(this.instantRotation);
+    }
+
+    serializePlayerData() : SerializedPlayerData {
+        return {
+            position : this.object.position,
+            velocity: this.velocity
+        }
+    }
+
+    onRemotePlayerData(data : SerializedPlayerData) {
+        this.object.position.copy(data.position);
+        this.velocity.copy(data.velocity);
     }
 
     dispose() {

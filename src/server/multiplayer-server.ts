@@ -28,6 +28,10 @@ io.on('connection', async (socket) => {
     io.emit(MessageType.clientList, idList)
     io.emit(MessageType.onPlayerDisconnected, socket.id);
   });
+
+  socket.on(MessageType.playerFrameData, (data : any) => {
+    socket.broadcast.emit(MessageType.playerFrameData, socket.id, data);
+  });
 });
 
 server.listen(3000, () => {
