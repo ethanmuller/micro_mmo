@@ -28,12 +28,14 @@ imgLoader.loadAsync(skyTexture).then((tex) => {
 });
 const player = new GreenCube(scene, imgLoader);
 
-camera.position.z = 10;
+//camera.position.x = 10;
 camera.position.y = 10;
+camera.position.z = 10;
 camera.lookAt(new THREE.Vector3(0,0,0));
 camera.updateProjectionMatrix();
 const cameraPivot = new THREE.Object3D();
 cameraPivot.add(camera);
+cameraPivot.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
 scene.add(cameraPivot);
 
 const mp = new MultiplayerClient()
@@ -56,8 +58,6 @@ mp.onRemotePlayerDisconnected((id) => {
   }
   playerIdToPlayerObj.delete(id);
 });
-
-camera.position.z = 5;
 
 //scene.add(new THREE.DirectionalLight());
 
@@ -91,7 +91,7 @@ function mainLoop()
   input.update();
 
   // update
-	player.update(gameTime, worldBoundaries, input);
+	player.update(gameTime, worldBoundaries, input, cameraPivot);
 
   playerIdToPlayerObj.forEach((plObj : GreenCube, id: string) => {
     plObj.update(gameTime, worldBoundaries);
