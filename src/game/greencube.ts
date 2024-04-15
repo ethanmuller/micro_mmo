@@ -1,4 +1,4 @@
-import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, Object3D, Vector2, Box2, MeshNormalMaterial, Material, MeshLambertMaterial, TextureLoader, Quaternion, Vector3, Euler, Camera, CylinderGeometry, ConeGeometry } from "three";
+import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshNormalMaterial, Material, MeshLambertMaterial, TextureLoader, Quaternion, Vector3, Euler, Camera, CylinderGeometry, ConeGeometry, BackSide, DoubleSide } from "three";
 import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, Object3D, Vector2, Box2, MeshNormalMaterial, Material, MeshLambertMaterial, TextureLoader, Quaternion, Vector3, Euler, MeshToonMaterial, NearestFilter } from "three";
 import { Time } from "./Time";
 import mouseTexture from "../assets/mouse_texture.png";
@@ -13,6 +13,8 @@ export type SerializedPlayerData = {
 export class GreenCube {
     material : Material;
     noseMaterial : Material;
+    earMaterial : Material;
+    eyeMaterial : Material;
     debugSphere : Mesh;
     public object : Object3D;
     visualRotationSpeedMultiplier : number = 1;
@@ -30,6 +32,10 @@ export class GreenCube {
     face: Object3D;
     snout: Mesh;
     nose: Mesh;
+    eyeLeft: Mesh;
+    eyeRight: Mesh;
+    earLeft: Mesh;
+    earRight: Mesh;
     
 
     const = {
@@ -63,17 +69,21 @@ export class GreenCube {
 
         
         this.material = new MeshToonMaterial( { color: 0xaaaaaa, gradientMap: toonRamp});
-        this.noseMaterial = new MeshBasicMaterial( { color: 0xcc8888, gradientMap: toonRamp});
+        this.noseMaterial = new MeshBasicMaterial( { color: 0xcc8888});
+        this.earMaterial = new MeshBasicMaterial( { color: 0xcc8888, side: DoubleSide});
+        this.eyeMaterial = new MeshBasicMaterial( { color: 0x000000});
 
-        const buttRadius = 0.7;
+        const buttRadius = 0.89;
         const chestRadius = 0.6;
-        const bodyLength = buttRadius + chestRadius-0.2;
-        const snoutRadius = 0.46;
+        const bodyLength = buttRadius + chestRadius-0.1;
+        const snoutRadius = 0.47;
         
         const snoutLength = 0.5;
         const snoutTilt = 0;// Math.PI*0.2;
-        const snoutPlacement = new Vector3(0, 0, -0.01);
+        const snoutPlacement = new Vector3(0, 0, -0.02);
         const noseRadius = 0.05;
+        const eyeRadius = 0.075;
+        const earRadius = 0.3;
         this.model = new Object3D();
         this.model.position.y = this.radius;
         this.butt = new Mesh(new SphereGeometry( buttRadius, 12, 12 ), this.material );
@@ -100,7 +110,20 @@ export class GreenCube {
         this.face.add(this.snout);
         this.nose = new Mesh(new SphereGeometry( noseRadius, 8, 8 ), this.noseMaterial );
         this.nose.position.y = snoutLength * 0.5;
-        this.snout.add(this.nose)
+        this.eyeLeft = new Mesh(new SphereGeometry( eyeRadius, 8, 8 ), this.eyeMaterial );
+        this.eyeLeft.position.z = snoutLength * 0.4;
+        this.eyeLeft.position.y = snoutLength * 0.1 * -1;
+        this.eyeLeft.position.x = snoutLength * 0.5;
+        this.eyeRight = this.eyeLeft.clone()
+        this.eyeRight.position.x *= -1
+        this.earLeft = new Mesh(new CircleGeometry( earRadius, 8), this.earMaterial );
+        this.earLeft.position.x += 0.5
+        this.earLeft.position.z += .5
+        this.earLeft.position.y -= .35
+        this.earLeft.rotateX(Math.PI*0.5)
+        this.earRight = this.earLeft.clone()
+        this.earLeft.position.x *= -1
+        this.snout.add(this.nose, this.eyeLeft, this.eyeRight, this.earLeft, this.earRight)
 
 
 

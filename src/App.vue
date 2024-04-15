@@ -29,13 +29,13 @@ imgLoader.loadAsync(skyTexture).then((tex) => {
 const player = new GreenCube(scene, imgLoader);
 
 //camera.position.x = 10;
-camera.position.y = 1.5;
-camera.position.z = 5;
+camera.position.y = 10;
+camera.position.z = 10;
 camera.lookAt(new THREE.Vector3(0,0,0));
 camera.updateProjectionMatrix();
 const cameraPivot = new THREE.Object3D();
 cameraPivot.add(camera);
-cameraPivot.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.5)
+cameraPivot.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.75)
 scene.add(cameraPivot);
 
 const mp = new MultiplayerClient()
