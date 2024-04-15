@@ -16,7 +16,7 @@ export class GreenCube {
     velocity : Vector2;
     radius : number = 1;
     scene: Scene;
-    maxSpeed : number = 20;
+    maxSpeed : number = 40;
 
     const = {
         right: new Vector3(1,0,0),
@@ -69,6 +69,8 @@ export class GreenCube {
                 this.velocity.y += this.maxSpeed;
             if (input.up.pressed)
                 this.velocity.y -= this.maxSpeed;
+            this.velocity.clampLength(0, this.maxSpeed)
+            
         }
 
         if (!input && this.smoothing.lerping) { // Other players and interpolating
