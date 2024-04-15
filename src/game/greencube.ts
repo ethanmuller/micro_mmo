@@ -1,3 +1,4 @@
+import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, Object3D, Vector2, Box2, MeshNormalMaterial, Material, MeshLambertMaterial, TextureLoader, Quaternion, Vector3, Euler, Camera } from "three";
 import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, Object3D, Vector2, Box2, MeshNormalMaterial, Material, MeshLambertMaterial, TextureLoader, Quaternion, Vector3, Euler, MeshToonMaterial, NearestFilter } from "three";
 import { Time } from "./Time";
 import mouseTexture from "../assets/mouse_texture.png";
@@ -6,7 +7,7 @@ import { InputManager } from "./InputManager";
 
 export type SerializedPlayerData = {
     position: Vector3,
-    velocity: Vector2
+    velocity: Vector3
 }
 
 export class GreenCube {
@@ -14,7 +15,7 @@ export class GreenCube {
     debugSphere : Mesh;
     public object : Object3D;
     visualRotationSpeedMultiplier : number = 1;
-    velocity : Vector2;
+    velocity : Vector3;
     radius : number = 1;
     scene: Scene;
     maxSpeed : number = 40;
@@ -65,28 +66,49 @@ export class GreenCube {
         scene.add( this.object );
         this.scene = scene;
 
-        this.velocity = new Vector2();
+        this.velocity = new Vector3();
     }
 
-    update(time : Time, worldBoundaries : Box2, input? : InputManager)
+    update(time : Time, worldBoundaries : Box2, input? : InputManager, camera? : Object3D)
     {
         let positionBefore = this.var.v1.copy(this.object.position);
 
-        if (input) { // Local players
-            this.velocity.x = 0;
-            this.velocity.x = input.trackball.velocity.x
-            if (input.left.pressed)
-                this.velocity.x -= this.maxSpeed;
-            if (input.right.pressed)
-                this.velocity.x += this.maxSpeed;
+        if (input && camera) { // Local players
+            const inputVelocity = new Vector3(input.trackball.velocity.x, 0, -input.trackball.velocity.y)
+            const relativeRight = new Vector3(1, 0, 0)
+            relativeRight.applyQuaternion(camera.quaternion)
+            relativeRight.y = 0
+            relativeRight.normalize()
+            const trackballRight = relativeRight.clone()
+            trackballRight.multiplyScalar(input.trackball.velocity.x)
+
+            const relativeForward = new Vector3(0, 0, 1)
+            relativeForward.applyQuaternion(camera.quaternion)
+            relativeForward.y = 0
+            relativeForward.normalize()
+            const trackballForward = relativeForward.clone()
+            trackballForward.multiplyScalar(input.trackball.velocity.y)
             
-            this.velocity.y = 0;
-            this.velocity.y = input.trackball.velocity.y
+            this.velocity.set(0, 0, 0);
+            this.velocity.add(trackballRight)
+            this.velocity.add(trackballForward)
+
+            relativeRight.multiplyScalar(this.maxSpeed)
+            relativeForward.multiplyScalar(this.maxSpeed)
+
+            if (input.left.pressed)
+                this.velocity.sub(relativeRight)
+            if (input.right.pressed)
+                this.velocity.add(relativeRight)
+            
+            // this.velocity.y = 0;
+            // this.velocity.y = inputVelocity.y
             if (input.down.pressed)
-                this.velocity.y += this.maxSpeed;
+                this.velocity.add(relativeForward)
             if (input.up.pressed)
-                this.velocity.y -= this.maxSpeed;
-            this.velocity.clampLength(0, this.maxSpeed)
+                this.velocity.sub(relativeForward)
+
+           this.velocity.clampLength(0, this.maxSpeed)
             
             if (input.debugButton.pressedThisFrame) {
                 this.debugSphere.visible = !this.debugSphere.visible;
@@ -98,7 +120,7 @@ export class GreenCube {
             let lerpFactor = Math.min(1, Math.max(0, lerpTime/this.smoothing.lerpTime));
 
             this.smoothing.wantedPosition.x += this.velocity.x * time.deltaTime;
-            this.smoothing.wantedPosition.z += this.velocity.y * time.deltaTime;
+            this.smoothing.wantedPosition.z += this.velocity.z * time.deltaTime;
 
             this.object.position.lerp(this.smoothing.wantedPosition, lerpFactor);
             
@@ -107,7 +129,7 @@ export class GreenCube {
         }
         else {
             this.object.position.x += this.velocity.x * time.deltaTime;
-            this.object.position.z += this.velocity.y * time.deltaTime;
+            this.object.position.z += this.velocity.z * time.deltaTime;
         }
 
         // Move and collide against AABB world boundaries 
