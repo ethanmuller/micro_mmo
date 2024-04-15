@@ -48,7 +48,7 @@ export class InputManager {
         this.trackball = new TrackballInput()
 
         const mc = new Hammer.Manager(trackballElement)
-        mc.add( new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 0 }) );
+        mc.add( new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 2 }) );
         mc.add( new Hammer.Press({ time: 0 }) );
 
         mc.on('pan', (e: HammerInput) => {
