@@ -1,6 +1,7 @@
-import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, Object3D, Vector2, Box2, MeshNormalMaterial, Material, MeshLambertMaterial, TextureLoader, Quaternion, Vector3, Euler } from "three";
+import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, Object3D, Vector2, Box2, MeshNormalMaterial, Material, MeshLambertMaterial, TextureLoader, Quaternion, Vector3, Euler, MeshToonMaterial, NearestFilter } from "three";
 import { Time } from "./Time";
 import mouseTexture from "../assets/mouse_texture.png";
+import toonTexture from "../assets/threeTone_bright.jpg";
 import { InputManager } from "./InputManager";
 
 export type SerializedPlayerData = {
@@ -10,13 +11,16 @@ export type SerializedPlayerData = {
 
 export class GreenCube {
     material : Material;
-    mesh : Mesh;
+    debugSphere : Mesh;
     public object : Object3D;
     visualRotationSpeedMultiplier : number = 1;
     velocity : Vector2;
     radius : number = 1;
     scene: Scene;
     maxSpeed : number = 40;
+
+    // composite body
+    body: Mesh;
 
     const = {
         right: new Vector3(1,0,0),
@@ -38,11 +42,24 @@ export class GreenCube {
 
     constructor(scene : Scene, loader : TextureLoader)
     {
-        this.material = new MeshBasicMaterial( { color: 0xbbbbbb, map: loader.load(mouseTexture)} );
-        this.mesh = new Mesh(new SphereGeometry( this.radius, 10, 10 ), this.material );
-        this.mesh.position.y += 0.5;
+        const toonRamp = loader.load(toonTexture, (texture) => {
+            texture.minFilter = NearestFilter;
+            texture.magFilter = NearestFilter;
+        });
+        this.debugSphere = new Mesh(new SphereGeometry( this.radius, 12, 12 ), new MeshBasicMaterial( { color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.3}) );
+        this.debugSphere.position.y += this.radius;
+        this.debugSphere.visible = false;
+
+        
+        this.material = new MeshToonMaterial( { color: 0xaaaaaa, gradientMap: toonRamp});
+
+        this.body = new Mesh(new SphereGeometry( 0.8, 12, 12 ), this.material );
+        this.body.position.y = this.radius;
+
+
         this.object = new Object3D();
-        this.object.add(this.mesh);
+        this.object.add(this.debugSphere);
+        this.object.add(this.body);
         this.object.position.x += Math.random()* 5 - 2.5;
         this.object.position.z += Math.random()* 5 - 2.5;
         scene.add( this.object );
@@ -71,6 +88,9 @@ export class GreenCube {
                 this.velocity.y -= this.maxSpeed;
             this.velocity.clampLength(0, this.maxSpeed)
             
+            if (input.debugButton.pressedThisFrame) {
+                this.debugSphere.visible = !this.debugSphere.visible;
+            }
         }
 
         if (!input && this.smoothing.lerping) { // Other players and interpolating
@@ -109,10 +129,13 @@ export class GreenCube {
         // Visually update
         let frameDisplacement = positionBefore.sub(this.object.position).multiplyScalar(-1);
 
-        let zMovementRotation = this.var.rot1.setFromAxisAngle(this.const.right, frameDisplacement.z / this.radius * this.visualRotationSpeedMultiplier);
-        let xMovementRotation = this.var.rot2.setFromAxisAngle(this.const.forward, frameDisplacement.x / this.radius * this.visualRotationSpeedMultiplier);
-        zMovementRotation.multiply(xMovementRotation);
-        this.mesh.quaternion.premultiply(zMovementRotation);
+        if (this.debugSphere.visible) {
+            // debug sphere
+            let zMovementRotation = this.var.rot1.setFromAxisAngle(this.const.right, frameDisplacement.z / this.radius * this.visualRotationSpeedMultiplier);
+            let xMovementRotation = this.var.rot2.setFromAxisAngle(this.const.forward, frameDisplacement.x / this.radius * this.visualRotationSpeedMultiplier);
+            zMovementRotation.multiply(xMovementRotation);
+            this.debugSphere.quaternion.premultiply(zMovementRotation);
+        }
     }
 
     serializePlayerData() : SerializedPlayerData {
@@ -128,11 +151,11 @@ export class GreenCube {
         this.smoothing.lastInfoTime = time.time;
         this.smoothing.lerping = true;
         this.velocity.copy(data.velocity);
-        console.log(`timeSinceItWasSent (seconds): ${timeSinceItWasSent}`);
+        //console.log(`timeSinceItWasSent (seconds): ${timeSinceItWasSent}`);
     }
 
     dispose() {
-        this.mesh.geometry.dispose();
+        this.debugSphere.geometry.dispose();
         this.scene.remove(this.object);
     }
 }

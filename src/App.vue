@@ -57,9 +57,9 @@ mp.onRemotePlayerDisconnected((id) => {
   playerIdToPlayerObj.delete(id);
 });
 
-camera.position.z = 5;
-
-//scene.add(new THREE.DirectionalLight());
+const sun = new THREE.DirectionalLight();
+sun.quaternion.setFromAxisAngle(new THREE.Vector3(0,0,1), Math.PI * 0.1);
+scene.add(sun);
 
 const floor = new THREE.Object3D();
 const worldBoundaries = new THREE.Box2(new THREE.Vector2(-50, -30), new THREE.Vector2(50, 30));
@@ -88,8 +88,6 @@ function mainLoop()
   gameTime.serverTime = mp.serverTimeMs()/1000;
   lastTickTime = now;
 
-  input.update();
-
   // update
 	player.update(gameTime, worldBoundaries, input);
 
@@ -111,6 +109,8 @@ function mainLoop()
 
     lastNetworkUpdate = gameTime.time;
   }
+
+  input.update();
   //
   requestAnimationFrame(mainLoop);
 }

@@ -34,6 +34,9 @@ export class InputManager {
     right : ButtonInput;
     trackball : TrackballInput;
 
+    
+    debugButton : ButtonInput;
+
     constructor(trackballElement : HTMLElement) {
         reference = this;
 
@@ -44,6 +47,7 @@ export class InputManager {
         this.buttons.push(this.down = new ButtonInput(["ArrowDown", "KeyS"]));
         this.buttons.push(this.left = new ButtonInput(["ArrowLeft", "KeyA"]));
         this.buttons.push(this.right = new ButtonInput(["ArrowRight", "KeyD"]));
+        this.buttons.push(this.debugButton = new ButtonInput(["Backquote", "Digit1"]));
 
         this.trackball = new TrackballInput()
 
@@ -68,8 +72,9 @@ export class InputManager {
         for (let i = 0; i < reference.buttons.length; ++i) {
             let button = reference.buttons[i];
             if (button.keycodes.includes(code)) {
+                if (!button.pressed) 
+                    button.pressedThisFrame = true;
                 button.pressed = true;
-                button.pressedThisFrame = true;
                 button.releasedThisFrame = false;
                 break;
             }
@@ -85,9 +90,10 @@ export class InputManager {
         for (let i = 0; i < reference.buttons.length; ++i) {
             let button = reference.buttons[i];
             if (button.keycodes.includes(code)) {
+                if (button.pressed)
+                    button.releasedThisFrame = true;
                 button.pressed = false;
                 button.pressedThisFrame = false;
-                button.releasedThisFrame = true;
                 break;
             }
         }
