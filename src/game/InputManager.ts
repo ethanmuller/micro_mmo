@@ -56,7 +56,7 @@ export class InputManager {
         mc.add( new Hammer.Press({ time: 0 }) );
 
         mc.on('pan', (e: HammerInput) => {
-            this.trackball.velocity = new Vector2(e.velocityX, e.velocityY).multiplyScalar(32)
+            this.trackball.velocity = new Vector2(e.velocityX, e.velocityY).multiplyScalar(window.innerHeight*0.03)
         })
         mc.on('press', (e: HammerInput) => {
             this.trackball.velocity = new Vector2(0, 0)
