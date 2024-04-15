@@ -83,7 +83,7 @@ export class GreenCube {
         const snoutPlacement = new Vector3(0, 0, -0.02);
         const noseRadius = 0.05;
         const eyeRadius = 0.075;
-        const earRadius = 0.3;
+        const earRadius = 0.2;
         this.model = new Object3D();
         this.model.position.y = this.radius;
         this.butt = new Mesh(new SphereGeometry( buttRadius, 12, 12 ), this.material );
@@ -117,8 +117,8 @@ export class GreenCube {
         this.eyeRight = this.eyeLeft.clone()
         this.eyeRight.position.x *= -1
         this.earLeft = new Mesh(new CircleGeometry( earRadius, 8), this.earMaterial );
-        this.earLeft.position.x += 0.5
-        this.earLeft.position.z += .5
+        this.earLeft.position.x += 0.49
+        this.earLeft.position.z += .45
         this.earLeft.position.y -= .35
         this.earLeft.rotateX(Math.PI*0.5)
         this.earRight = this.earLeft.clone()
@@ -142,8 +142,11 @@ export class GreenCube {
     {
         let positionBefore = this.var.v1.copy(this.object.position);
 
+        this.face.rotateY(0.1*(Math.random()-0.5))
+        this.face.rotation.y = Math.max(this.face.rotation.y, -Math.PI*0.25)
+        this.face.rotation.y = Math.min(this.face.rotation.y, Math.PI*0.25)
+
         if (input && camera) { // Local players
-            const inputVelocity = new Vector3(input.trackball.velocity.x, 0, -input.trackball.velocity.y)
             const relativeRight = new Vector3(1, 0, 0)
             relativeRight.applyQuaternion(camera.quaternion)
             relativeRight.y = 0
@@ -164,6 +167,7 @@ export class GreenCube {
 
             relativeRight.multiplyScalar(this.maxSpeed)
             relativeForward.multiplyScalar(this.maxSpeed)
+
 
             if (input.left.pressed)
                 this.velocity.sub(relativeRight)
