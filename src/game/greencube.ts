@@ -1,4 +1,4 @@
-import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshNormalMaterial, Material, MeshLambertMaterial, TextureLoader, Quaternion, Vector3, Euler, Camera, CylinderGeometry, ConeGeometry, BackSide, DoubleSide } from "three";
+import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshNormalMaterial, Material, MeshLambertMaterial, TextureLoader, Quaternion, Vector3, Euler, Camera, CylinderGeometry, ConeGeometry, BackSide, DoubleSide, MathUtils } from "three";
 import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, Object3D, Vector2, Box2, MeshNormalMaterial, Material, MeshLambertMaterial, TextureLoader, Quaternion, Vector3, Euler, MeshToonMaterial, NearestFilter } from "three";
 import { Time } from "./Time";
 import mouseTexture from "../assets/mouse_texture.png";
@@ -23,6 +23,13 @@ export class GreenCube {
     scene: Scene;
     maxSpeed : number = 40;
 
+    // animation
+    randomlyLookHeadMinMax : Vector2 = new Vector2(0.3, 1.5);
+    changeHeadLookTimer : number = 0;
+    wantedFaceAngle : number = 0;
+    currentFaceAngle : number = 0;
+    movingFace : boolean = false;
+
     // composite body
     model: Object3D;
     butt: Mesh;
@@ -41,6 +48,7 @@ export class GreenCube {
     const = {
         right: new Vector3(1,0,0),
         forward: new Vector3(0,0,-1),
+        up: new Vector3(0,1,0),
     }
 
     var = {
@@ -83,7 +91,7 @@ export class GreenCube {
         const snoutPlacement = new Vector3(0, 0, -0.02);
         const noseRadius = 0.05;
         const eyeRadius = 0.075;
-        const earRadius = 0.2;
+        const earRadius = 0.25;
         this.model = new Object3D();
         this.model.position.y = this.radius;
         this.butt = new Mesh(new SphereGeometry( buttRadius, 12, 12 ), this.material );
@@ -116,13 +124,25 @@ export class GreenCube {
         this.eyeLeft.position.x = snoutLength * 0.5;
         this.eyeRight = this.eyeLeft.clone()
         this.eyeRight.position.x *= -1
-        this.earLeft = new Mesh(new CircleGeometry( earRadius, 8), this.earMaterial );
+        const earSegments = 7;
+        this.earLeft = new Mesh(new CircleGeometry( earRadius, earSegments), this.earMaterial );
         this.earLeft.position.x += 0.49
         this.earLeft.position.z += .45
         this.earLeft.position.y -= .35
-        this.earLeft.rotateX(Math.PI*0.5)
+        this.earLeft.rotateX(-Math.PI*0.5)
+
+        const backEarDepth = earRadius * 0.7;
+        // Some trigonometry to get automatic placement of back-ear depending on backEarDepth
+        const backEarAlpha = Math.atan(earRadius/backEarDepth);
+        const backEarRadius = Math.sqrt(earRadius*earRadius + backEarDepth*backEarDepth) / (2*Math.cos(backEarAlpha));
+        let backEarLeft = new Mesh(new SphereGeometry(backEarRadius, earSegments, 2, undefined, undefined, undefined, Math.PI - backEarAlpha*2), this.material);
+        backEarLeft.rotateX(-Math.PI*0.5)
+        backEarLeft.rotateY(-Math.PI)
+        backEarLeft.position.z = backEarRadius - backEarDepth;
+        this.earLeft.add(backEarLeft);
+        
         this.earRight = this.earLeft.clone()
-        this.earLeft.position.x *= -1
+        this.earLeft.position.x *= -1;
         this.snout.add(this.nose, this.eyeLeft, this.eyeRight, this.earLeft, this.earRight)
 
 
@@ -141,10 +161,6 @@ export class GreenCube {
     update(time : Time, worldBoundaries : Box2, input? : InputManager, camera? : Object3D)
     {
         let positionBefore = this.var.v1.copy(this.object.position);
-
-        this.face.rotateY(0.1*(Math.random()-0.5))
-        this.face.rotation.y = Math.max(this.face.rotation.y, -Math.PI*0.25)
-        this.face.rotation.y = Math.min(this.face.rotation.y, Math.PI*0.25)
 
         if (input && camera) { // Local players
             const relativeRight = new Vector3(1, 0, 0)
@@ -221,11 +237,34 @@ export class GreenCube {
             this.object.position.z = worldBoundaries.min.y + this.radius;
         }
 
-        // Visually update
+        // Visually update, animations
         let frameDisplacement = positionBefore.sub(this.object.position);
         this.model.getWorldPosition(this.var.v2);
         if (frameDisplacement.lengthSq() > 0.00001)
             this.model.lookAt(frameDisplacement.add(this.var.v2));
+
+        this.changeHeadLookTimer -= time.deltaTime;
+        if (this.changeHeadLookTimer <= 0) {
+            let maxRotation = Math.PI*0.25;
+
+            this.changeHeadLookTimer = MathUtils.lerp(this.randomlyLookHeadMinMax.x, this.randomlyLookHeadMinMax.y, Math.random());
+            this.wantedFaceAngle = maxRotation*(Math.random()-0.5)*2;
+            this.movingFace = true;
+        }
+
+        if (this.movingFace) {
+            const maxHeadRotationSpeed = time.deltaTime * Math.PI * 1;
+            let signedDistance = this.wantedFaceAngle - this.currentFaceAngle;
+            if (Math.abs(signedDistance) < maxHeadRotationSpeed) {
+                this.currentFaceAngle = this.wantedFaceAngle;
+                this.movingFace = false;
+            }
+            else {
+                this.currentFaceAngle += Math.sign(signedDistance) * maxHeadRotationSpeed;
+            }
+            this.currentFaceAngle = MathUtils.lerp(this.currentFaceAngle, this.wantedFaceAngle, time.deltaTime * 5);
+            this.face.quaternion.setFromAxisAngle(this.const.up, this.currentFaceAngle);
+        }
 
 
         if (this.debugSphere.visible) {
