@@ -113,7 +113,7 @@ function mainLoop()
     lastNetworkUpdate = gameTime.time;
   }
 
-  input.update();
+  input.update(gameTime);
   //
   requestAnimationFrame(mainLoop);
 }

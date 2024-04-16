@@ -17,10 +17,13 @@ export class GreenCube {
     eyeMaterial : Material;
     debugSphere : Mesh;
     public object : Object3D;
+    scene: Scene;
+
+    // movement
     velocity : Vector3;
     radius : number = 1;
-    scene: Scene;
     maxSpeed : number = 40;
+    drag : number = 0.5;
 
     // animation
     randomlyLookHeadMinMax : Vector2 = new Vector2(0.3, 1.5);
@@ -49,6 +52,7 @@ export class GreenCube {
         right: new Vector3(1,0,0),
         forward: new Vector3(0,0,-1),
         up: new Vector3(0,1,0),
+        zero: new Vector3(0,0,0),
     }
 
     var = {
@@ -168,48 +172,37 @@ export class GreenCube {
         let positionBefore = this.var.v1.copy(this.object.position);
 
         if (input && camera) { // Local players
-            const relativeRight = new Vector3(1, 0, 0)
-            relativeRight.applyQuaternion(camera.quaternion)
-            relativeRight.y = 0
-            relativeRight.normalize()
-            const trackballRight = relativeRight.clone()
-            trackballRight.multiplyScalar(input.trackball.velocity.x)
+            if (input.fingerDown) {
+                this.velocity.set(0, 0, 0);
+                let relativeRight = this.var.v2.set(1,0,0);
+                relativeRight.applyQuaternion(camera.quaternion)
+                relativeRight.y = 0
+                relativeRight.normalize()
+                let trackballRight = relativeRight;
+                trackballRight.multiplyScalar(input.trackball.velocity.x)
+                this.velocity.add(trackballRight)
 
-            const relativeForward = new Vector3(0, 0, 1)
-            relativeForward.applyQuaternion(camera.quaternion)
-            relativeForward.y = 0
-            relativeForward.normalize()
-            const trackballForward = relativeForward.clone()
-            trackballForward.multiplyScalar(input.trackball.velocity.y)
-            
-            this.velocity.set(0, 0, 0);
-            this.velocity.add(trackballRight)
-            this.velocity.add(trackballForward)
+                let relativeForward = this.var.v2.set(1,0,-1);
+                relativeForward.applyQuaternion(camera.quaternion)
+                relativeForward.y = 0
+                relativeForward.normalize()
+                let trackballForward = relativeForward
+                trackballForward.multiplyScalar(-input.trackball.velocity.y)
+                this.velocity.add(trackballForward)
 
-            relativeRight.multiplyScalar(this.maxSpeed)
-            relativeForward.multiplyScalar(this.maxSpeed)
+                this.velocity.clampLength(0, this.maxSpeed)
 
+                // animation
+                this.face.quaternion.setFromAxisAngle(this.const.up, 0);
+                this.currentFaceAngle = 0;
+            }
+            else {
+                this.velocity.lerp(this.const.zero, time.deltaTime * this.drag); // TODO make drag dependant on current velocity magnitude, maybe increase drag at slow speeds
+            }
 
-            if (input.left.pressed)
-                this.velocity.sub(relativeRight)
-            if (input.right.pressed)
-                this.velocity.add(relativeRight)
-            
-            // this.velocity.y = 0;
-            // this.velocity.y = inputVelocity.y
-            if (input.down.pressed)
-                this.velocity.add(relativeForward)
-            if (input.up.pressed)
-                this.velocity.sub(relativeForward)
-
-           this.velocity.clampLength(0, this.maxSpeed)
             
             if (input.debugButton.pressedThisFrame) {
                 this.debugSphere.visible = !this.debugSphere.visible;
-            }
-            if (input.fingerDown) {
-                this.face.quaternion.setFromAxisAngle(this.const.up, 0);
-                this.currentFaceAngle = 0;
             }
         }
 
@@ -249,7 +242,7 @@ export class GreenCube {
         // Visually update, animations
         let frameDisplacement = positionBefore.sub(this.object.position);
         this.model.getWorldPosition(this.var.v2);
-        if (frameDisplacement.lengthSq() > 0.00001) {
+        if (frameDisplacement.lengthSq() > 0.0000001) {
             let frameDisplacementDirection = frameDisplacement.clone();
             frameDisplacementDirection.normalize();
             frameDisplacementDirection.multiplyScalar(-1);

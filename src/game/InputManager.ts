@@ -1,6 +1,7 @@
-import { Vector2 } from 'three';
+import { Vector2, Vector3 } from 'three';
 
 import Hammer from 'hammerjs'
+import { Time } from './Time';
 
 
 class ButtonInput {
@@ -34,6 +35,7 @@ export class InputManager {
     right : ButtonInput;
     trackball : TrackballInput;
     fingerDown: Boolean;
+    zero : Vector3 = new Vector3();
 
     
     debugButton : ButtonInput;
@@ -59,13 +61,13 @@ export class InputManager {
         this.fingerDown = false
 
         mc.on('pan', (e: HammerInput) => {
-            this.trackball.velocity = new Vector2(e.velocityX, e.velocityY).multiplyScalar(window.innerHeight*0.03)
+            this.trackball.velocity.set(e.velocityX, e.velocityY).multiplyScalar(window.innerHeight*0.03)
             if (e.isFinal) {
                 this.fingerDown = false
             }
         })
         mc.on('press', (e: HammerInput) => {
-            this.trackball.velocity = new Vector2(0, 0)
+            this.trackball.velocity.set(0,0);
             this.fingerDown = true
         })
         mc.on('pressup', (e: HammerInput) => {
@@ -109,7 +111,7 @@ export class InputManager {
         }
     }
 
-    public update() {
+    public update(time : Time) {
         this.buttons.forEach(button => {
             button.pressedThisFrame = false;
             button.releasedThisFrame = false;
