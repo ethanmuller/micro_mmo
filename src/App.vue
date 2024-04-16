@@ -98,7 +98,8 @@ function mainLoop()
   })
 
   // Camera updates
-  cameraPivot.position.copy(player.object.position);
+  player.head.getWorldPosition(cameraPivot.position);
+  //cameraPivot.position.copy(player.object.position);
   camera.updateProjectionMatrix();
 
   // draw

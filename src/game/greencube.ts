@@ -28,11 +28,12 @@ export class GreenCube {
     wantedFaceAngle : number = 0;
     currentFaceAngle : number = 0;
     movingFace : boolean = false;
+    bodyLength : number;
 
     // composite body
     model: Object3D;
     butt: Mesh;
-    head: Mesh;
+    public head: Mesh;
     body: Mesh;
     naturalBodyTilt: number;
     face: Object3D;
@@ -82,7 +83,7 @@ export class GreenCube {
 
         const buttRadius = 0.89;
         const chestRadius = 0.6;
-        const bodyLength = buttRadius + chestRadius-0.1;
+        this.bodyLength = buttRadius + chestRadius-0.1;
         const snoutRadius = 0.47;
         
         const snoutLength = 0.5;
@@ -93,20 +94,22 @@ export class GreenCube {
         const earRadius = 0.25;
         this.model = new Object3D();
         this.model.position.y = this.radius;
+        //this.model.position.z = buttRadius;
         this.butt = new Mesh(new SphereGeometry( buttRadius, 12, 12 ), this.material );
-        this.butt.position.z = buttRadius;
-        this.model.add(this.butt);
-        this.body = new Mesh(new CylinderGeometry(buttRadius, chestRadius, bodyLength, 12, 1, true), this.material);
+        // this.butt.position.z = buttRadius;
+        scene.add(this.butt);
+        this.body = new Mesh(new CylinderGeometry(buttRadius, chestRadius, this.bodyLength, 12, 1, true), this.material);
         this.body.quaternion.setFromAxisAngle(new Vector3(1,0,0), Math.PI*0.5);
-        this.body.position.z = -bodyLength*0.5;
+        this.body.position.z = -this.bodyLength*0.5;
         this.butt.add(this.body);
         let radiusDifference = buttRadius - chestRadius;
-        this.naturalBodyTilt = -Math.asin(radiusDifference/bodyLength);
-        this.butt.quaternion.setFromAxisAngle(new Vector3(1,0,0), this.naturalBodyTilt);
+        this.naturalBodyTilt = -Math.asin(radiusDifference/this.bodyLength);
+        //this.butt.quaternion.setFromAxisAngle(new Vector3(1,0,0), this.naturalBodyTilt);
 
         this.head = new Mesh(new SphereGeometry( chestRadius, 12, 12 ), this.material );
-        this.head.position.z = -bodyLength;
-        this.butt.add(this.head);
+        //this.head.position.z = -bodyLength;
+        //this.butt.add(this.head);
+        this.model.add(this.head);
 
         this.face = new Object3D();
         this.head.add(this.face)
@@ -151,6 +154,9 @@ export class GreenCube {
         this.object.add(this.model);
         this.object.position.x += Math.random()* 5 - 2.5;
         this.object.position.z += Math.random()* 5 - 2.5;
+        this.butt.position.copy(this.object.position);
+        this.butt.position.z += this.bodyLength;
+        this.butt.position.y = this.radius;
         scene.add( this.object );
         this.scene = scene;
 
@@ -201,6 +207,10 @@ export class GreenCube {
             if (input.debugButton.pressedThisFrame) {
                 this.debugSphere.visible = !this.debugSphere.visible;
             }
+            if (input.fingerDown) {
+                this.face.quaternion.setFromAxisAngle(this.const.up, 0);
+                this.currentFaceAngle = 0;
+            }
         }
 
         if (!input && this.smoothing.lerping) { // Other players and interpolating
@@ -239,8 +249,23 @@ export class GreenCube {
         // Visually update, animations
         let frameDisplacement = positionBefore.sub(this.object.position);
         this.model.getWorldPosition(this.var.v2);
-        if (frameDisplacement.lengthSq() > 0.00001)
-            this.model.lookAt(frameDisplacement.add(this.var.v2));
+        if (frameDisplacement.lengthSq() > 0.00001) {
+            let frameDisplacementDirection = frameDisplacement.clone();
+            frameDisplacementDirection.normalize();
+            frameDisplacementDirection.multiplyScalar(-1);
+            this.model.quaternion.setFromUnitVectors(this.const.forward, frameDisplacementDirection);
+
+            let headPos = new Vector3();
+            this.head.getWorldPosition(headPos);
+
+            let deltaHead = headPos.clone();
+            deltaHead.sub(this.butt.position);
+            
+            deltaHead.normalize();
+            let buttDisplacement = deltaHead.clone().multiplyScalar(this.bodyLength);
+            this.butt.position.copy(headPos.sub(buttDisplacement));
+            this.butt.quaternion.setFromUnitVectors(this.const.forward, deltaHead);
+        }
 
         this.changeHeadLookTimer -= time.deltaTime;
         if (this.changeHeadLookTimer <= 0) {
