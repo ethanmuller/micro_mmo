@@ -195,7 +195,8 @@ export class GreenCube {
 
                 // animation
                 this.face.quaternion.setFromAxisAngle(this.const.up, 0);
-                this.currentFaceAngle = 0;
+                this.wantedFaceAngle = 0;
+                this.movingFace = true;
             }
             else {
                 this.velocity.lerp(this.const.zero, time.deltaTime * this.drag); // TODO make drag dependant on current velocity magnitude, maybe increase drag at slow speeds
@@ -312,5 +313,7 @@ export class GreenCube {
     dispose() {
         this.debugSphere.geometry.dispose();
         this.scene.remove(this.object);
+        this.scene.remove(this.butt);
+        // TODO dispose of all the geometries of the object (or even better: reuse the geometries between different players)
     }
 }
