@@ -60,6 +60,7 @@ export class GreenCube {
         rot2: new Quaternion(),
         v1: new Vector3(),
         v2: new Vector3(),
+        v3: new Vector3(),
     }
 
     smoothing = {
@@ -241,21 +242,20 @@ export class GreenCube {
 
         // Visually update, animations
         let frameDisplacement = positionBefore.sub(this.object.position);
-        this.model.getWorldPosition(this.var.v2);
         if (frameDisplacement.lengthSq() > 0.0000001) {
-            let frameDisplacementDirection = frameDisplacement.clone();
+            let frameDisplacementDirection = frameDisplacement;
             frameDisplacementDirection.normalize();
             frameDisplacementDirection.multiplyScalar(-1);
             this.model.quaternion.setFromUnitVectors(this.const.forward, frameDisplacementDirection);
 
-            let headPos = new Vector3();
+            let headPos = this.var.v1;
             this.head.getWorldPosition(headPos);
 
-            let deltaHead = headPos.clone();
+            let deltaHead = this.var.v2.copy(headPos);
             deltaHead.sub(this.butt.position);
             
             deltaHead.normalize();
-            let buttDisplacement = deltaHead.clone().multiplyScalar(this.bodyLength);
+            let buttDisplacement = this.var.v3.copy(deltaHead).multiplyScalar(this.bodyLength);
             this.butt.position.copy(headPos.sub(buttDisplacement));
             this.butt.quaternion.setFromUnitVectors(this.const.forward, deltaHead);
         }
