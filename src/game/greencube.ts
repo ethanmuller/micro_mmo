@@ -182,7 +182,7 @@ export class GreenCube {
                 trackballRight.multiplyScalar(input.trackball.velocity.x)
                 this.velocity.add(trackballRight)
 
-                let relativeForward = this.var.v2.set(1,0,-1);
+                let relativeForward = this.var.v2.set(0,0,-1);
                 relativeForward.applyQuaternion(camera.quaternion)
                 relativeForward.y = 0
                 relativeForward.normalize()
