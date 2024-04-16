@@ -17,7 +17,6 @@ export class GreenCube {
     eyeMaterial : Material;
     debugSphere : Mesh;
     public object : Object3D;
-    visualRotationSpeedMultiplier : number = 1;
     velocity : Vector3;
     radius : number = 1;
     scene: Scene;
@@ -269,8 +268,8 @@ export class GreenCube {
 
         if (this.debugSphere.visible) {
             // debug sphere
-            let zMovementRotation = this.var.rot1.setFromAxisAngle(this.const.right, frameDisplacement.z / this.radius * this.visualRotationSpeedMultiplier);
-            let xMovementRotation = this.var.rot2.setFromAxisAngle(this.const.forward, frameDisplacement.x / this.radius * this.visualRotationSpeedMultiplier);
+            let zMovementRotation = this.var.rot1.setFromAxisAngle(this.const.right, frameDisplacement.z / this.radius);
+            let xMovementRotation = this.var.rot2.setFromAxisAngle(this.const.forward, frameDisplacement.x / this.radius );
             zMovementRotation.multiply(xMovementRotation);
             this.debugSphere.quaternion.premultiply(zMovementRotation);
         }
