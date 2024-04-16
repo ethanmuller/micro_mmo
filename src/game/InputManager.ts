@@ -33,6 +33,7 @@ export class InputManager {
     left : ButtonInput;
     right : ButtonInput;
     trackball : TrackballInput;
+    fingerDown: Boolean;
 
     
     debugButton : ButtonInput;
@@ -55,11 +56,20 @@ export class InputManager {
         mc.add( new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 2 }) );
         mc.add( new Hammer.Press({ time: 0 }) );
 
+        this.fingerDown = false
+
         mc.on('pan', (e: HammerInput) => {
             this.trackball.velocity = new Vector2(e.velocityX, e.velocityY).multiplyScalar(window.innerHeight*0.03)
+            if (e.isFinal) {
+                this.fingerDown = false
+            }
         })
         mc.on('press', (e: HammerInput) => {
             this.trackball.velocity = new Vector2(0, 0)
+            this.fingerDown = true
+        })
+        mc.on('pressup', (e: HammerInput) => {
+            this.fingerDown = false
         })
     }
 
