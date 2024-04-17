@@ -1,7 +1,5 @@
-import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshNormalMaterial, Material, MeshLambertMaterial, TextureLoader, Quaternion, Vector3, Euler, Camera, CylinderGeometry, ConeGeometry, BackSide, DoubleSide, MathUtils } from "three";
-import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, Object3D, Vector2, Box2, MeshNormalMaterial, Material, MeshLambertMaterial, TextureLoader, Quaternion, Vector3, Euler, MeshToonMaterial, NearestFilter } from "three";
+import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshToonMaterial, Material, TextureLoader, Quaternion, Vector3, CylinderGeometry, ConeGeometry, DoubleSide, MathUtils, NearestFilter} from "three";
 import { Time } from "./Time";
-import mouseTexture from "../assets/mouse_texture.png";
 import toonTexture from "../assets/threeTone_bright.jpg";
 import { InputManager } from "./InputManager";
 
@@ -10,7 +8,7 @@ export type SerializedPlayerData = {
     velocity: Vector3
 }
 
-export class GreenCube {
+export class Mouse {
     material : Material;
     noseMaterial : Material;
     earMaterial : Material;
@@ -46,7 +44,6 @@ export class GreenCube {
     eyeRight: Mesh;
     earLeft: Mesh;
     earRight: Mesh;
-    
 
     const = {
         right: new Vector3(1,0,0),
@@ -98,10 +95,8 @@ export class GreenCube {
         const eyeRadius = 0.075;
         const earRadius = 0.25;
         this.model = new Object3D();
-        this.model.position.y = this.radius;
-        //this.model.position.z = buttRadius;
+        this.model.position.y = chestRadius;
         this.butt = new Mesh(new SphereGeometry( buttRadius, 12, 12 ), this.material );
-        // this.butt.position.z = buttRadius;
         scene.add(this.butt);
         this.body = new Mesh(new CylinderGeometry(buttRadius, chestRadius, this.bodyLength, 12, 1, true), this.material);
         this.body.quaternion.setFromAxisAngle(new Vector3(1,0,0), Math.PI*0.5);
@@ -174,9 +169,10 @@ export class GreenCube {
 
         if (input && camera) { // Local players
             if (input.fingerDown) {
+                let cameraQuaterinion = camera.getWorldQuaternion(this.var.rot1);
                 this.velocity.set(0, 0, 0);
                 let relativeRight = this.var.v2.set(1,0,0);
-                relativeRight.applyQuaternion(camera.quaternion)
+                relativeRight.applyQuaternion(cameraQuaterinion)
                 relativeRight.y = 0
                 relativeRight.normalize()
                 let trackballRight = relativeRight;
@@ -184,7 +180,7 @@ export class GreenCube {
                 this.velocity.add(trackballRight)
 
                 let relativeForward = this.var.v2.set(0,0,-1);
-                relativeForward.applyQuaternion(camera.quaternion)
+                relativeForward.applyQuaternion(cameraQuaterinion)
                 relativeForward.y = 0
                 relativeForward.normalize()
                 let trackballForward = relativeForward

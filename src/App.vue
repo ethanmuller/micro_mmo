@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import {ref, onMounted, onBeforeUnmount} from 'vue';
 import * as THREE from 'three';
-import { GreenCube, SerializedPlayerData } from './game/greencube';
+import { Mouse, SerializedPlayerData } from './game/Mouse';
 import { Time } from './game/Time';
 import skyTexture from './assets/sky_gradient.png';
 import mouseTexture from "./assets/mouse_texture.png";
 import { MultiplayerClient } from './game/MultiplayerClient';
 import { InputManager } from './game/InputManager';
+import { FreeCamera } from './game/FreeCamera';
 const NETWORK_TIME_BETWEEN_UPDATES = 1/15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
 
@@ -26,22 +27,23 @@ imgLoader.loadAsync(skyTexture).then((tex) => {
   tex.magFilter = THREE.LinearFilter;
   scene.background = tex;
 });
-const player = new GreenCube(scene, imgLoader);
+const player = new Mouse(scene, imgLoader);
 
 //camera.position.x = 10;
-camera.position.y = 10;
-camera.position.z = 10;
+const cameraWantedDisplacement = new THREE.Vector3(0,10,10);
+camera.position.copy(cameraWantedDisplacement);
 camera.lookAt(new THREE.Vector3(0,0,0));
 camera.updateProjectionMatrix();
+const freeCamera = new FreeCamera(camera);
 const cameraPivot = new THREE.Object3D();
 cameraPivot.add(camera);
 cameraPivot.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.75)
 scene.add(cameraPivot);
 
 const mp = new MultiplayerClient()
-let playerIdToPlayerObj : Map<string, GreenCube> = new Map<string, GreenCube>();
+let playerIdToPlayerObj : Map<string, Mouse> = new Map<string, Mouse>();
 mp.onRemotePlayerConnected((id) => {
-  playerIdToPlayerObj.set(id, new GreenCube(scene, imgLoader));
+  playerIdToPlayerObj.set(id, new Mouse(scene, imgLoader));
 });
 mp.onRemotePlayerFrameData((id, data, sentTimeMs) => {
   let playerObj = playerIdToPlayerObj.get(id);
@@ -91,16 +93,37 @@ function mainLoop()
   lastTickTime = now;
 
   // update
-	player.update(gameTime, worldBoundaries, input, cameraPivot);
+	player.update(gameTime, worldBoundaries, input, camera);
 
-  playerIdToPlayerObj.forEach((plObj : GreenCube, id: string) => {
+  playerIdToPlayerObj.forEach((plObj : Mouse, id: string) => {
     plObj.update(gameTime, worldBoundaries);
   })
 
   // Camera updates
   player.head.getWorldPosition(cameraPivot.position);
   //cameraPivot.position.copy(player.object.position);
-  camera.updateProjectionMatrix();
+  if (input.flyCameraButton.pressedThisFrame) {
+    freeCamera.enabled = !freeCamera.enabled;
+    console.log(`Free camera ${freeCamera.enabled? "enabled" : "disabled"}`);
+
+    if (!freeCamera.enabled) {
+      // camera.removeFromParent();
+      // cameraPivot.add(camera);
+      camera.position.copy(cameraWantedDisplacement);
+      camera.lookAt(player.object.position);
+      camera.updateProjectionMatrix();
+    }
+    else {
+      // camera.removeFromParent();
+      // scene.add(camera);
+    }
+  }
+
+  if (freeCamera.enabled) {
+    freeCamera.update(gameTime, input);
+    camera.updateMatrix();
+    camera.updateProjectionMatrix();
+  }
 
   // draw
 	renderer.render( scene, camera );

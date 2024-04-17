@@ -33,12 +33,18 @@ export class InputManager {
     down : ButtonInput;
     left : ButtonInput;
     right : ButtonInput;
+    forward : ButtonInput;
+    backward : ButtonInput;
     trackball : TrackballInput;
     fingerDown: Boolean;
-    zero : Vector3 = new Vector3();
+    fingerMovement: Vector2 = new Vector2();
+    shift : ButtonInput;
+    ctrl : ButtonInput;
+
 
     
     debugButton : ButtonInput;
+    flyCameraButton : ButtonInput;
 
     constructor(trackballElement : HTMLElement) {
         reference = this;
@@ -50,7 +56,13 @@ export class InputManager {
         this.buttons.push(this.down = new ButtonInput(["ArrowDown", "KeyS"]));
         this.buttons.push(this.left = new ButtonInput(["ArrowLeft", "KeyA"]));
         this.buttons.push(this.right = new ButtonInput(["ArrowRight", "KeyD"]));
+        this.buttons.push(this.forward = new ButtonInput(["KeyQ"]));
+        this.buttons.push(this.backward = new ButtonInput(["KeyE"]));
         this.buttons.push(this.debugButton = new ButtonInput(["Backquote", "Digit1"]));
+        this.buttons.push(this.flyCameraButton = new ButtonInput(["KeyF"]));
+        this.buttons.push(this.shift = new ButtonInput(["ShiftLeft"]));
+        this.buttons.push(this.ctrl = new ButtonInput(["ControlLeft"]));
+
 
         this.trackball = new TrackballInput()
 
@@ -59,11 +71,14 @@ export class InputManager {
         mc.add( new Hammer.Press({ time: 0 }) );
 
         this.fingerDown = false
+        const screenFactor = window.innerHeight*0.03;
 
         mc.on('pan', (e: HammerInput) => {
-            this.trackball.velocity.set(e.velocityX, e.velocityY).multiplyScalar(window.innerHeight*0.03)
+            this.trackball.velocity.set(e.velocityX, e.velocityY).multiplyScalar(screenFactor)
+            this.fingerMovement.set(e.deltaX * screenFactor, e.deltaY * screenFactor)
             if (e.isFinal) {
                 this.fingerDown = false
+                this.fingerMovement.set(0,0);
             }
         })
         mc.on('press', (e: HammerInput) => {
@@ -72,6 +87,7 @@ export class InputManager {
         })
         mc.on('pressup', (e: HammerInput) => {
             this.fingerDown = false
+            this.fingerMovement.set(0,0);
         })
     }
 
