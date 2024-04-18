@@ -2,6 +2,8 @@ import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3
 import { Time } from "./Time";
 import toonTexture from "../assets/threeTone_bright.jpg";
 import { InputManager } from "./InputManager";
+import { Constants } from "./constants";
+import { Utils } from "./Utils";
 
 export type SerializedPlayerData = {
     position: Vector3,
@@ -28,7 +30,7 @@ export class Mouse {
     changeHeadLookTimer : number = 0;
     wantedFaceAngle : number = 0;
     currentFaceAngle : number = 0;
-    movingFace : boolean = false;
+    maxFaceRotation : number = Math.PI*0.25;
     bodyLength : number;
     buttRadius : number;
     headWobbleTime : number = 0;
@@ -50,13 +52,6 @@ export class Mouse {
     earLeft: Mesh;
     earRight: Mesh;
 
-    const = {
-        right: new Vector3(1,0,0),
-        forward: new Vector3(0,0,-1),
-        up: new Vector3(0,1,0),
-        zero: new Vector3(0,0,0),
-    }
-
     var = {
         rot1: new Quaternion(),
         rot2: new Quaternion(),
@@ -71,6 +66,8 @@ export class Mouse {
         lerpTime: 0.3, // const
         lerping: false,
     }
+
+    frameDisplacementDirection : Vector3 = new Vector3();
 
     constructor(scene : Scene, loader : TextureLoader)
     {
@@ -197,12 +194,11 @@ export class Mouse {
                 this.velocity.clampLength(0, this.maxSpeed)
 
                 // animation
-                this.face.quaternion.setFromAxisAngle(this.const.up, 0);
+                this.face.quaternion.setFromAxisAngle(Constants.up, 0);
                 this.wantedFaceAngle = 0;
-                this.movingFace = true;
             }
             else {
-                this.velocity.lerp(this.const.zero, time.deltaTime * this.drag); // TODO make drag dependant on current velocity magnitude, maybe increase drag at slow speeds
+                this.velocity.lerp(Constants.zero, time.deltaTime * this.drag); // TODO make drag dependant on current velocity magnitude, maybe increase drag at slow speeds
             }
 
             
@@ -247,12 +243,14 @@ export class Mouse {
         // Visually update, animations
         this.headWobbleTime += time.deltaTime;
         this.headPivot.position.y = (Math.sin(this.headWobbleTime * this.headWobbleFrequency)* 0.5 + 0.5) * this.headWobbleAmount + this.headWobbleMinHeight;
+        
         let frameDisplacement = positionBefore.sub(this.object.position);
-        if (frameDisplacement.lengthSq() > 0.0000001) {
-            let frameDisplacementDirection = frameDisplacement;
-            frameDisplacementDirection.normalize();
-            frameDisplacementDirection.multiplyScalar(-1);
-            this.headPivot.quaternion.setFromUnitVectors(this.const.forward, frameDisplacementDirection);
+        let isMoving = frameDisplacement.lengthSq() > 0.0001;
+        if (isMoving) {
+            frameDisplacement.multiplyScalar(-1);
+            frameDisplacement.normalize();
+            this.frameDisplacementDirection.lerp(frameDisplacement, time.deltaTime * 20);
+            this.wantedFaceAngle = Utils.SignedAngle2D(Constants.forward, this.frameDisplacementDirection, this.var.v2);
         }
         let headPos = this.var.v1;
         this.head.getWorldPosition(headPos);
@@ -264,41 +262,57 @@ export class Mouse {
         let buttDisplacement = this.var.v3.copy(deltaHead).multiplyScalar(this.bodyLength);
         this.butt.position.copy(headPos).sub(buttDisplacement);
         this.butt.position.y = this.buttRadius;
-        this.butt.quaternion.setFromUnitVectors(this.const.forward, deltaHead);
+        this.butt.quaternion.setFromUnitVectors(Constants.forward, deltaHead);
         // deal with squishing
         deltaHead.copy(headPos);
         deltaHead.sub(this.butt.position);
         let bodyLength = deltaHead.length();
         this.bodyConnector.scale.set(1,bodyLength,1);
+        let bodyAngle = Utils.SignedAngle2D(Constants.forward, deltaHead, this.var.v1);
 
-        this.changeHeadLookTimer -= time.deltaTime;
-        if (this.changeHeadLookTimer <= 0) {
-            let maxRotation = Math.PI*0.25;
-
-            this.changeHeadLookTimer = MathUtils.lerp(this.randomlyLookHeadMinMax.x, this.randomlyLookHeadMinMax.y, Math.random());
-            this.wantedFaceAngle = maxRotation*(Math.random()-0.5)*2;
-            this.movingFace = true;
+        if (!isMoving) {
+            this.changeHeadLookTimer -= time.deltaTime;
+            if (this.changeHeadLookTimer <= 0) {
+                this.changeHeadLookTimer = MathUtils.lerp(this.randomlyLookHeadMinMax.x, this.randomlyLookHeadMinMax.y, Math.random());
+                this.wantedFaceAngle = bodyAngle + this.maxFaceRotation*(Math.random()-0.5)*2;
+            }
+        }
+        else {
+            this.changeHeadLookTimer = 0;
         }
 
-        if (this.movingFace) {
+        // Make sure we deal with angles before checking
+        let signedDistance = this.wantedFaceAngle - this.currentFaceAngle;
+        while (signedDistance > Math.PI) {
+            signedDistance -= Math.PI * 2;
+            this.wantedFaceAngle -= Math.PI * 2;
+        }
+        while (signedDistance < -Math.PI) {
+            signedDistance += Math.PI * 2;
+            this.wantedFaceAngle += Math.PI * 2;
+        }
+
+        if (Math.abs(signedDistance) > Number.EPSILON)
+        {
             const maxHeadRotationSpeed = time.deltaTime * Math.PI * 1;
-            let signedDistance = this.wantedFaceAngle - this.currentFaceAngle;
+
             if (Math.abs(signedDistance) < maxHeadRotationSpeed) {
                 this.currentFaceAngle = this.wantedFaceAngle;
-                this.movingFace = false;
             }
             else {
                 this.currentFaceAngle += Math.sign(signedDistance) * maxHeadRotationSpeed;
+                this.currentFaceAngle = MathUtils.lerp(this.currentFaceAngle, this.wantedFaceAngle, time.deltaTime * 5);
             }
-            this.currentFaceAngle = MathUtils.lerp(this.currentFaceAngle, this.wantedFaceAngle, time.deltaTime * 5);
-            this.face.quaternion.setFromAxisAngle(this.const.up, this.currentFaceAngle);
+
+            this.currentFaceAngle = Utils.ClampAngleDistance(bodyAngle, this.currentFaceAngle, this.maxFaceRotation)
+            this.face.quaternion.setFromAxisAngle(Constants.up, this.currentFaceAngle);
         }
 
 
         if (this.debugSphere.visible) {
             // debug sphere
-            let zMovementRotation = this.var.rot1.setFromAxisAngle(this.const.right, frameDisplacement.z / this.radius);
-            let xMovementRotation = this.var.rot2.setFromAxisAngle(this.const.forward, frameDisplacement.x / this.radius );
+            let zMovementRotation = this.var.rot1.setFromAxisAngle(Constants.right, frameDisplacement.z / this.radius);
+            let xMovementRotation = this.var.rot2.setFromAxisAngle(Constants.forward, frameDisplacement.x / this.radius );
             zMovementRotation.multiply(xMovementRotation);
             this.debugSphere.quaternion.premultiply(zMovementRotation);
         }
