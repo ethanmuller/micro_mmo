@@ -30,8 +30,8 @@ io.on('connection', async (socket) => {
     io.emit(MessageType.onPlayerDisconnected, socket.id);
   });
 
-  socket.on(MessageType.playerSentFrameData, (data : any, dataServerTime : number) => {
-    socket.broadcast.emit(MessageType.serverSentPlayerFrameData, Date.now(), socket.id, data, dataServerTime);
+  socket.on(MessageType.playerSentFrameData, (data : any, sentTime : number) => {
+    socket.broadcast.emit(MessageType.serverSentPlayerFrameData, Date.now(), socket.id, data, sentTime);
   });
 });
 

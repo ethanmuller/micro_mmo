@@ -100,7 +100,7 @@ function mainLoop()
   })
 
   // Camera updates
-  player.head.getWorldPosition(cameraPivot.position);
+  player.object.getWorldPosition(cameraPivot.position);
   //cameraPivot.position.copy(player.object.position);
   if (input.flyCameraButton.pressedThisFrame) {
     freeCamera.enabled = !freeCamera.enabled;

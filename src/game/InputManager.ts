@@ -29,12 +29,18 @@ export class InputManager {
 
     private buttons : ButtonInput[] = [];
 
-    up : ButtonInput;
-    down : ButtonInput;
-    left : ButtonInput;
-    right : ButtonInput;
-    forward : ButtonInput;
-    backward : ButtonInput;
+    W : ButtonInput;
+    S : ButtonInput;
+    A : ButtonInput;
+    D : ButtonInput;
+    Q : ButtonInput;
+    E : ButtonInput;
+    upArrow : ButtonInput;
+    downArrow : ButtonInput;
+    leftArrow : ButtonInput;
+    rightArrow : ButtonInput;
+    pageUp : ButtonInput;
+    pageDown : ButtonInput;
     trackball : TrackballInput;
     fingerDown: Boolean;
     fingerMovement: Vector2 = new Vector2();
@@ -52,16 +58,22 @@ export class InputManager {
         window.addEventListener('keydown', this.onkeydown);
         window.addEventListener('keyup', this.onkeyup);
 
-        this.buttons.push(this.up = new ButtonInput(["ArrowUp", "KeyW"]));
-        this.buttons.push(this.down = new ButtonInput(["ArrowDown", "KeyS"]));
-        this.buttons.push(this.left = new ButtonInput(["ArrowLeft", "KeyA"]));
-        this.buttons.push(this.right = new ButtonInput(["ArrowRight", "KeyD"]));
-        this.buttons.push(this.forward = new ButtonInput(["KeyQ"]));
-        this.buttons.push(this.backward = new ButtonInput(["KeyE"]));
+        this.buttons.push(this.W = new ButtonInput(["KeyW"]));
+        this.buttons.push(this.S = new ButtonInput(["KeyS"]));
+        this.buttons.push(this.A = new ButtonInput(["KeyA"]));
+        this.buttons.push(this.D = new ButtonInput(["KeyD"]));
+        this.buttons.push(this.Q = new ButtonInput(["KeyQ"]));
+        this.buttons.push(this.E = new ButtonInput(["KeyE"]));
         this.buttons.push(this.debugButton = new ButtonInput(["Backquote", "Digit1"]));
         this.buttons.push(this.flyCameraButton = new ButtonInput(["KeyF"]));
         this.buttons.push(this.shift = new ButtonInput(["ShiftLeft"]));
         this.buttons.push(this.ctrl = new ButtonInput(["ControlLeft"]));
+        this.buttons.push(this.upArrow = new ButtonInput(["ArrowUp"]));
+        this.buttons.push(this.downArrow = new ButtonInput(["ArrowDown"]));
+        this.buttons.push(this.leftArrow = new ButtonInput(["ArrowLeft"]));
+        this.buttons.push(this.rightArrow = new ButtonInput(["ArrowRight"]));
+        this.buttons.push(this.pageUp = new ButtonInput(["PageUp"]));
+        this.buttons.push(this.pageDown = new ButtonInput(["PageDown"]));
 
 
         this.trackball = new TrackballInput()

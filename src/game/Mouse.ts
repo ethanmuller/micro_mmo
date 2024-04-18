@@ -30,12 +30,17 @@ export class Mouse {
     currentFaceAngle : number = 0;
     movingFace : boolean = false;
     bodyLength : number;
+    buttRadius : number;
+    headWobbleTime : number = 0;
+    headWobbleFrequency : number = 4;
+    headWobbleAmount : number = 0.2;
+    headWobbleMinHeight : number = 0.2;
 
     // composite body
-    model: Object3D;
+    headPivot: Object3D;
     butt: Mesh;
     public head: Mesh;
-    body: Mesh;
+    bodyConnector: Mesh;
     naturalBodyTilt: number;
     face: Object3D;
     snout: Mesh;
@@ -83,9 +88,9 @@ export class Mouse {
         this.earMaterial = new MeshBasicMaterial( { color: 0xcc8888, side: DoubleSide});
         this.eyeMaterial = new MeshBasicMaterial( { color: 0x000000});
 
-        const buttRadius = 0.89;
-        const chestRadius = 0.6;
-        this.bodyLength = buttRadius + chestRadius-0.1;
+        const buttRadius = this.buttRadius = 0.89;
+        const headRadius = 0.6;
+        this.bodyLength = buttRadius + headRadius-0.1;
         const snoutRadius = 0.47;
         
         const snoutLength = 0.5;
@@ -94,28 +99,30 @@ export class Mouse {
         const noseRadius = 0.05;
         const eyeRadius = 0.075;
         const earRadius = 0.25;
-        this.model = new Object3D();
-        this.model.position.y = chestRadius;
+        this.headPivot = new Object3D();
         this.butt = new Mesh(new SphereGeometry( buttRadius, 12, 12 ), this.material );
         scene.add(this.butt);
-        this.body = new Mesh(new CylinderGeometry(buttRadius, chestRadius, this.bodyLength, 12, 1, true), this.material);
-        this.body.quaternion.setFromAxisAngle(new Vector3(1,0,0), Math.PI*0.5);
-        this.body.position.z = -this.bodyLength*0.5;
-        this.butt.add(this.body);
-        let radiusDifference = buttRadius - chestRadius;
+        this.bodyConnector = new Mesh(new CylinderGeometry(buttRadius, headRadius, 1, 12, 1, true), this.material);
+        this.bodyConnector.quaternion.setFromAxisAngle(new Vector3(1,0,0), Math.PI*0.5);
+        this.bodyConnector.position.z = -this.bodyLength*0.5;
+        this.bodyConnector.scale.set(1,this.bodyLength,1);
+        this.butt.add(this.bodyConnector);
+        let radiusDifference = buttRadius - headRadius;
         this.naturalBodyTilt = -Math.asin(radiusDifference/this.bodyLength);
         //this.butt.quaternion.setFromAxisAngle(new Vector3(1,0,0), this.naturalBodyTilt);
 
-        this.head = new Mesh(new SphereGeometry( chestRadius, 12, 12 ), this.material );
+        this.head = new Mesh(new SphereGeometry( headRadius, 12, 12 ), this.material );
         //this.head.position.z = -bodyLength;
         //this.butt.add(this.head);
-        this.model.add(this.head);
+        
+        this.head.position.y = headRadius;
+        this.headPivot.add(this.head);
 
         this.face = new Object3D();
         this.head.add(this.face)
         this.snout = new Mesh(new ConeGeometry(snoutRadius, snoutLength, 12, 12, true), this.material);
         this.snout.quaternion.setFromAxisAngle(new Vector3(1,0,0), -snoutTilt - Math.PI * 0.5);
-        this.snout.position.z = -chestRadius;
+        this.snout.position.z = -headRadius;
         this.snout.position.add(snoutPlacement);
         this.face.add(this.snout);
         this.nose = new Mesh(new SphereGeometry( noseRadius, 8, 8 ), this.noseMaterial );
@@ -151,7 +158,7 @@ export class Mouse {
 
         this.object = new Object3D();
         this.object.add(this.debugSphere);
-        this.object.add(this.model);
+        this.object.add(this.headPivot);
         this.object.position.x += Math.random()* 5 - 2.5;
         this.object.position.z += Math.random()* 5 - 2.5;
         this.butt.position.copy(this.object.position);
@@ -238,24 +245,31 @@ export class Mouse {
         }
 
         // Visually update, animations
+        this.headWobbleTime += time.deltaTime;
+        this.headPivot.position.y = (Math.sin(this.headWobbleTime * this.headWobbleFrequency)* 0.5 + 0.5) * this.headWobbleAmount + this.headWobbleMinHeight;
         let frameDisplacement = positionBefore.sub(this.object.position);
         if (frameDisplacement.lengthSq() > 0.0000001) {
             let frameDisplacementDirection = frameDisplacement;
             frameDisplacementDirection.normalize();
             frameDisplacementDirection.multiplyScalar(-1);
-            this.model.quaternion.setFromUnitVectors(this.const.forward, frameDisplacementDirection);
-
-            let headPos = this.var.v1;
-            this.head.getWorldPosition(headPos);
-
-            let deltaHead = this.var.v2.copy(headPos);
-            deltaHead.sub(this.butt.position);
-            
-            deltaHead.normalize();
-            let buttDisplacement = this.var.v3.copy(deltaHead).multiplyScalar(this.bodyLength);
-            this.butt.position.copy(headPos.sub(buttDisplacement));
-            this.butt.quaternion.setFromUnitVectors(this.const.forward, deltaHead);
+            this.headPivot.quaternion.setFromUnitVectors(this.const.forward, frameDisplacementDirection);
         }
+        let headPos = this.var.v1;
+        this.head.getWorldPosition(headPos);
+
+        let deltaHead = this.var.v2.copy(headPos);
+        deltaHead.sub(this.butt.position);
+        
+        deltaHead.normalize();
+        let buttDisplacement = this.var.v3.copy(deltaHead).multiplyScalar(this.bodyLength);
+        this.butt.position.copy(headPos).sub(buttDisplacement);
+        this.butt.position.y = this.buttRadius;
+        this.butt.quaternion.setFromUnitVectors(this.const.forward, deltaHead);
+        // deal with squishing
+        deltaHead.copy(headPos);
+        deltaHead.sub(this.butt.position);
+        let bodyLength = deltaHead.length();
+        this.bodyConnector.scale.set(1,bodyLength,1);
 
         this.changeHeadLookTimer -= time.deltaTime;
         if (this.changeHeadLookTimer <= 0) {

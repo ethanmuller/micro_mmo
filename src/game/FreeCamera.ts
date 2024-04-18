@@ -21,40 +21,36 @@ export class FreeCamera {
         if (!this.enabled) return;
 
         let maxMovement = this.speed * time.deltaTime;
+        let maxRotation = maxMovement * 0.3;
 
         this.forward.copy(Constants.forward).applyQuaternion(this.cam.quaternion).multiplyScalar(maxMovement);
         this.right.copy(Constants.right).applyQuaternion(this.cam.quaternion).multiplyScalar(maxMovement);
         this.up.copy(Constants.up).applyQuaternion(this.cam.quaternion).multiplyScalar(maxMovement);
-
-
-        if (!input.shift.pressed) {
-            if (input.forward.pressed)
-                this.cam.position.add(this.up);
-            if (input.backward.pressed)
-                this.cam.position.sub(this.up);
-            if (input.right.pressed)
-                this.cam.position.add(this.right);
-            if (input.left.pressed)
-                this.cam.position.sub(this.right);
-            if (input.up.pressed)
-                this.cam.position.add(this.forward);
-            if (input.down.pressed)
-                this.cam.position.sub(this.forward);
-        }
-        else {
-            maxMovement *= 0.3;
-            if (input.forward.pressed)
-                this.cam.quaternion.multiply(this.rotation.setFromAxisAngle(Constants.forward, -maxMovement))
-            if (input.backward.pressed)
-                this.cam.quaternion.multiply(this.rotation.setFromAxisAngle(Constants.forward, maxMovement))
-            if (input.right.pressed)
-                this.cam.quaternion.multiply(this.rotation.setFromAxisAngle(Constants.up, -maxMovement))
-            if (input.left.pressed)
-                this.cam.quaternion.multiply(this.rotation.setFromAxisAngle(Constants.up, maxMovement))
-            if (input.up.pressed)
-                this.cam.quaternion.multiply(this.rotation.setFromAxisAngle(Constants.right, maxMovement))
-            if (input.down.pressed)
-                this.cam.quaternion.multiply(this.rotation.setFromAxisAngle(Constants.right, -maxMovement))
-        }
+        
+        if (input.W.pressed)
+            this.cam.position.add(this.forward);
+        if (input.S.pressed)
+            this.cam.position.sub(this.forward);
+        if (input.D.pressed)
+            this.cam.position.add(this.right);
+        if (input.A.pressed)
+            this.cam.position.sub(this.right);
+        if (input.pageUp.pressed)
+            this.cam.position.add(this.up);
+        if (input.pageDown.pressed)
+            this.cam.position.sub(this.up);
+        
+        if (input.Q.pressed)
+            this.cam.quaternion.multiply(this.rotation.setFromAxisAngle(Constants.forward, -maxRotation))
+        if (input.E.pressed)
+            this.cam.quaternion.multiply(this.rotation.setFromAxisAngle(Constants.forward, maxRotation))
+        if (input.rightArrow.pressed)
+            this.cam.quaternion.multiply(this.rotation.setFromAxisAngle(Constants.up, -maxRotation))
+        if (input.leftArrow.pressed)
+            this.cam.quaternion.multiply(this.rotation.setFromAxisAngle(Constants.up, maxRotation))
+        if (input.upArrow.pressed)
+            this.cam.quaternion.multiply(this.rotation.setFromAxisAngle(Constants.right, maxRotation))
+        if (input.downArrow.pressed)
+            this.cam.quaternion.multiply(this.rotation.setFromAxisAngle(Constants.right, -maxRotation))
     }
 }
