@@ -1,4 +1,4 @@
-import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshToonMaterial, Material, TextureLoader, Quaternion, Vector3, CylinderGeometry, ConeGeometry, DoubleSide, MathUtils, NearestFilter} from "three";
+import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshToonMaterial, Material, TextureLoader, Quaternion, Vector3, CylinderGeometry, ConeGeometry, DoubleSide, MathUtils, NearestFilter, TetrahedronGeometry} from "three";
 import { Time } from "./Time";
 import toonTexture from "../assets/threeTone_bright.jpg";
 import { InputManager } from "./InputManager";
@@ -13,6 +13,7 @@ export type SerializedPlayerData = {
 export class Mouse {
     material : Material;
     noseMaterial : Material;
+    feetMaterial : Material;
     earMaterial : Material;
     eyeMaterial : Material;
     debugSphere : Mesh;
@@ -52,6 +53,14 @@ export class Mouse {
     earLeft: Mesh;
     earRight: Mesh;
 
+    feet: Object3D[] = [];
+    feetNeutralPosition: Vector3[] = [];
+    feetAttachment: Object3D[] = [];
+    readonly rightFeetId = 0;
+    readonly leftFeetId = 1;
+    readonly backRightFeetId = 2;
+    readonly backLeftFeetId = 3;
+
     var = {
         rot1: new Quaternion(),
         rot2: new Quaternion(),
@@ -82,7 +91,8 @@ export class Mouse {
         
         this.material = new MeshToonMaterial( { color: 0xaaaaaa, gradientMap: toonRamp});
         this.noseMaterial = new MeshBasicMaterial( { color: 0xcc8888});
-        this.earMaterial = new MeshBasicMaterial( { color: 0xcc8888, side: DoubleSide});
+        this.earMaterial = new MeshBasicMaterial( { color: 0xcc8888});
+        this.feetMaterial = new MeshToonMaterial( { color: 0xffaaaa, gradientMap: toonRamp});
         this.eyeMaterial = new MeshBasicMaterial( { color: 0x000000});
 
         const buttRadius = this.buttRadius = 0.89;
@@ -165,6 +175,43 @@ export class Mouse {
         this.scene = scene;
 
         this.velocity = new Vector3();
+
+        let foot = new Object3D();
+        const footSize = 0.3;
+        let footMesh = new Mesh(new TetrahedronGeometry(footSize, 1), this.feetMaterial);
+        foot.add(footMesh);
+        footMesh.quaternion.setFromAxisAngle(Constants.right, Math.PI * 0.25);
+        footMesh.quaternion.premultiply(this.var.rot1.setFromAxisAngle(Constants.up, Math.PI * 0.5));
+        foot.scale.set(0.7, 1, 1);
+
+        let footYPos = footSize * 0.25;
+        
+        this.feetAttachment.push(this.object);
+        this.feetNeutralPosition.push(new Vector3(headRadius, footYPos, 0));
+        this.getFootNeutralPosition(this.rightFeetId, foot.position, Constants.forward, Constants.right);
+        this.scene.add(foot);
+        this.feet.push(foot);
+
+        let leftFoot = foot.clone();
+        this.feetAttachment.push(this.object);
+        this.feetNeutralPosition.push(new Vector3(-headRadius, footYPos, 0));
+        this.getFootNeutralPosition(this.leftFeetId, leftFoot.position, Constants.forward, Constants.right);
+        this.scene.add(leftFoot);
+        this.feet.push(leftFoot);
+        
+        let brFoot = foot.clone();
+        this.feetAttachment.push(this.butt);
+        this.feetNeutralPosition.push(new Vector3(buttRadius, footYPos, 0));
+        this.getFootNeutralPosition(this.backRightFeetId, brFoot.position, Constants.forward, Constants.right);
+        this.scene.add(brFoot);
+        this.feet.push(brFoot);
+
+        let blFoot = foot.clone();
+        this.feetAttachment.push(this.butt);
+        this.feetNeutralPosition.push(new Vector3(-buttRadius, footYPos, 0));
+        this.getFootNeutralPosition(this.backLeftFeetId, blFoot.position, Constants.forward, Constants.right);
+        this.scene.add(blFoot);
+        this.feet.push(blFoot);
     }
 
     update(time : Time, worldBoundaries : Box2, input? : InputManager, camera? : Object3D)
@@ -270,6 +317,8 @@ export class Mouse {
         this.bodyConnector.scale.set(1,bodyLength,1);
         let bodyAngle = Utils.SignedAngle2D(Constants.forward, deltaHead, this.var.v1);
 
+        this.animateFeet(deltaHead.normalize());
+
         if (!isMoving) {
             this.changeHeadLookTimer -= time.deltaTime;
             if (this.changeHeadLookTimer <= 0) {
@@ -318,6 +367,27 @@ export class Mouse {
         }
     }
 
+    private animateFeet(bodyForward : Vector3) {
+
+        let bodyRight = new Vector3().copy(bodyForward).applyAxisAngle(Constants.up, Math.PI * 0.5);
+
+        for (let i = 0; i < this.feet.length; ++i)
+        {
+            // TODO actually animate and rotate feet
+            this.getFootNeutralPosition(i, this.feet[i].position, bodyForward, bodyRight);
+        }
+    }
+
+    private getFootNeutralPosition(feetId : number, outVector : Vector3, forward : Vector3, right : Vector3)
+    {
+        outVector.copy(this.feetAttachment[feetId].position);
+        const relPos = this.feetNeutralPosition[feetId];
+        outVector.add(forward.clone().multiplyScalar(relPos.z));
+        outVector.add(right.clone().multiplyScalar(relPos.x));
+        // TODO Y position might vary
+        outVector.y = this.feetNeutralPosition[feetId].y;
+    }
+
     serializePlayerData() : SerializedPlayerData {
         return {
             position : this.object.position,
@@ -338,6 +408,11 @@ export class Mouse {
         this.debugSphere.geometry.dispose();
         this.scene.remove(this.object);
         this.scene.remove(this.butt);
+        this.feet.forEach((f) => {
+            if (f) {
+                this.scene.remove(f);
+            }
+        })
         // TODO dispose of all the geometries of the object (or even better: reuse the geometries between different players)
     }
 }
