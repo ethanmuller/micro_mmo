@@ -17,6 +17,7 @@ class ButtonInput {
 
 class TrackballInput {
   velocity : Vector2;
+  lastMove : number = 0;
 
   constructor() {
     this.velocity = new Vector2(0, 0)
@@ -88,6 +89,7 @@ export class InputManager {
         mc.on('pan', (e: HammerInput) => {
             this.trackball.velocity.set(e.velocityX, e.velocityY).multiplyScalar(screenFactor)
             this.fingerMovement.set(e.deltaX * screenFactor, e.deltaY * screenFactor)
+            this.trackball.lastMove = e.timeStamp
             if (e.isFinal) {
                 this.fingerDown = false
                 this.fingerMovement.set(0,0);
@@ -140,6 +142,12 @@ export class InputManager {
     }
 
     public update(time : Time) {
+        const now = Date.now()
+        if (this.fingerDown && (now - this.trackball.lastMove) > 1) {
+            this.trackball.velocity.x = 0
+            this.trackball.velocity.y = 0
+        }
+
         this.buttons.forEach(button => {
             button.pressedThisFrame = false;
             button.releasedThisFrame = false;
