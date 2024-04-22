@@ -10,6 +10,16 @@ export type SerializedPlayerData = {
     velocity: Vector3
 }
 
+type Feet = {
+    obj : Object3D,
+    neutralPosition : Vector3,
+    attachment : Object3D
+    stepStartPositon : Vector3,
+    stepEndPosition : Vector3,
+    onGround : boolean,
+    wantsToMove : boolean,
+}
+
 export class Mouse {
     material : Material;
     noseMaterial : Material;
@@ -38,6 +48,9 @@ export class Mouse {
     headWobbleFrequency : number = 4;
     headWobbleAmount : number = 0.2;
     headWobbleMinHeight : number = 0.2;
+    stepHeight : number = 0.45;
+    frontLegStepReachSquared : number = 0.7*0.7;
+    backLegStepReachSquared : number = 0.5*0.5;
 
     // composite body
     headPivot: Object3D;
@@ -53,13 +66,16 @@ export class Mouse {
     earLeft: Mesh;
     earRight: Mesh;
 
-    feet: Object3D[] = [];
-    feetNeutralPosition: Vector3[] = [];
-    feetAttachment: Object3D[] = [];
-    readonly rightFeetId = 0;
-    readonly leftFeetId = 1;
-    readonly backRightFeetId = 2;
-    readonly backLeftFeetId = 3;
+    
+    feet: Feet[] = [];
+    feetTime : number = 0;
+    feetMinSteppingSpeed : number = 10;
+    feetMaxSteppingSpeed : number = 40;
+
+    rightFootId = 0;
+    leftFootId = 1;
+    backRightFootId = 2;
+    backLeftFootId = 3;
 
     var = {
         rot1: new Quaternion(),
@@ -176,6 +192,7 @@ export class Mouse {
 
         this.velocity = new Vector3();
 
+        // Feet
         let foot = new Object3D();
         const footSize = 0.3;
         let footMesh = new Mesh(new TetrahedronGeometry(footSize, 1), this.feetMaterial);
@@ -183,40 +200,38 @@ export class Mouse {
         footMesh.quaternion.setFromAxisAngle(Constants.right, Math.PI * 0.25);
         footMesh.quaternion.premultiply(this.var.rot1.setFromAxisAngle(Constants.up, Math.PI * 0.5));
         foot.scale.set(0.7, 1, 1);
-
         let footYPos = footSize * 0.25;
-        
-        this.feetAttachment.push(this.object);
-        this.feetNeutralPosition.push(new Vector3(headRadius, footYPos, 0));
-        this.getFootNeutralPosition(this.rightFeetId, foot.position, Constants.forward, Constants.right);
-        this.scene.add(foot);
-        this.feet.push(foot);
 
-        let leftFoot = foot.clone();
-        this.feetAttachment.push(this.object);
-        this.feetNeutralPosition.push(new Vector3(-headRadius, footYPos, 0));
-        this.getFootNeutralPosition(this.leftFeetId, leftFoot.position, Constants.forward, Constants.right);
-        this.scene.add(leftFoot);
-        this.feet.push(leftFoot);
-        
-        let brFoot = foot.clone();
-        this.feetAttachment.push(this.butt);
-        this.feetNeutralPosition.push(new Vector3(buttRadius, footYPos, 0));
-        this.getFootNeutralPosition(this.backRightFeetId, brFoot.position, Constants.forward, Constants.right);
-        this.scene.add(brFoot);
-        this.feet.push(brFoot);
+        this.feet = [];
+        this.rightFootId = this.createFeet(foot, this.object, new Vector3(headRadius, footYPos, 0.2));
+        this.leftFootId = this.createFeet(foot.clone(), this.object, new Vector3(-headRadius, footYPos, 0.2));
+        this.backRightFootId = this.createFeet(foot.clone(), this.butt, new Vector3(buttRadius - 0.1, footYPos, 0));
+        this.backLeftFootId = this.createFeet(foot.clone(), this.butt, new Vector3(-buttRadius + 0.1, footYPos, 0));
+    }
 
-        let blFoot = foot.clone();
-        this.feetAttachment.push(this.butt);
-        this.feetNeutralPosition.push(new Vector3(-buttRadius, footYPos, 0));
-        this.getFootNeutralPosition(this.backLeftFeetId, blFoot.position, Constants.forward, Constants.right);
-        this.scene.add(blFoot);
-        this.feet.push(blFoot);
+    
+    private createFeet(obj : Object3D, attachment : Object3D, neutralPosition : Vector3) : number 
+    {
+        let f : Feet = {
+            obj : obj,
+            attachment: attachment,
+            neutralPosition: neutralPosition,
+            stepStartPositon: new Vector3(),
+            stepEndPosition: new Vector3(),
+            onGround: true,
+            wantsToMove: false,
+        };
+        let id = this.feet.length;
+        this.scene.add(obj);
+        this.feet.push(f);
+        this.getFootNeutralPosition(id, f.obj.position, Constants.forward, Constants.right);
+        f.stepEndPosition.copy(f.stepEndPosition.copy(f.obj.position));
+        return id;
     }
 
     update(time : Time, worldBoundaries : Box2, input? : InputManager, camera? : Object3D)
     {
-        let positionBefore = this.var.v1.copy(this.object.position);
+        let positionBefore = new Vector3().copy(this.object.position);
 
         if (input && camera) { // Local players
             if (input.fingerDown) {
@@ -292,10 +307,11 @@ export class Mouse {
         this.headPivot.position.y = (Math.sin(this.headWobbleTime * this.headWobbleFrequency)* 0.5 + 0.5) * this.headWobbleAmount + this.headWobbleMinHeight;
         
         let frameDisplacement = positionBefore.sub(this.object.position);
+        frameDisplacement.multiplyScalar(-1);
         let isMoving = frameDisplacement.lengthSq() > 0.0001;
         if (isMoving) {
-            frameDisplacement.multiplyScalar(-1);
-            frameDisplacement.normalize();
+            let aux = frameDisplacement.clone();
+            aux.normalize();
             this.frameDisplacementDirection.lerp(frameDisplacement, time.deltaTime * 20);
             this.wantedFaceAngle = Utils.SignedAngle2D(Constants.forward, this.frameDisplacementDirection, this.var.v2);
         }
@@ -307,7 +323,9 @@ export class Mouse {
         
         deltaHead.normalize();
         let buttDisplacement = this.var.v3.copy(deltaHead).multiplyScalar(this.bodyLength);
+        let buttPreviousPosition = new Vector3().copy(this.butt.position);
         this.butt.position.copy(headPos).sub(buttDisplacement);
+        let buttFrameDisplacement = buttPreviousPosition.sub(this.butt.position).multiplyScalar(-1);
         this.butt.position.y = this.buttRadius;
         this.butt.quaternion.setFromUnitVectors(Constants.forward, deltaHead);
         // deal with squishing
@@ -317,7 +335,7 @@ export class Mouse {
         this.bodyConnector.scale.set(1,bodyLength,1);
         let bodyAngle = Utils.SignedAngle2D(Constants.forward, deltaHead, this.var.v1);
 
-        this.animateFeet(deltaHead.normalize());
+        this.animateFeet(time, deltaHead.normalize(), isMoving, frameDisplacement, buttFrameDisplacement);
 
         if (!isMoving) {
             this.changeHeadLookTimer -= time.deltaTime;
@@ -367,25 +385,107 @@ export class Mouse {
         }
     }
 
-    private animateFeet(bodyForward : Vector3) {
-
+    private animateFeet(time : Time, bodyForward : Vector3, moving : boolean, headDisplacement : Vector3, buttDisplacement : Vector3)
+    {
         let bodyRight = new Vector3().copy(bodyForward).applyAxisAngle(Constants.up, Math.PI * 0.5);
+        let maxSpeedFactor = Math.max(1, this.velocity.length()/this.feetMaxSteppingSpeed * 2);
+        headDisplacement.multiplyScalar(maxSpeedFactor)
+        buttDisplacement.multiplyScalar(maxSpeedFactor)
+
+        let feetIsStill = true;
+        let feetWantToMove = false;
+
+        let deltaPos = new Vector3();
+        let wannaMoveCount = 0;
+        for (let i = 0; i < this.feet.length; ++i)
+        {
+            let f = this.feet[i];
+            feetIsStill &&= f.onGround;
+            this.getFootNeutralPosition(i, f.stepEndPosition, bodyForward, bodyRight);            
+
+            deltaPos.copy(f.stepEndPosition).sub(f.obj.position);
+            let moveFeetIfSqLengthAbove = (i == this.rightFootId || i == this.leftFootId)? this.frontLegStepReachSquared : this.backLegStepReachSquared;
+            if (deltaPos.lengthSq() > moveFeetIfSqLengthAbove) {
+                feetWantToMove = true;
+                f.wantsToMove = true;
+                wannaMoveCount++;
+            }
+            else f.wantsToMove = false;
+
+            if (f.wantsToMove || !f.onGround) {
+                if (i == this.rightFootId || i == this.leftFootId)
+                    f.stepEndPosition.add(headDisplacement);
+                else
+                    f.stepEndPosition.add(buttDisplacement);
+            }
+        }
+
+        if (feetIsStill && feetWantToMove) {
+            this.feetTime = 0;
+
+            if (wannaMoveCount < 4 && (this.feet[this.leftFootId].wantsToMove && !this.feet[this.rightFootId].wantsToMove) ||
+                (this.feet[this.backRightFootId].wantsToMove && !this.feet[this.backLeftFootId].wantsToMove)) {
+                this.feetTime = Math.PI; // have tendency to start with the feet that wants to start
+                // this is because I'm moving each pair of feet (diagonal pairs) at a time
+            }
+        }
+
+        let feetSpeed = !moving && wannaMoveCount < 2? this.feetMinSteppingSpeed : this.feetMaxSteppingSpeed * maxSpeedFactor; // TODO maybe make it be gradual change of feet speed
+        this.feetTime += time.deltaTime * feetSpeed;
+        let sinTime = Math.sin(this.feetTime);
+        let rightStepFactor = Math.max(0, sinTime);
+        let leftStepFactor = Math.max(0, -sinTime);
+        let lerpFactor = (this.feetTime - Math.floor(this.feetTime/Math.PI)*Math.PI)/Math.PI;
+        // if (rightStepFactor > 0)
+        //     console.log(`Right ${lerpFactor}\t ${rightStepFactor}`);
+        // else 
+        //     console.log(`Left ${lerpFactor}\t ${leftStepFactor}`);
+
+        bodyForward.y = 0;
+        let rot = this.var.rot1.setFromUnitVectors(Constants.forward, bodyForward);
 
         for (let i = 0; i < this.feet.length; ++i)
         {
-            // TODO actually animate and rotate feet
-            this.getFootNeutralPosition(i, this.feet[i].position, bodyForward, bodyRight);
+            let f = this.feet[i];
+            if (f.wantsToMove && f.onGround) {
+                if (((i == this.rightFootId || i == this.backLeftFootId) && rightStepFactor > 0)
+                    || ((i == this.leftFootId || i == this.backRightFootId) && leftStepFactor > 0))
+                {
+                    f.wantsToMove = false;
+                    f.onGround = false;
+                    f.stepStartPositon.copy(f.obj.position);
+                }
+            }
+            else if (!f.onGround) {
+                if (((i == this.rightFootId || i == this.backLeftFootId) && rightStepFactor == 0)
+                    || ((i == this.leftFootId || i == this.backRightFootId) && leftStepFactor == 0))
+                {
+                    f.onGround = true;
+                    f.obj.position.copy(f.stepEndPosition);
+                }
+            }
+            // TODO actually do something with rotation
+            if (!f.onGround) {
+                let stepFactor = (i == this.rightFootId || i == this.backLeftFootId)? rightStepFactor : leftStepFactor;
+                let maxStepHeight = (f.stepEndPosition.y + f.stepStartPositon.y)/2 + this.stepHeight;
+                let instantStepHeight = lerpFactor < 0.5? MathUtils.lerp(f.stepStartPositon.y, maxStepHeight, stepFactor) : MathUtils.lerp(f.stepEndPosition.y, maxStepHeight, stepFactor);
+                f.obj.position.lerpVectors(f.stepStartPositon, f.stepEndPosition, lerpFactor);
+                f.obj.position.y = instantStepHeight;
+            }
+            this.feet[i].obj.quaternion.copy(rot);
         }
     }
 
+    forwardClone = new Vector3();
+    rightClone = new Vector3();
     private getFootNeutralPosition(feetId : number, outVector : Vector3, forward : Vector3, right : Vector3)
     {
-        outVector.copy(this.feetAttachment[feetId].position);
-        const relPos = this.feetNeutralPosition[feetId];
-        outVector.add(forward.clone().multiplyScalar(relPos.z));
-        outVector.add(right.clone().multiplyScalar(relPos.x));
+        outVector.copy(this.feet[feetId].attachment.position);
+        const relPos = this.feet[feetId].neutralPosition;
+        outVector.add(this.forwardClone.copy(forward).multiplyScalar(relPos.z));
+        outVector.add(this.rightClone.copy(right).multiplyScalar(relPos.x));
         // TODO Y position might vary
-        outVector.y = this.feetNeutralPosition[feetId].y;
+        outVector.y = this.feet[feetId].neutralPosition.y;
     }
 
     serializePlayerData() : SerializedPlayerData {
@@ -410,7 +510,7 @@ export class Mouse {
         this.scene.remove(this.butt);
         this.feet.forEach((f) => {
             if (f) {
-                this.scene.remove(f);
+                this.scene.remove(f.obj);
             }
         })
         // TODO dispose of all the geometries of the object (or even better: reuse the geometries between different players)
