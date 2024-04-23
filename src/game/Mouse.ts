@@ -1,9 +1,10 @@
-import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshToonMaterial, Material, TextureLoader, Quaternion, Vector3, CylinderGeometry, ConeGeometry, DoubleSide, MathUtils, NearestFilter, TetrahedronGeometry} from "three";
+import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshToonMaterial, Material, TextureLoader, Quaternion, Vector3, CylinderGeometry, ConeGeometry, DoubleSide, MathUtils, NearestFilter, TetrahedronGeometry, LineBasicMaterial, Line, CubicBezierCurve3, LineSegments, BufferGeometry} from "three";
 import { Time } from "./Time";
 import toonTexture from "../assets/threeTone_bright.jpg";
 import { InputManager } from "./InputManager";
 import { Constants } from "./constants";
 import { Utils } from "./Utils";
+import { LineGeometry } from "three/examples/jsm/Addons.js";
 
 export type SerializedPlayerData = {
     position: Vector3,
@@ -175,8 +176,37 @@ export class Mouse {
         
         this.earRight = this.earLeft.clone()
         this.earLeft.position.x *= -1;
-        this.snout.add(this.nose, this.eyeLeft, this.eyeRight, this.earLeft, this.earRight)
+        this.snout.add(this.nose, this.eyeLeft, this.eyeRight, this.earLeft, this.earRight);
+        // whiskers
+        let whiskerLineDivisions = 8;
+        let whiskerPoints : Vector3[] = [];
+        let whiskerIndexes : number[] = [];
+        let whiskersGeometry = new BufferGeometry();
+        
+        let addWhiskerCurve = function(curve : CubicBezierCurve3)
+        {
+            let whiskerStart = whiskerPoints.length;
+            whiskerPoints = whiskerPoints.concat(curve.getPoints(whiskerLineDivisions));
+            for (let i = 0; i < whiskerLineDivisions; ++i) {
+                whiskerIndexes.push(whiskerStart + i, whiskerStart + i + 1);
+            }
+        }
+        let addTwoSymetricWhiskers = function(curve : CubicBezierCurve3) {
+            addWhiskerCurve(curve);
+            curve.v0.x = -curve.v0.x;
+            curve.v1.x = -curve.v1.x;
+            curve.v2.x = -curve.v2.x;
+            curve.v3.x = -curve.v3.x;
+            addWhiskerCurve(curve);
+        }
+        addTwoSymetricWhiskers(new CubicBezierCurve3(new Vector3(-0.7, 0.15, 0.2), new Vector3(-0.3,0.15,0), new Vector3(-0.2,0.1,0), new Vector3(0,0.1,0)));
+        addTwoSymetricWhiskers(new CubicBezierCurve3(new Vector3(-0.66, 0.17, -0.2), new Vector3(-0.3,0.17,0), new Vector3(-0.2,0.12,0), new Vector3(0,0.12,0.07)));
+        addTwoSymetricWhiskers(new CubicBezierCurve3(new Vector3(-0.8, 0.0, -0.1), new Vector3(-0.6,0.05,-0.09), new Vector3(-0.2,0.09,-0.09), new Vector3(0,0.09,0.05)));
 
+        whiskersGeometry.setFromPoints(whiskerPoints);
+        whiskersGeometry.setIndex(whiskerIndexes);        
+        let whiskers = new LineSegments(whiskersGeometry, new LineBasicMaterial());
+        this.snout.add(whiskers);
 
 
         this.object = new Object3D();
