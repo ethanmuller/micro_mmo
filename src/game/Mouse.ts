@@ -1,4 +1,4 @@
-import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshToonMaterial, Material, TextureLoader, Quaternion, Vector3, CylinderGeometry, ConeGeometry, DoubleSide, MathUtils, NearestFilter, TetrahedronGeometry, LineBasicMaterial, Line, CubicBezierCurve3, LineSegments, BufferGeometry} from "three";
+import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshToonMaterial, Material, TextureLoader, Quaternion, Vector3, CylinderGeometry, ConeGeometry, DoubleSide, MathUtils, NearestFilter, TetrahedronGeometry, LineBasicMaterial, Line, CubicBezierCurve3, LineSegments, BufferGeometry, SkinnedMesh, Uint16BufferAttribute, Float32BufferAttribute, Skeleton, Object3DEventMap, Bone, SkeletonHelper, DetachedBindMode} from "three";
 import { Time } from "./Time";
 import toonTexture from "../assets/threeTone_bright.jpg";
 import { InputManager } from "./InputManager";
@@ -21,15 +21,19 @@ type Feet = {
     wantsToMove : boolean,
 }
 
-export class Mouse {
+export class Mouse
+{
+    public object : Object3D;
+    scene: Scene;
+    
+    // Materials
     material : Material;
     noseMaterial : Material;
     feetMaterial : Material;
+    tailMaterial : Material;
     earMaterial : Material;
     eyeMaterial : Material;
     debugSphere : Mesh;
-    public object : Object3D;
-    scene: Scene;
 
     // movement
     velocity : Vector3 = new Vector3();
@@ -66,6 +70,7 @@ export class Mouse {
     eyeRight: Mesh;
     earLeft: Mesh;
     earRight: Mesh;
+    tailBones: Bone[];
 
     
     feet: Feet[] = [];
@@ -78,23 +83,23 @@ export class Mouse {
     backRightFootId = 2;
     backLeftFootId = 3;
 
-    var = {
-        rot1: new Quaternion(),
-        rot2: new Quaternion(),
+    private var = { // just random vectors and quaternions for use during update operations
+        q1: new Quaternion(),
+        q2: new Quaternion(),
         v1: new Vector3(),
         v2: new Vector3(),
         v3: new Vector3(),
         v4: new Vector3(),
     }
 
-    smoothing = {
+    private smoothing = {
         wantedPosition: new Vector3(),
         lastInfoTime: 0,
         lerpTime: 0.3, // const
         lerping: false,
     }
 
-    frameDisplacementDirection : Vector3 = new Vector3();
+    private frameDisplacementDirection : Vector3 = new Vector3();
 
     constructor(scene : Scene, loader : TextureLoader)
     {
@@ -112,6 +117,7 @@ export class Mouse {
         this.earMaterial = new MeshBasicMaterial( { color: 0xcc8888});
         this.feetMaterial = new MeshToonMaterial( { color: 0xffaaaa, gradientMap: toonRamp});
         this.eyeMaterial = new MeshBasicMaterial( { color: 0x000000});
+        this.tailMaterial = new MeshToonMaterial( { color: 0xffaaaa, gradientMap: toonRamp});
 
         const buttRadius = this.buttRadius = 0.89;
         const headRadius = 0.6;
@@ -227,7 +233,7 @@ export class Mouse {
         let footMesh = new Mesh(new TetrahedronGeometry(footSize, 1), this.feetMaterial);
         foot.add(footMesh);
         footMesh.quaternion.setFromAxisAngle(Constants.right, Math.PI * 0.25);
-        footMesh.quaternion.premultiply(this.var.rot1.setFromAxisAngle(Constants.up, Math.PI * 0.5));
+        footMesh.quaternion.premultiply(this.var.q1.setFromAxisAngle(Constants.up, Math.PI * 0.5));
         foot.scale.set(0.7, 1, 1);
         let footYPos = footSize * 0.25;
 
@@ -236,6 +242,60 @@ export class Mouse {
         this.leftFootId = this.createFeet(foot.clone(), this.object, new Vector3(-headRadius, footYPos, 0.2));
         this.backRightFootId = this.createFeet(foot.clone(), this.butt, new Vector3(buttRadius - 0.1, footYPos, 0));
         this.backLeftFootId = this.createFeet(foot.clone(), this.butt, new Vector3(-buttRadius + 0.1, footYPos, 0));
+
+        // Tail
+        let tailMaxThickness = 0.15;
+        let tailLength = 4;
+        let tailSegments = 5;
+        let tailGeometry = new ConeGeometry(tailMaxThickness, tailLength, 7, tailSegments, true);
+        const position = tailGeometry.attributes.position;
+        const vertex = new Vector3();
+        const skinIndices = [];
+        const skinWeights = [];
+        let tailSegmentHeight = tailLength / tailSegments;
+        for ( let i = 0; i < position.count; i ++ ) {
+
+            vertex.fromBufferAttribute( position, i );
+        
+            // compute skinIndex and skinWeight based on some configuration data
+            const y = ( vertex.y + tailLength * 0.5 );
+            const skinIndex = Math.floor( y / tailSegmentHeight );
+            //const skinWeight = ( y % tailSegmentHeight ) / tailSegmentHeight;
+            skinIndices.push( skinIndex, 0, 0, 0 );
+            skinWeights.push( 1, 0, 0, 0 );
+        }
+        tailGeometry.setAttribute( 'skinIndex', new Uint16BufferAttribute( skinIndices, 4 ));
+        tailGeometry.setAttribute( 'skinWeight', new Float32BufferAttribute( skinWeights, 4 ));
+        const tailMesh = new SkinnedMesh(tailGeometry, this.tailMaterial);
+        //tailMesh.bindMode = DetachedBindMode;
+        const tailBones = [];
+        for (let i = 0; i <= tailSegments; ++i) {
+            const bone = new Bone();
+            tailBones.push(bone);
+            if (i == 0) {
+                bone.position.y = -tailLength * 0.5;
+                bone.quaternion.setFromAxisAngle(Constants.right, Math.PI * 0.5);
+            }
+            else {
+                tailBones[i-1].add(bone);
+                bone.position.z = -tailSegmentHeight;
+            }
+        }
+
+        const tailSkeleton = new Skeleton(tailBones);
+
+        tailMesh.add(tailBones[0]);
+        tailMesh.bind(tailSkeleton);
+        tailBones[0].position.y = 0;
+        tailBones[0].position.z -= buttRadius - 0.2;
+        //tailMesh.position.z += tailLength * 0.5 + buttRadius - 0.2;
+        tailMesh.quaternion.setFromAxisAngle(Constants.up, Math.PI);
+        this.butt.add(tailMesh);
+        //this.butt.add(tailBones[0]);
+        this.tailBones = tailBones;
+
+        // const boneHelper = new SkeletonHelper(tailMesh);
+        // this.scene.add(boneHelper);
     }
 
     
@@ -266,7 +326,7 @@ export class Mouse {
 
         if (input && camera) { // Local players
             if (input.fingerDown) {
-                let cameraQuaterinion = camera.getWorldQuaternion(this.var.rot1);
+                let cameraQuaterinion = camera.getWorldQuaternion(this.var.q1);
                 this.velocity.set(0, 0, 0);
                 let relativeRight = this.var.v2.set(1,0,0);
                 relativeRight.applyQuaternion(cameraQuaterinion)
@@ -366,6 +426,9 @@ export class Mouse {
         this.bodyConnector.scale.set(1,bodyLength,1);
         let bodyAngle = Utils.SignedAngle2D(Constants.forward, deltaHead, this.var.v1);
 
+        this.butt.updateMatrixWorld(true);
+        this.animateTail(time);
+
         this.animateFeet(time, deltaHead.normalize(), isMoving, frameDisplacement, buttFrameDisplacement);
 
         if (!isMoving) {
@@ -409,10 +472,29 @@ export class Mouse {
 
         if (this.debugSphere.visible) {
             // debug sphere
-            let zMovementRotation = this.var.rot1.setFromAxisAngle(Constants.right, frameDisplacement.z / this.radius);
-            let xMovementRotation = this.var.rot2.setFromAxisAngle(Constants.forward, frameDisplacement.x / this.radius );
+            let zMovementRotation = this.var.q1.setFromAxisAngle(Constants.right, frameDisplacement.z / this.radius);
+            let xMovementRotation = this.var.q2.setFromAxisAngle(Constants.forward, frameDisplacement.x / this.radius );
             zMovementRotation.multiply(xMovementRotation);
             this.debugSphere.quaternion.premultiply(zMovementRotation);
+        }
+    }
+
+    private tailRootLastPos = new Vector3();
+    private animateTail(time : Time)
+    {
+        const root = this.tailBones[0];
+        // let tailRootWorldPos = root.getWorldPosition(new Vector3());
+        // let tailRootFrameDisplacement = new Vector3().copy(tailRootWorldPos).sub(this.tailRootLastPos);
+        // this.tailRootLastPos.copy(tailRootWorldPos);
+
+        // let rootWorldQuaternion = root.getWorldQuaternion(new Quaternion());
+
+        // let prevDisplacement = new Vector3().copy(rootDisplacement).applyQuaternion(this.tailBones[0].getWorldQuaternion());
+        // let deltaDirection = new Vector3();
+
+        for (let i = 0; i < this.tailBones.length - 1; ++i)
+        {
+            this.tailBones[i].quaternion.setFromAxisAngle(Constants.up, Math.sin(time.time * (i + 1)) * Math.PI * 0.2);
         }
     }
 
@@ -475,7 +557,7 @@ export class Mouse {
         //     console.log(`Left ${lerpFactor}\t ${leftStepFactor}`);
 
         bodyForward.y = 0;
-        let rot = this.var.rot1.setFromUnitVectors(Constants.forward, bodyForward);
+        let rot = this.var.q1.setFromUnitVectors(Constants.forward, bodyForward);
 
         for (let i = 0; i < this.feet.length; ++i)
         {
