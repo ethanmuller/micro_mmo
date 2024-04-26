@@ -32,7 +32,7 @@ export class Mouse {
     scene: Scene;
 
     // movement
-    velocity : Vector3;
+    velocity : Vector3 = new Vector3();
     radius : number = 1;
     maxSpeed : number = 40;
     drag : number = 0.5;
@@ -84,6 +84,7 @@ export class Mouse {
         v1: new Vector3(),
         v2: new Vector3(),
         v3: new Vector3(),
+        v4: new Vector3(),
     }
 
     smoothing = {
@@ -205,7 +206,7 @@ export class Mouse {
 
         whiskersGeometry.setFromPoints(whiskerPoints);
         whiskersGeometry.setIndex(whiskerIndexes);        
-        let whiskers = new LineSegments(whiskersGeometry, new LineBasicMaterial());
+        let whiskers = new LineSegments(whiskersGeometry, new LineBasicMaterial({transparent: true, opacity: 0.3}));
         this.snout.add(whiskers);
 
 
@@ -219,8 +220,6 @@ export class Mouse {
         this.butt.position.y = this.radius;
         scene.add( this.object );
         this.scene = scene;
-
-        this.velocity = new Vector3();
 
         // Feet
         let foot = new Object3D();
@@ -259,9 +258,11 @@ export class Mouse {
         return id;
     }
 
+    private previousFramePosition = new Vector3();
+
     update(time : Time, worldBoundaries : Box2, input? : InputManager, camera? : Object3D)
     {
-        let positionBefore = new Vector3().copy(this.object.position);
+        let positionBefore = this.previousFramePosition.copy(this.object.position);
 
         if (input && camera) { // Local players
             if (input.fingerDown) {
@@ -340,7 +341,7 @@ export class Mouse {
         frameDisplacement.multiplyScalar(-1);
         let isMoving = frameDisplacement.lengthSq() > 0.0001;
         if (isMoving) {
-            let aux = frameDisplacement.clone();
+            let aux = this.var.v1.copy(frameDisplacement);
             aux.normalize();
             this.frameDisplacementDirection.lerp(frameDisplacement, time.deltaTime * 20);
             this.wantedFaceAngle = Utils.SignedAngle2D(Constants.forward, this.frameDisplacementDirection, this.var.v2);
@@ -353,7 +354,7 @@ export class Mouse {
         
         deltaHead.normalize();
         let buttDisplacement = this.var.v3.copy(deltaHead).multiplyScalar(this.bodyLength);
-        let buttPreviousPosition = new Vector3().copy(this.butt.position);
+        let buttPreviousPosition = this.var.v4.copy(this.butt.position);
         this.butt.position.copy(headPos).sub(buttDisplacement);
         let buttFrameDisplacement = buttPreviousPosition.sub(this.butt.position).multiplyScalar(-1);
         this.butt.position.y = this.buttRadius;
@@ -415,9 +416,11 @@ export class Mouse {
         }
     }
 
+    private feetBodyRight = new Vector3();
+    private feetDeltaPos = new Vector3();
     private animateFeet(time : Time, bodyForward : Vector3, moving : boolean, headDisplacement : Vector3, buttDisplacement : Vector3)
     {
-        let bodyRight = new Vector3().copy(bodyForward).applyAxisAngle(Constants.up, Math.PI * 0.5);
+        let bodyRight = this.feetBodyRight.copy(bodyForward).applyAxisAngle(Constants.up, Math.PI * 0.5);
         let maxSpeedFactor = Math.max(1, this.velocity.length()/this.feetMaxSteppingSpeed * 2);
         headDisplacement.multiplyScalar(maxSpeedFactor)
         buttDisplacement.multiplyScalar(maxSpeedFactor)
@@ -425,7 +428,7 @@ export class Mouse {
         let feetIsStill = true;
         let feetWantToMove = false;
 
-        let deltaPos = new Vector3();
+        let deltaPos = this.feetDeltaPos;
         let wannaMoveCount = 0;
         for (let i = 0; i < this.feet.length; ++i)
         {
@@ -506,8 +509,8 @@ export class Mouse {
         }
     }
 
-    forwardClone = new Vector3();
-    rightClone = new Vector3();
+    private forwardClone = new Vector3();
+    private rightClone = new Vector3();
     private getFootNeutralPosition(feetId : number, outVector : Vector3, forward : Vector3, right : Vector3)
     {
         outVector.copy(this.feet[feetId].attachment.position);
