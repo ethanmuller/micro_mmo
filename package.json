@@ -6,7 +6,7 @@
   "scripts": {
     "multiplayer-server": "node --loader ts-node/esm src/server/multiplayer-server.ts",
     "dev": "vite --host",
-    "build": "vue-tsc && vite build",
+    "build": "vue-tsc --noEmitOnError && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

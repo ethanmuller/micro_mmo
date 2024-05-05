@@ -1,7 +1,6 @@
-import { Vector2, Vector3 } from 'three';
+import { Vector2 } from 'three';
 
 import Hammer from 'hammerjs'
-import { Time } from './Time';
 
 
 class ButtonInput {
@@ -95,11 +94,11 @@ export class InputManager {
                 this.fingerMovement.set(0,0);
             }
         })
-        mc.on('press', (e: HammerInput) => {
+        mc.on('press', () => {
             this.trackball.velocity.set(0,0);
             this.fingerDown = true
         })
-        mc.on('pressup', (e: HammerInput) => {
+        mc.on('pressup', () => {
             this.fingerDown = false
             this.fingerMovement.set(0,0);
         })
@@ -141,7 +140,7 @@ export class InputManager {
         }
     }
 
-    public update(time : Time) {
+    public update() {
         const now = Date.now()
         if (this.fingerDown && (now - this.trackball.lastMove) > 1) {
             this.trackball.velocity.x = 0

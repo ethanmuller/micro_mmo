@@ -1,9 +1,10 @@
-import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshToonMaterial, Material, TextureLoader, Quaternion, Vector3, CylinderGeometry, ConeGeometry, DoubleSide, MathUtils, NearestFilter, TetrahedronGeometry, LineBasicMaterial, Line, CubicBezierCurve3, LineSegments, BufferGeometry, SkinnedMesh, Uint16BufferAttribute, Float32BufferAttribute, Skeleton, Object3DEventMap, Bone, SkeletonHelper, DetachedBindMode, Box3} from "three";
+import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshToonMaterial, Material, TextureLoader, Quaternion, Vector3, CylinderGeometry, ConeGeometry, MathUtils, NearestFilter, TetrahedronGeometry, LineBasicMaterial, CubicBezierCurve3, LineSegments, BufferGeometry, SkinnedMesh, Uint16BufferAttribute, Float32BufferAttribute, Skeleton, Bone } from "three";
 import { Time } from "./Time";
 import toonTexture from "../assets/threeTone_bright.jpg";
 import { InputManager } from "./InputManager";
 import { Constants } from "./constants";
 import { Utils } from "./Utils";
+// @ts-ignore
 import { TailGeometry } from "./extensions/TailGeometry"
 
 export type SerializedPlayerData = {
@@ -402,7 +403,7 @@ export class Mouse
                 let pushed = false;
                 let buttPush = this.var.v3.set(0,0,0);
     
-                otherMice.forEach((m, id) => {
+                otherMice.forEach((m) => {
                     deltaPos.copy(m.object.position).sub(that.object.position);
                     if (deltaPos.lengthSq() < headHeadSqrDist) {
                         deltaPos.y = 0;
@@ -486,7 +487,7 @@ export class Mouse
         let bodyAngle = Utils.SignedAngle2D(Constants.forward, deltaHead);
 
         this.butt.updateMatrixWorld(true);
-        this.animateTail(time);
+        this.animateTail();
 
         this.animateFeet(time, deltaHead.normalize(), isMoving, frameDisplacement, buttFrameDisplacement);
 
@@ -543,7 +544,7 @@ export class Mouse
     private tailQuat = new Quaternion();
     private tailPrevDelta = new Vector3();
 
-    private animateTail(time : Time)
+    private animateTail()
     {
         this.tail.position.copy(this.butt.position);
         this.tail.position.y = this.maxTailThickness;
@@ -688,7 +689,7 @@ export class Mouse
         }
     }
 
-    onRemotePlayerData(data : SerializedPlayerData, timeSinceItWasSent : number, time : Time)
+    onRemotePlayerData(data : SerializedPlayerData, time : Time)
     {
         this.smoothing.wantedPosition.copy(data.position);
         this.smoothing.lastInfoTime = time.time;

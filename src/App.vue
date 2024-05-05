@@ -11,8 +11,6 @@ import { FreeCamera } from './game/FreeCamera';
 const NETWORK_TIME_BETWEEN_UPDATES = 1/15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
 
-const logs = ref("Not connected to the multiplayer server")
-
 const gamecanvas = ref<HTMLDivElement>();
 const trackballEl = ref<HTMLDivElement>();
 
@@ -45,12 +43,12 @@ let playerIdToPlayerObj : Map<string, Mouse> = new Map<string, Mouse>();
 mp.onRemotePlayerConnected((id) => {
   playerIdToPlayerObj.set(id, new Mouse(scene, imgLoader));
 });
-mp.onRemotePlayerFrameData((id, data, sentTimeMs) => {
+mp.onRemotePlayerFrameData((id, data) => {
   let playerObj = playerIdToPlayerObj.get(id);
   if (playerObj) {
     
     let info = data as SerializedPlayerData;
-    playerObj.onRemotePlayerData(info, (mp.serverTimeMs() - sentTimeMs)/1000, gameTime);
+    playerObj.onRemotePlayerData(info, gameTime);
   }
 });
 mp.onRemotePlayerDisconnected((id) => {
@@ -95,7 +93,7 @@ function mainLoop()
 
   // update
 
-  playerIdToPlayerObj.forEach((plObj : Mouse, id: string) => {
+  playerIdToPlayerObj.forEach((plObj : Mouse) => {
     plObj.update(gameTime, worldBoundaries);
   })
 
@@ -138,7 +136,7 @@ function mainLoop()
     lastNetworkUpdate = gameTime.time;
   }
 
-  input.update(gameTime);
+  input.update();
   //
   requestAnimationFrame(mainLoop);
 }
