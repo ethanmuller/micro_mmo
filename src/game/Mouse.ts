@@ -4,7 +4,7 @@ import toonTexture from "../assets/threeTone_bright.jpg";
 import { InputManager } from "./InputManager";
 import { Constants } from "./constants";
 import { Utils } from "./Utils";
-import { LineGeometry } from "three/examples/jsm/Addons.js";
+import { TailGeometry } from "./extensions/TailGeometry"
 
 export type SerializedPlayerData = {
     position: Vector3,
@@ -75,7 +75,8 @@ export class Mouse
     tail: SkinnedMesh;
     tailBonesPositions: Vector3[];
     // Tail
-    maxTailThickness : number = 0.15;
+    maxTailThickness : number = 0.1;
+    tailStartSlope = 0.35;
     tailSegmentLength : number = 0; // variable
     tailLength = 4;
     tailSegments = 5;
@@ -254,7 +255,7 @@ export class Mouse
 
         // Tail
         
-        let tailGeometry = new ConeGeometry(this.maxTailThickness, this.tailLength, 7, this.tailSegments, true);
+        let tailGeometry = new TailGeometry(this.maxTailThickness, this.tailLength, 7, this.tailSegments, this.tailStartSlope);
         const position = tailGeometry.attributes.position;
         const vertex = new Vector3();
         const skinIndices = [];
