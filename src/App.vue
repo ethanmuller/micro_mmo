@@ -72,6 +72,7 @@ worldBoundaries.getSize(worldSize);
 floor.add(new THREE.Mesh(new THREE.PlaneGeometry(worldSize.width,worldSize.height), new THREE.MeshBasicMaterial({color : 0x775577, map: imgLoader.load(mouseTexture), })));
 floor.rotation.x -= Math.PI/2;
 scene.add(floor);
+//scene.add(new THREE.AxesHelper());
 
 var gameTime = <Time>({
   deltaTime: 0,

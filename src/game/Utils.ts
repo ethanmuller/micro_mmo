@@ -1,11 +1,12 @@
 import { Vector3 } from "three";
 
 export class Utils {
-    static SignedAngle2D(from: Vector3, to: Vector3, aux?: Vector3) : number
-    {
-        if (!aux) aux = new Vector3();
 
-        let angleSign = Math.sign(aux.crossVectors(from, to).y);
+    private static aux : Vector3 = new Vector3();
+
+    static SignedAngle2D(from: Vector3, to: Vector3) : number
+    {
+        let angleSign = Math.sign(this.aux.crossVectors(from, to).y);
         return from.angleTo(to) * angleSign;
     }
 
