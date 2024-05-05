@@ -37,7 +37,7 @@ camera.updateProjectionMatrix();
 const freeCamera = new FreeCamera(camera);
 const cameraPivot = new THREE.Object3D();
 cameraPivot.add(camera);
-cameraPivot.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.75)
+cameraPivot.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.25)
 scene.add(cameraPivot);
 
 const mp = new MultiplayerClient()
@@ -94,11 +94,12 @@ function mainLoop()
   lastTickTime = now;
 
   // update
-	player.update(gameTime, worldBoundaries, input, camera);
 
   playerIdToPlayerObj.forEach((plObj : Mouse, id: string) => {
     plObj.update(gameTime, worldBoundaries);
   })
+
+	player.update(gameTime, worldBoundaries, input, camera, playerIdToPlayerObj);
 
   // Camera updates
   player.object.getWorldPosition(cameraPivot.position);

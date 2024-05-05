@@ -40,6 +40,7 @@ export class Mouse
     radius : number = 1;
     maxSpeed : number = 40;
     drag : number = 0.5;
+    collisionSpeedDrop = 0.3; // 
 
     // animation
     randomlyLookHeadMinMax : Vector2 = new Vector2(0.3, 1.5);
@@ -332,7 +333,7 @@ export class Mouse
 
     private previousFramePosition = new Vector3();
 
-    update(time : Time, worldBoundaries : Box2, input? : InputManager, camera? : Object3D)
+    update(time : Time, worldBoundaries : Box2, input? : InputManager, camera? : Object3D, otherMice? : Map<string, Mouse>)
     {
         let positionBefore = this.previousFramePosition.copy(this.object.position);
 
@@ -387,7 +388,52 @@ export class Mouse
         else {
             this.object.position.x += this.velocity.x * time.deltaTime;
             this.object.position.z += this.velocity.z * time.deltaTime;
-        }
+
+            if (otherMice) {
+                let deltaPos = this.var.v1;
+                let that = this;
+                let headHeadSqrDist = this.radius * this.radius;
+                let headButtSqrDist = this.radius + this.buttRadius;
+                headButtSqrDist *= headButtSqrDist;
+                let buttButtSqrDist = this.buttRadius + this.buttRadius;
+    
+                let push = this.var.v2.set(0,0,0);
+                let pushed = false;
+                let buttPush = this.var.v3.set(0,0,0);
+    
+                otherMice.forEach((m, id) => {
+                    deltaPos.copy(m.object.position).sub(that.object.position);
+                    if (deltaPos.lengthSq() < headHeadSqrDist) {
+                        deltaPos.y = 0;
+                        deltaPos.normalize().multiplyScalar(time.deltaTime * 5);
+                        push.add(deltaPos);
+                        pushed = true;
+                    }
+                    deltaPos.copy(m.butt.position).sub(that.object.position);
+                    if (deltaPos.lengthSq() < headButtSqrDist) {
+                        deltaPos.y = 0;
+                        deltaPos.normalize().multiplyScalar(time.deltaTime * 5);
+                        push.add(deltaPos);
+                        pushed = true;
+                    }
+                    deltaPos.copy(m.butt.position).sub(that.butt.position);
+                    if (deltaPos.lengthSq() < buttButtSqrDist) {
+                        deltaPos.y = 0;
+                        deltaPos.normalize().multiplyScalar(time.deltaTime * 5);
+                        buttPush.add(deltaPos);
+                    }
+                });
+    
+                this.object.position.x -= push.x;
+                this.object.position.z -= push.z;
+
+                this.butt.position.x -= buttPush.x;
+                this.butt.position.z -= buttPush.z;
+
+                if (pushed)
+                    this.velocity.lerp(Constants.zero, this.collisionSpeedDrop);
+            }
+        }        
 
         // Move and collide against AABB world boundaries 
         if (this.object.position.x + this.radius > worldBoundaries.max.x)
