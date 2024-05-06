@@ -60,6 +60,7 @@ mp.onRemotePlayerDisconnected((id) => {
 });
 
 const sun = new THREE.DirectionalLight();
+sun.intensity = Math.PI
 sun.quaternion.setFromAxisAngle(new THREE.Vector3(0,0,1), Math.PI * 0.1);
 scene.add(sun);
 
