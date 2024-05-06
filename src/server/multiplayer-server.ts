@@ -1,13 +1,17 @@
 import express from 'express';
 import { createServer } from 'node:http';
 import { Server } from "socket.io";
+import { ServerToClientEvents, ClientToServerEvents, } from './MultiplayerTypes';
 import cors from 'cors'
-import { MessageType } from './MessageType.ts';
+
 
 const app = express();
 app.use(cors())
 const server = createServer(app);
-const io = new Server(server, {
+const io = new Server<
+ClientToServerEvents,
+ServerToClientEvents
+>(server, {
   cors: {}
 });
 
@@ -18,20 +22,24 @@ app.get('/', (_req, res) => {
 io.on('connection', async (socket) => {
   const sockets = await io.fetchSockets();
   console.log(`CLIENT CONNECTED.    total sockets: ${sockets.length}`)
+  console.log(sockets)
   const idList = sockets.map((socket) => socket.id);
-  io.emit(MessageType.serverInfo, Date.now()); // TODO send more relevant info
-  io.emit(MessageType.clientList, idList);
-  io.emit(MessageType.onPlayerConnected, socket.id);
+  io.emit('serverInfo', Date.now());
+  io.emit('clientList', idList);
+
+  const skinNumber = parseInt(<string>socket.handshake.query.skin || "0", 10)
+  console.log(skinNumber)
+  io.emit('playerConnected', socket.id, skinNumber);
 
   socket.on('disconnect', async () => {
     const sockets = await io.fetchSockets();
     console.log(`CLIENT DISCONNECTED. total sockets: ${sockets.length}`)
-    io.emit(MessageType.clientList, idList)
-    io.emit(MessageType.onPlayerDisconnected, socket.id);
+    io.emit('clientList', idList)
+    io.emit('playerDisconnected', socket.id);
   });
 
-  socket.on(MessageType.playerSentFrameData, (data : any, sentTime : number) => {
-    socket.broadcast.emit(MessageType.serverSentPlayerFrameData, Date.now(), socket.id, data, sentTime);
+  socket.on('playerSentFrameData', (data : any, sentTime : number) => {
+    socket.broadcast.emit('serverSentPlayerFrameData', Date.now(), socket.id, data, sentTime);
   });
 });
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref, onMounted, onBeforeUnmount} from 'vue';
 import * as THREE from 'three';
-import { Mouse, SerializedPlayerData } from './game/Mouse';
+import { Mouse, MouseSkin, SerializedPlayerData } from './game/Mouse';
 import { Time } from './game/Time';
 import skyTexture from './assets/sky_gradient.png';
 import mouseTexture from "./assets/mouse_texture.png";
@@ -25,7 +25,17 @@ imgLoader.loadAsync(skyTexture).then((tex) => {
   tex.magFilter = THREE.LinearFilter;
   scene.background = tex;
 });
-const player = new Mouse(scene, imgLoader);
+const skinList : Array<MouseSkin> = [
+  { skinColor: 0xffaaaa, eyeColor: 0x880000, furColor: 0xffffff }, // lab mouse
+  { skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0x453a38 }, // dark gray
+  { skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0xb95b48 }, // light brown
+  { skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0x542c24 }, // dark brown
+  { skinColor: 0xca7373, eyeColor: 0x000000, furColor: 0xc3c3c3 }, // light gray
+  { skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0xc29e7c }, // cardboard brown
+  { skinColor: 0xcc8888, eyeColor: 0x000000, furColor: 0x646464 }, // classic gray
+]
+const seed = getRandomInt(skinList.length-1)
+const player = new Mouse(scene, imgLoader, skinList[seed]);
 
 //camera.position.x = 10;
 const cameraWantedDisplacement = new THREE.Vector3(0,10,10);
@@ -35,14 +45,16 @@ camera.updateProjectionMatrix();
 const freeCamera = new FreeCamera(camera);
 const cameraPivot = new THREE.Object3D();
 cameraPivot.add(camera);
-cameraPivot.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.25)
+cameraPivot.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.75*-1)
 scene.add(cameraPivot);
 
-const mp = new MultiplayerClient()
+const mp = new MultiplayerClient(seed)
 let playerIdToPlayerObj : Map<string, Mouse> = new Map<string, Mouse>();
-mp.onRemotePlayerConnected((id) => {
-  playerIdToPlayerObj.set(id, new Mouse(scene, imgLoader));
+
+mp.onRemotePlayerConnected((id, skinNumber) => {
+  playerIdToPlayerObj.set(id, new Mouse(scene, imgLoader, skinList[skinNumber]));
 });
+
 mp.onRemotePlayerFrameData((id, data) => {
   let playerObj = playerIdToPlayerObj.get(id);
   if (playerObj) {
@@ -81,6 +93,10 @@ var gameTime = <Time>({
 
 let lastTickTime = new Date().getTime();
 let input: InputManager
+
+function getRandomInt(max : number) {
+  return Math.floor(Math.random() * Math.floor(max + 1));
+}
 
 function mainLoop()
 {

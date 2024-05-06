@@ -1,4 +1,4 @@
-import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshToonMaterial, Material, TextureLoader, Quaternion, Vector3, CylinderGeometry, ConeGeometry, MathUtils, NearestFilter, TetrahedronGeometry, LineBasicMaterial, CubicBezierCurve3, LineSegments, BufferGeometry, SkinnedMesh, Uint16BufferAttribute, Float32BufferAttribute, Skeleton, Bone } from "three";
+import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshToonMaterial, Material, TextureLoader, Quaternion, Vector3, CylinderGeometry, ConeGeometry, MathUtils, NearestFilter, TetrahedronGeometry, LineBasicMaterial, CubicBezierCurve3, LineSegments, BufferGeometry, SkinnedMesh, Uint16BufferAttribute, Float32BufferAttribute, Skeleton, Bone, ColorRepresentation } from "three";
 import { Time } from "./Time";
 import toonTexture from "../assets/threeTone_bright.jpg";
 import { InputManager } from "./InputManager";
@@ -20,6 +20,14 @@ type Feet = {
     stepEndPosition : Vector3,
     onGround : boolean,
     wantsToMove : boolean,
+}
+
+export type MouseSkin = {
+  furColor : ColorRepresentation,
+  skinColor : ColorRepresentation,
+  eyeColor : ColorRepresentation,
+  noseColor? : ColorRepresentation,
+  footColor? : ColorRepresentation
 }
 
 export class Mouse
@@ -112,7 +120,7 @@ export class Mouse
 
     private frameDisplacementDirection : Vector3 = new Vector3();
 
-    constructor(scene : Scene, loader : TextureLoader)
+    constructor(scene : Scene, loader : TextureLoader, skin : MouseSkin)
     {
         const toonRamp = loader.load(toonTexture, (texture) => {
             texture.minFilter = NearestFilter;
@@ -123,12 +131,12 @@ export class Mouse
         this.debugSphere.visible = false;
 
         
-        this.material = new MeshToonMaterial( { color: 0xaaaaaa, gradientMap: toonRamp});
-        this.noseMaterial = new MeshBasicMaterial( { color: 0xcc8888});
-        this.earMaterial = new MeshBasicMaterial( { color: 0xcc8888});
-        this.feetMaterial = new MeshToonMaterial( { color: 0xffaaaa, gradientMap: toonRamp});
-        this.eyeMaterial = new MeshBasicMaterial( { color: 0x000000});
-        this.tailMaterial = new MeshToonMaterial( { color: 0xffaaaa, gradientMap: toonRamp});
+        this.material = new MeshToonMaterial( { color: skin.furColor, gradientMap: toonRamp});
+        this.noseMaterial = new MeshBasicMaterial( { color: skin.noseColor ? skin.noseColor : skin.skinColor});
+        this.earMaterial = new MeshBasicMaterial( { color: skin.skinColor});
+        this.feetMaterial = new MeshToonMaterial( { color: skin.footColor ? skin.footColor : skin.skinColor, gradientMap: toonRamp});
+        this.eyeMaterial = new MeshBasicMaterial( { color: skin.eyeColor});
+        this.tailMaterial = new MeshToonMaterial( { color: skin.skinColor, gradientMap: toonRamp});
 
         const buttRadius = this.buttRadius = 0.89;
         const headRadius = 0.6;

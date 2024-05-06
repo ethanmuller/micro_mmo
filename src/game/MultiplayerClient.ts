@@ -1,28 +1,31 @@
 import * as socket from 'socket.io-client';
 import { ref } from 'vue'
-import { MessageType } from '../server/MessageType';
+import { ServerToClientEvents, ClientToServerEvents, } from '../server/MultiplayerTypes';
 
 export class MultiplayerClient {
 
-  connection: socket.Socket;
+  connection: socket.Socket<ServerToClientEvents, ClientToServerEvents>;
   playersOnline = ref("");
   localPlayerDisplayString = ref("");
   localPlayerId : string = "player";
   playerList: string[] = [];
   serverTimeOffset : number = 0;
 
-  constructor() {
+  constructor(skin : number) {
     console.log('setting up multiplayer client...')
-    //TODO should we do better than hostname here
-    this.connection = socket.io(window.location.hostname+`:3000`);
-    this.connection.on(MessageType.serverInfo, (serverDateNow) => {
+    
+    this.connection = socket.io(window.location.hostname+`:3000`, { query: { skin } });
+    this.connection.on('connect', () => {
+      console.log('connected to server :)')
+    })
+    this.connection.on('serverInfo', (serverDateNow) => {
       this.computeServerTimeOffset(serverDateNow);
     })
-    this.connection.on(MessageType.clientList, (playerList) => {
+    this.connection.on('clientList', (playerList) => {
       this.playersOnline.value = `Players online: ${playerList.length}`
       this.playerList = playerList as string[];
     })
-    this.connection.on(MessageType.onPlayerConnected, (id) => {
+    this.connection.on('playerConnected', (id, skinNumber) => {
       console.log(`player ${id} connected`);
       if (id == this.connection.id) {
         this.localPlayerId = id;
@@ -31,27 +34,28 @@ export class MultiplayerClient {
         // Check players list and instantiate necessary information of other players
         this.playerList.forEach(playerId => {
           if (playerId != this.localPlayerId)
-            this.processNewRemotePlayer(playerId);
+            this.processNewRemotePlayer(playerId, skinNumber);
         });
       }
-      else this.processNewRemotePlayer(id);
+      else this.processNewRemotePlayer(id, skinNumber);
     })
-    this.connection.on(MessageType.onPlayerDisconnected, (id) => {
+    this.connection.on('playerDisconnected', (id) => {
       console.log(`player ${id} disconnected`);
       this.onRemotePlayerDisconnectedCallbacks.forEach(cb => cb(id));
     })
-    this.connection.on(MessageType.serverSentPlayerFrameData, (serverTime, id, data, sentTime) => {
+    this.connection.on('serverSentPlayerFrameData', (serverTime, id, data, sentTime) => {
       this.computeServerTimeOffset(serverTime);
       this.onRemotePlayerFrameDataCallbacks.forEach(cb => cb(id, data, sentTime));
     })
   }
 
-  processNewRemotePlayer(playerId : string) {
-    this.onRemotePlayerConnectedCallbacks.forEach(cb => cb(playerId));
+  processNewRemotePlayer(playerId : string, skinNumber : number) {
+    this.onRemotePlayerConnectedCallbacks.forEach(cb => cb(playerId, skinNumber));
   }
 
-  private onRemotePlayerConnectedCallbacks : ((id: string) => void)[] = [];
-  onRemotePlayerConnected(cb : (id: string) => void) {
+  private onRemotePlayerConnectedCallbacks : ((id: string, skinNumber : number) => void)[] = [];
+
+  onRemotePlayerConnected(cb : (id: string, skinNumber: number) => void) {
     this.onRemotePlayerConnectedCallbacks.push(cb);
   }
 
@@ -62,7 +66,7 @@ export class MultiplayerClient {
 
   // Frame data
   sendLocalPlayerFrameData(data: any) {
-    this.connection.emit(MessageType.playerSentFrameData, data, Date.now());
+    this.connection.emit('playerSentFrameData', data, Date.now());
   }
 
   private onRemotePlayerFrameDataCallbacks : ((id: string, data: any, sentTime: number) => void)[] = [];
