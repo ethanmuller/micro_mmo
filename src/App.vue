@@ -25,6 +25,9 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize( 256, 256 );
 renderer.setPixelRatio(2)
 
+const url = new URL(window.location);
+const URLParams = new URLSearchParams(url.search);
+
 const scene = new THREE.Scene();
 const imgLoader = new THREE.TextureLoader();
 imgLoader.loadAsync(skyTexture).then((tex) => {
@@ -53,15 +56,22 @@ const seed = getRandomInt(skinList.length-1)
 const player = new Mouse(scene, toonRamp, skinList[seed]);
 level.getWorldPositionFromTile(level.start, player.object.position);
 
-//camera.position.x = 10;
-const cameraWantedDisplacement = new THREE.Vector3(0,10,10);
+let cameraWantedDisplacement
+// TODO: check for param change while game is running, not only while initializing
+if (URLParams.get('cam')==='top') {
+  cameraWantedDisplacement = new THREE.Vector3(0,30,0);
+} else {
+  cameraWantedDisplacement = new THREE.Vector3(0,10,10);
+}
+
 camera.position.copy(cameraWantedDisplacement);
 camera.lookAt(new THREE.Vector3(0,0,0));
 camera.updateProjectionMatrix();
 const freeCamera = new FreeCamera(camera);
 const cameraPivot = new THREE.Object3D();
 cameraPivot.add(camera);
-cameraPivot.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI*0.75*-1)
+cameraPivot.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 0), Math.PI*0.75*-1)
+
 scene.add(cameraPivot);
 
 const mp = new MultiplayerClient(seed)
