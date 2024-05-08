@@ -8,6 +8,7 @@ import mouseTexture from "./assets/mouse_texture.png";
 import { MultiplayerClient } from './game/MultiplayerClient';
 import { InputManager } from './game/InputManager';
 import { FreeCamera } from './game/FreeCamera';
+import { Player } from './server/MultiplayerTypes'
 const NETWORK_TIME_BETWEEN_UPDATES = 1/15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
 
@@ -51,8 +52,8 @@ scene.add(cameraPivot);
 const mp = new MultiplayerClient(seed)
 let playerIdToPlayerObj : Map<string, Mouse> = new Map<string, Mouse>();
 
-mp.onRemotePlayerConnected((id, skinNumber) => {
-  playerIdToPlayerObj.set(id, new Mouse(scene, imgLoader, skinList[skinNumber]));
+mp.onRemotePlayerConnected((id : string, skin:number) => {
+  playerIdToPlayerObj.set(id, new Mouse(scene, imgLoader, skinList[skin]));
 });
 
 mp.onRemotePlayerFrameData((id, data) => {

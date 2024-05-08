@@ -1,8 +1,8 @@
 export interface ServerToClientEvents {
-  sendEverybody: (list : Array<Player>) => void;
+  sendEverybody: (list : Array<string>) => void;
   serverInfo: (time : number) => void;
-  clientList: (idList : string[]) => void;
-  playerConnected: (id : string, skinNumber : number) => void;
+  playerList: (playerList : Player[]) => void;
+  playerConnected: (player : Player) => void;
   playerDisconnected: ( id : string ) => void;
   serverSentPlayerFrameData: (time : number, id : string, data : any, sentTime : number) => void;
 }

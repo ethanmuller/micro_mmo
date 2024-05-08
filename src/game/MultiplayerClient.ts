@@ -1,6 +1,6 @@
 import * as socket from 'socket.io-client';
 import { ref } from 'vue'
-import { ServerToClientEvents, ClientToServerEvents, } from '../server/MultiplayerTypes';
+import { ServerToClientEvents, ClientToServerEvents, Player, } from '../server/MultiplayerTypes';
 
 export class MultiplayerClient {
 
@@ -8,7 +8,7 @@ export class MultiplayerClient {
   playersOnline = ref("");
   localPlayerDisplayString = ref("");
   localPlayerId : string = "player";
-  playerList: string[] = [];
+  playerList: Player[] = [];
   serverTimeOffset : number = 0;
 
   constructor(skin : number) {
@@ -22,8 +22,9 @@ export class MultiplayerClient {
       this.computeServerTimeOffset(serverDateNow);
     })
     this.connection.on('clientList', (playerList) => {
+      console.log(playerList)
       this.playersOnline.value = `Players online: ${playerList.length}`
-      this.playerList = playerList as string[];
+      this.playerList = playerList;
     })
     this.connection.on('playerConnected', (id, skinNumber) => {
       console.log(`player ${id} connected`);
@@ -32,9 +33,9 @@ export class MultiplayerClient {
         this.localPlayerDisplayString.value = `Local player: ${id}`;
 
         // Check players list and instantiate necessary information of other players
-        this.playerList.forEach(playerId => {
-          if (playerId != this.localPlayerId)
-            this.processNewRemotePlayer(playerId, skinNumber);
+        this.playerList.forEach(player => {
+          if (player.id != this.localPlayerId)
+            this.processNewRemotePlayer(player.id, skinNumber);
         });
       }
       else this.processNewRemotePlayer(id, skinNumber);

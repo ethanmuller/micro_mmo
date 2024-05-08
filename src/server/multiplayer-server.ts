@@ -3,11 +3,13 @@ import { createServer } from 'node:http';
 import { Server } from "socket.io";
 import { ServerToClientEvents, ClientToServerEvents, } from './MultiplayerTypes';
 import cors from 'cors'
+import { Player } from './MultiplayerTypes'
 
 
 const app = express();
 app.use(cors())
 const server = createServer(app);
+const playerList : Array<Player> = []
 const io = new Server<
 ClientToServerEvents,
 ServerToClientEvents
@@ -20,21 +22,20 @@ app.get('/', (_req, res) => {
 });
 
 io.on('connection', async (socket) => {
-  const sockets = await io.fetchSockets();
-  console.log(`CLIENT CONNECTED.    total sockets: ${sockets.length}`)
-  console.log(sockets)
-  const idList = sockets.map((socket) => socket.id);
-  io.emit('serverInfo', Date.now());
-  io.emit('clientList', idList);
-
   const skinNumber = parseInt(<string>socket.handshake.query.skin || "0", 10)
-  console.log(skinNumber)
-  io.emit('playerConnected', socket.id, skinNumber);
+  playerList.push({ id: socket.id, skin: skinNumber })
+  console.log(playerList)
+  console.log(`CLIENT CONNECTED.    total sockets: ${playerList.length}`)
+  io.emit('serverInfo', Date.now());
+  socket.broadcast.emit('playerList', playerList);
+  socket.broadcast.emit('playerConnected', { id: socket.id, skin: skinNumber });
 
   socket.on('disconnect', async () => {
-    const sockets = await io.fetchSockets();
-    console.log(`CLIENT DISCONNECTED. total sockets: ${sockets.length}`)
-    io.emit('clientList', idList)
+    const disconnectedPlayerIndex = playerList.findIndex((p) => p.id === socket.id)
+    playerList.splice(disconnectedPlayerIndex, 1)
+    console.log(playerList)
+    console.log(`CLIENT DISCONNECTED. total sockets: ${playerList.length}`)
+    io.emit('playerList', playerList)
     io.emit('playerDisconnected', socket.id);
   });
 
