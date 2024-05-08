@@ -52,18 +52,21 @@ scene.add(cameraPivot);
 const mp = new MultiplayerClient(seed)
 let playerIdToPlayerObj : Map<string, Mouse> = new Map<string, Mouse>();
 
-mp.onRemotePlayerConnected((id : string, skin:number) => {
-  playerIdToPlayerObj.set(id, new Mouse(scene, imgLoader, skinList[skin]));
+mp.onPlayerConnected((id : string, skin:number) => {
+  console.log(id)
+  if (false) {
+    playerIdToPlayerObj.set(id, new Mouse(scene, imgLoader, skinList[skin]));
+  }
 });
 
 mp.onRemotePlayerFrameData((id, data) => {
   let playerObj = playerIdToPlayerObj.get(id);
   if (playerObj) {
-    
     let info = data as SerializedPlayerData;
     playerObj.onRemotePlayerData(info, gameTime);
   }
 });
+
 mp.onRemotePlayerDisconnected((id) => {
   let pO = playerIdToPlayerObj.get(id);
   if (pO) {

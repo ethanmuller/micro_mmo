@@ -18,14 +18,17 @@ export class MultiplayerClient {
     this.connection.on('connect', () => {
       console.log('connected to server :)')
     })
+
     this.connection.on('serverInfo', (serverDateNow) => {
       this.computeServerTimeOffset(serverDateNow);
     })
+
     this.connection.on('clientList', (playerList) => {
       console.log(playerList)
       this.playersOnline.value = `Players online: ${playerList.length}`
       this.playerList = playerList;
     })
+
     this.connection.on('playerConnected', (id, skinNumber) => {
       console.log(`player ${id} connected`);
       if (id == this.connection.id) {
@@ -56,7 +59,7 @@ export class MultiplayerClient {
 
   private onRemotePlayerConnectedCallbacks : ((id: string, skinNumber : number) => void)[] = [];
 
-  onRemotePlayerConnected(cb : (id: string, skinNumber: number) => void) {
+  onPlayerConnected(cb : (id: string, skinNumber: number) => void) {
     this.onRemotePlayerConnectedCallbacks.push(cb);
   }
 
