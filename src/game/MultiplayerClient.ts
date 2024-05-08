@@ -7,7 +7,7 @@ export class MultiplayerClient {
   connection: socket.Socket<ServerToClientEvents, ClientToServerEvents>;
   playersOnline = ref("");
   localPlayerDisplayString = ref("");
-  localPlayerId : string = "player";
+  localPlayer : Player = {id: "", skin: -1};
   playerList: Player[] = [];
   serverTimeOffset : number = 0;
 
@@ -23,25 +23,24 @@ export class MultiplayerClient {
       this.computeServerTimeOffset(serverDateNow);
     })
 
-    this.connection.on('clientList', (playerList) => {
-      console.log(playerList)
-      this.playersOnline.value = `Players online: ${playerList.length}`
+    this.connection.on('playerList', (playerList) => {
+      this.playersOnline.value = `Players online: ${playerList.length}`;
       this.playerList = playerList;
     })
 
-    this.connection.on('playerConnected', (id, skinNumber) => {
-      console.log(`player ${id} connected`);
-      if (id == this.connection.id) {
-        this.localPlayerId = id;
-        this.localPlayerDisplayString.value = `Local player: ${id}`;
+    this.connection.on('playerConnected', newPlayer => {
+      console.log(`player ${newPlayer.id} connected`);
+      if (newPlayer.id == this.connection.id) {
+        this.localPlayer = newPlayer;
+        this.localPlayerDisplayString.value = `Local player: ${newPlayer.id}`;
 
         // Check players list and instantiate necessary information of other players
         this.playerList.forEach(player => {
-          if (player.id != this.localPlayerId)
-            this.processNewRemotePlayer(player.id, skinNumber);
+          if (player.id != this.localPlayer.id)
+            this.processNewRemotePlayer(player);
         });
       }
-      else this.processNewRemotePlayer(id, skinNumber);
+      else this.processNewRemotePlayer(newPlayer);
     })
     this.connection.on('playerDisconnected', (id) => {
       console.log(`player ${id} disconnected`);
@@ -53,13 +52,13 @@ export class MultiplayerClient {
     })
   }
 
-  processNewRemotePlayer(playerId : string, skinNumber : number) {
-    this.onRemotePlayerConnectedCallbacks.forEach(cb => cb(playerId, skinNumber));
+  processNewRemotePlayer(player : Player) {
+    this.onRemotePlayerConnectedCallbacks.forEach(cb => cb(player));
   }
 
-  private onRemotePlayerConnectedCallbacks : ((id: string, skinNumber : number) => void)[] = [];
+  private onRemotePlayerConnectedCallbacks : ((player : Player) => void)[] = [];
 
-  onPlayerConnected(cb : (id: string, skinNumber: number) => void) {
+  onPlayerConnected(cb : (player : Player) => void) {
     this.onRemotePlayerConnectedCallbacks.push(cb);
   }
 

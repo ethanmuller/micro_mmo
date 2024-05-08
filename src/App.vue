@@ -52,10 +52,15 @@ scene.add(cameraPivot);
 const mp = new MultiplayerClient(seed)
 let playerIdToPlayerObj : Map<string, Mouse> = new Map<string, Mouse>();
 
-mp.onPlayerConnected((id : string, skin:number) => {
-  console.log(id)
-  if (false) {
-    playerIdToPlayerObj.set(id, new Mouse(scene, imgLoader, skinList[skin]));
+mp.onPlayerConnected((newPlayer : Player) => {
+  if (mp.localPlayer.id == newPlayer.id)
+  { // Local Player
+
+  }
+  else { // Remote players
+    if (!playerIdToPlayerObj.has(newPlayer.id)) {
+      playerIdToPlayerObj.set(newPlayer.id, new Mouse(scene, imgLoader, skinList[newPlayer.skin]));
+    }
   }
 });
 

@@ -9,7 +9,7 @@ import { Player } from './MultiplayerTypes'
 const app = express();
 app.use(cors())
 const server = createServer(app);
-const playerList : Array<Player> = []
+const playerList : Player[] = []
 const io = new Server<
 ClientToServerEvents,
 ServerToClientEvents
@@ -27,8 +27,8 @@ io.on('connection', async (socket) => {
   console.log(playerList)
   console.log(`CLIENT CONNECTED.    total sockets: ${playerList.length}`)
   io.emit('serverInfo', Date.now());
-  socket.broadcast.emit('playerList', playerList);
-  socket.broadcast.emit('playerConnected', { id: socket.id, skin: skinNumber });
+  io.emit('playerList', playerList);
+  io.emit('playerConnected', { id: socket.id, skin: skinNumber });
 
   socket.on('disconnect', async () => {
     const disconnectedPlayerIndex = playerList.findIndex((p) => p.id === socket.id)
