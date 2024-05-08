@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, onMounted, onBeforeUnmount} from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import * as THREE from 'three';
 import { Mouse, MouseSkin, SerializedPlayerData } from './game/Mouse';
 import { Time } from './game/Time';
@@ -13,16 +13,17 @@ import { Level } from './game/Level';
 import level_ascii from './assets/level_ascii.txt?raw'
 import toonTexture from "./assets/threeTone_bright.jpg";
 import { NearestFilter } from 'three';
-
-const NETWORK_TIME_BETWEEN_UPDATES = 1/15; // 1/timesPerSecond
+import QrcodeVue from 'qrcode.vue'
+const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
 
 const gamecanvas = ref<HTMLDivElement>();
 const trackballEl = ref<HTMLDivElement>();
+const host = ref<string>();
 
-const camera = new THREE.PerspectiveCamera( 75, 1, 0.1, 1000 );
+const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
-renderer.setSize( 256, 256 );
+renderer.setSize(256, 256);
 renderer.setPixelRatio(2)
 
 const url = new URL(window.location);
@@ -31,226 +32,255 @@ const URLParams = new URLSearchParams(url.search);
 const scene = new THREE.Scene();
 const imgLoader = new THREE.TextureLoader();
 imgLoader.loadAsync(skyTexture).then((tex) => {
-  tex.magFilter = THREE.LinearFilter;
-  scene.background = tex;
+	tex.magFilter = THREE.LinearFilter;
+	scene.background = tex;
 });
 
 const toonRamp = imgLoader.load(toonTexture, (texture) => {
-    texture.minFilter = NearestFilter;
-    texture.magFilter = NearestFilter;
+	texture.minFilter = NearestFilter;
+	texture.magFilter = NearestFilter;
 });
 
 let level = new Level(level_ascii, toonRamp);
 scene.add(level.object);
 
-const skinList : Array<MouseSkin> = [
-  { skinColor: 0xffaaaa, eyeColor: 0x880000, furColor: 0xffffff }, // lab mouse
-  { skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0x453a38 }, // dark gray
-  { skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0xb95b48 }, // light brown
-  { skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0x542c24 }, // dark brown
-  { skinColor: 0xca7373, eyeColor: 0x000000, furColor: 0xc3c3c3 }, // light gray
-  { skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0xc29e7c }, // cardboard brown
-  { skinColor: 0xcc8888, eyeColor: 0x000000, furColor: 0x646464 }, // classic gray
+const skinList: Array<MouseSkin> = [
+	{ skinColor: 0xffaaaa, eyeColor: 0x880000, furColor: 0xffffff }, // lab mouse
+	{ skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0x453a38 }, // dark gray
+	{ skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0xb95b48 }, // light brown
+	{ skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0x542c24 }, // dark brown
+	{ skinColor: 0xca7373, eyeColor: 0x000000, furColor: 0xc3c3c3 }, // light gray
+	{ skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0xc29e7c }, // cardboard brown
+	{ skinColor: 0xcc8888, eyeColor: 0x000000, furColor: 0x646464 }, // classic gray
 ]
-const seed = getRandomInt(skinList.length-1)
+const seed = getRandomInt(skinList.length - 1)
 const player = new Mouse(scene, toonRamp, skinList[seed]);
 level.getWorldPositionFromTile(level.start, player.object.position);
 
 let cameraWantedDisplacement
 // TODO: check for param change while game is running, not only while initializing
-if (URLParams.get('cam')==='top') {
-  cameraWantedDisplacement = new THREE.Vector3(0,30,0);
+if (URLParams.get('cam') === 'top') {
+	cameraWantedDisplacement = new THREE.Vector3(0, 30, 0);
 } else {
-  cameraWantedDisplacement = new THREE.Vector3(0,10,10);
+	cameraWantedDisplacement = new THREE.Vector3(0, 10, 10);
 }
 
 camera.position.copy(cameraWantedDisplacement);
-camera.lookAt(new THREE.Vector3(0,0,0));
+camera.lookAt(new THREE.Vector3(0, 0, 0));
 camera.updateProjectionMatrix();
 const freeCamera = new FreeCamera(camera);
 const cameraPivot = new THREE.Object3D();
 cameraPivot.add(camera);
-cameraPivot.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 0), Math.PI*0.75*-1)
+cameraPivot.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 0), Math.PI * 0.75 * -1)
 
 scene.add(cameraPivot);
 
 const mp = new MultiplayerClient(seed)
-let playerIdToPlayerObj : Map<string, Mouse> = new Map<string, Mouse>();
+let playerIdToPlayerObj: Map<string, Mouse> = new Map<string, Mouse>();
 
-mp.onPlayerConnected((newPlayer : Player) => {
-  if (mp.localPlayer.id == newPlayer.id)
-  { // Local Player
+mp.onPlayerConnected((newPlayer: Player) => {
+	if (mp.localPlayer.id == newPlayer.id) { // Local Player
 
-  }
-  else { // Remote players
-    if (!playerIdToPlayerObj.has(newPlayer.id)) {
-      playerIdToPlayerObj.set(newPlayer.id, new Mouse(scene, toonRamp, skinList[newPlayer.skin]));
-    }
-  }
+	}
+	else { // Remote players
+		if (!playerIdToPlayerObj.has(newPlayer.id)) {
+			playerIdToPlayerObj.set(newPlayer.id, new Mouse(scene, toonRamp, skinList[newPlayer.skin]));
+		}
+	}
 });
 
 mp.onRemotePlayerFrameData((id, data) => {
-  let playerObj = playerIdToPlayerObj.get(id);
-  if (playerObj) {
-    let info = data as SerializedPlayerData;
-    playerObj.onRemotePlayerData(info, gameTime);
-  }
+	let playerObj = playerIdToPlayerObj.get(id);
+	if (playerObj) {
+		let info = data as SerializedPlayerData;
+		playerObj.onRemotePlayerData(info, gameTime);
+	}
 });
 
 mp.onRemotePlayerDisconnected((id) => {
-  let pO = playerIdToPlayerObj.get(id);
-  if (pO) {
-    pO.dispose();
-  }
-  playerIdToPlayerObj.delete(id);
+	let pO = playerIdToPlayerObj.get(id);
+	if (pO) {
+		pO.dispose();
+	}
+	playerIdToPlayerObj.delete(id);
 });
 
 const sun = new THREE.DirectionalLight();
 sun.intensity = Math.PI
-sun.quaternion.setFromAxisAngle(new THREE.Vector3(0,0,1), Math.PI * 0.1);
+sun.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI * 0.1);
 scene.add(sun);
 let axesHelper = new THREE.AxesHelper();
 //scene.add(axesHelper);
 
 var gameTime = <Time>({
-  deltaTime: 0,
-  time: 0,
-  serverTime: 0
+	deltaTime: 0,
+	time: 0,
+	serverTime: 0
 });
 
 let lastTickTime = new Date().getTime();
 let input: InputManager
 
-function getRandomInt(max : number) {
-  return Math.floor(Math.random() * Math.floor(max + 1));
+function getRandomInt(max: number) {
+	return Math.floor(Math.random() * Math.floor(max + 1));
 }
 
-function mainLoop()
-{
-  var now = new Date().getTime();
-  gameTime.deltaTime = (now - lastTickTime) / 1000;
-  gameTime.deltaTime = Math.min(1/12, gameTime.deltaTime); // Prevent big time jumps
-  gameTime.time += gameTime.deltaTime;
-  //gameTime.serverTime += gameTime.deltaTime; Maybe unessesary?
-  gameTime.serverTime = mp.serverTimeMs()/1000;
-  lastTickTime = now;
+function mainLoop() {
+	var now = new Date().getTime();
+	gameTime.deltaTime = (now - lastTickTime) / 1000;
+	gameTime.deltaTime = Math.min(1 / 12, gameTime.deltaTime); // Prevent big time jumps
+	gameTime.time += gameTime.deltaTime;
+	//gameTime.serverTime += gameTime.deltaTime; Maybe unessesary?
+	gameTime.serverTime = mp.serverTimeMs() / 1000;
+	lastTickTime = now;
 
-  // update
+	// update
 
-  playerIdToPlayerObj.forEach((plObj : Mouse) => {
-    plObj.update(gameTime, level);
-  })
+	playerIdToPlayerObj.forEach((plObj: Mouse) => {
+		plObj.update(gameTime, level);
+	})
 
 	player.update(gameTime, level, input, camera, playerIdToPlayerObj);
 
-  // Camera updates
-  let axesTile = level.getTileFromWorldPosition(player.object.position, new THREE.Vector2());
-  level.getWorldPositionFromTile(axesTile, axesHelper.position);
+	// Camera updates
+	let axesTile = level.getTileFromWorldPosition(player.object.position, new THREE.Vector2());
+	level.getWorldPositionFromTile(axesTile, axesHelper.position);
 
-  player.object.getWorldPosition(cameraPivot.position);
-  //cameraPivot.position.copy(player.object.position);
-  if (input.flyCameraButton.pressedThisFrame) {
-    freeCamera.enabled = !freeCamera.enabled;
-    console.log(`Free camera ${freeCamera.enabled? "enabled" : "disabled"}`);
+	player.object.getWorldPosition(cameraPivot.position);
+	//cameraPivot.position.copy(player.object.position);
+	if (input.flyCameraButton.pressedThisFrame) {
+		freeCamera.enabled = !freeCamera.enabled;
+		console.log(`Free camera ${freeCamera.enabled ? "enabled" : "disabled"}`);
 
-    if (!freeCamera.enabled) {
-      // camera.removeFromParent();
-      // cameraPivot.add(camera);
-      camera.position.copy(cameraWantedDisplacement);
-      camera.lookAt(player.object.position);
-      camera.updateProjectionMatrix();
-    }
-    else {
-      // camera.removeFromParent();
-      // scene.add(camera);
-    }
-  }
+		if (!freeCamera.enabled) {
+			// camera.removeFromParent();
+			// cameraPivot.add(camera);
+			camera.position.copy(cameraWantedDisplacement);
+			camera.lookAt(player.object.position);
+			camera.updateProjectionMatrix();
+		}
+		else {
+			// camera.removeFromParent();
+			// scene.add(camera);
+		}
+	}
 
-  if (freeCamera.enabled) {
-    freeCamera.update(gameTime, input);
-    camera.updateMatrix();
-    camera.updateProjectionMatrix();
-  }
+	if (freeCamera.enabled) {
+		freeCamera.update(gameTime, input);
+		camera.updateMatrix();
+		camera.updateProjectionMatrix();
+	}
 
-  // draw
-	renderer.render( scene, camera );
+	// draw
+	renderer.render(scene, camera);
 
-  // send info to the server if it's time
-  if (gameTime.time - lastNetworkUpdate > NETWORK_TIME_BETWEEN_UPDATES)
-  {
-    mp.sendLocalPlayerFrameData(player.serializePlayerData());
+	// send info to the server if it's time
+	if (gameTime.time - lastNetworkUpdate > NETWORK_TIME_BETWEEN_UPDATES) {
+		mp.sendLocalPlayerFrameData(player.serializePlayerData());
 
-    lastNetworkUpdate = gameTime.time;
-  }
+		lastNetworkUpdate = gameTime.time;
+	}
 
-  input.update();
-  //
-  requestAnimationFrame(mainLoop);
+	input.update();
+	//
+	requestAnimationFrame(mainLoop);
 }
 
 onMounted(() => {
-  if (trackballEl.value) {
-    input = new InputManager(trackballEl.value);
-  }
+	host.value = 'http://'.concat(window.location.host)
 
-  if (gamecanvas.value) {
-    gamecanvas.value.appendChild( renderer.domElement );
-    onWindowResize();
-    mainLoop();
-  }
+	if (trackballEl.value) {
+		input = new InputManager(trackballEl.value);
+	}
+
+	if (gamecanvas.value) {
+		gamecanvas.value.appendChild(renderer.domElement);
+		onWindowResize();
+		mainLoop();
+	}
 });
 
 onBeforeUnmount(() => {
-  mp.disconnect();
+	mp.disconnect();
 })
 
-function onWindowResize () : void {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
+function onWindowResize(): void {
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setPixelRatio(window.devicePixelRatio);
 }
 
-addEventListener("resize",onWindowResize,false);
+addEventListener("resize", onWindowResize, false);
 
 </script>
 
 <template>
-  <div>
-    <div ref="gamecanvas" id="gamecanvas"></div>
-    <canvas id="auxcanvas"></canvas>
-    <div id="logbox">
-      {{ mp.localPlayerDisplayString.value }}
-      {{ mp.playersOnline.value }}
-    </div>
-    <div ref="trackballEl" id="trackball"></div>
-  </div>
+	<div>
+		<div ref="gamecanvas" id="gamecanvas"></div>
+		<canvas id="auxcanvas"></canvas>
+		<div ref="trackballEl" id="trackball"></div>
+		<div class="nametag">
+			<qrcode-vue :value="host" class="qr" size="50"></qrcode-vue>
+			<div id="logbox">
+				<span class="longstring">{{ mp.localPlayerDisplayString.value }}</span><br />{{ mp.playersOnline.value }}
+			</div>
+		</div>
+	</div>
 </template>
 
 <style scoped>
-  #gamecanvas {
-    position:absolute;
-    left: 0;
-    top:0;
-  }
-  #auxcanvas {
-    display: none;
-  }
-  #logbox {
-    position:absolute;
-    left: 0;
-    top:0;
-    mix-blend-mode: difference;
-    font-family: monospace;
-    font-size: 1rem;
-    padding: 1rem;
-  }
-  #trackball {
-    position:absolute;
-    left: 0;
-    top:0;
-    width: 100%;
-    height: 100dvh;
-  }
+#gamecanvas {
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+#auxcanvas {
+	display: none;
+}
+
+#logbox {
+	font-family: monospace;
+	font-size: 0.8rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	opacity: 0.8
+}
+
+.longstring {
+	display: block;
+	width: 13ch;
+	overflow: hidden;
+}
+
+#trackball {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100dvh;
+}
+
+.nametag {
+	display: flex;
+	text-align: left;
+	padding: 0em;
+	color: black;
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	background: #ffffcc;
+	border: 0.75em #ffffcc solid;
+	pointer-events: none;
+	white-space: pre;
+}
+
+.qr {
+	padding: 0 0.75em 0 0;
+	mix-blend-mode: multiply;
+	opacity: 0.8
+}
 </style>

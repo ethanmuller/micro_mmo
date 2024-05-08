@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+// this is the terminal QR code, not the one rendered in UI
 import { qrcode } from 'vite-plugin-qrcode'
 
 // https://vitejs.dev/config/

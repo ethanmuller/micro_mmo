@@ -24,7 +24,7 @@ export class MultiplayerClient {
     })
 
     this.connection.on('playerList', (playerList) => {
-      this.playersOnline.value = `Players online: ${playerList.length}`;
+      this.playersOnline.value = `ASSOCIATES: ${playerList.length-1}`;
       this.playerList = playerList;
     })
 
@@ -32,7 +32,7 @@ export class MultiplayerClient {
       console.log(`player ${newPlayer.id} connected`);
       if (newPlayer.id == this.connection.id) {
         this.localPlayer = newPlayer;
-        this.localPlayerDisplayString.value = `Local player: ${newPlayer.id}`;
+        this.localPlayerDisplayString.value = `ID: ${newPlayer.id}`;
 
         // Check players list and instantiate necessary information of other players
         this.playerList.forEach(player => {
