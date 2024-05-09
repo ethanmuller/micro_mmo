@@ -9,6 +9,8 @@ import { MultiplayerClient } from './game/MultiplayerClient';
 import { InputManager } from './game/InputManager';
 import { FreeCamera } from './game/FreeCamera';
 import { Player } from './server/MultiplayerTypes'
+import { Level } from './game/Level';
+import level_ascii from './assets/level_ascii.txt?raw'
 const NETWORK_TIME_BETWEEN_UPDATES = 1/15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
 
@@ -26,6 +28,10 @@ imgLoader.loadAsync(skyTexture).then((tex) => {
   tex.magFilter = THREE.LinearFilter;
   scene.background = tex;
 });
+
+let level = new Level(level_ascii);
+scene.add(level.object);
+
 const skinList : Array<MouseSkin> = [
   { skinColor: 0xffaaaa, eyeColor: 0x880000, furColor: 0xffffff }, // lab mouse
   { skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0x453a38 }, // dark gray
@@ -91,7 +97,7 @@ var worldSize = new THREE.Vector2();
 worldBoundaries.getSize(worldSize);
 floor.add(new THREE.Mesh(new THREE.PlaneGeometry(worldSize.width,worldSize.height), new THREE.MeshBasicMaterial({color : 0x775577, map: imgLoader.load(mouseTexture), })));
 floor.rotation.x -= Math.PI/2;
-scene.add(floor);
+//scene.add(floor);
 //scene.add(new THREE.AxesHelper());
 
 var gameTime = <Time>({
@@ -198,6 +204,7 @@ addEventListener("resize",onWindowResize,false);
 <template>
   <div>
     <div ref="gamecanvas" id="gamecanvas"></div>
+    <canvas id="auxcanvas"></canvas>
     <div id="logbox">
       {{ mp.localPlayerDisplayString.value }}
       {{ mp.playersOnline.value }}
@@ -211,6 +218,9 @@ addEventListener("resize",onWindowResize,false);
     position:absolute;
     left: 0;
     top:0;
+  }
+  #auxcanvas {
+    display: none;
   }
   #logbox {
     position:absolute;
