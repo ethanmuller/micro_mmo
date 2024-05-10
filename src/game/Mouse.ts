@@ -50,7 +50,7 @@ export class Mouse {
     maxSpeed: number = 40;
     drag: number = 0.5;
     collisionSpeedDrop = 0.3; // 
-    wallDrag: number = 3;
+    // wallDrag: number = 3;
 
     // animation
     randomlyLookHeadMinMax: Vector2 = new Vector2(0.3, 1.5);
@@ -437,12 +437,12 @@ export class Mouse {
         }
 
         // Move and collide against the level
-        let collided = level.collideCircle(this.object.position, this.radius);
+        level.collideCircle(this.object.position, this.radius);
 
-        if (collided) {
-            // TODO, stop?
-            this.velocity.lerp(Constants.zero, this.wallDrag * time.deltaTime);
-        }
+        //if (collided) {
+        // TODO, stop?
+        //this.velocity.lerp(Constants.zero, this.wallDrag * time.deltaTime);
+        //}
 
         // Visually update, animations
         this.headWobbleTime += time.deltaTime;
