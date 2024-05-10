@@ -1,4 +1,4 @@
-import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshToonMaterial, Material, TextureLoader, Quaternion, Vector3, CylinderGeometry, ConeGeometry, MathUtils, NearestFilter, TetrahedronGeometry, LineBasicMaterial, CubicBezierCurve3, LineSegments, BufferGeometry, SkinnedMesh, Uint16BufferAttribute, Float32BufferAttribute, Skeleton, Bone, ColorRepresentation } from "three";
+import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshToonMaterial, Material, TextureLoader, Quaternion, Vector3, CylinderGeometry, ConeGeometry, MathUtils, NearestFilter, TetrahedronGeometry, LineBasicMaterial, CubicBezierCurve3, LineSegments, BufferGeometry, SkinnedMesh, Uint16BufferAttribute, Float32BufferAttribute, Skeleton, Bone, ColorRepresentation, Texture } from "three";
 import { Time } from "./Time";
 import toonTexture from "../assets/threeTone_bright.jpg";
 import { InputManager } from "./InputManager";
@@ -120,12 +120,8 @@ export class Mouse
 
     private frameDisplacementDirection : Vector3 = new Vector3();
 
-    constructor(scene : Scene, loader : TextureLoader, skin : MouseSkin)
+    constructor(scene : Scene, toonRamp : Texture, skin : MouseSkin)
     {
-        const toonRamp = loader.load(toonTexture, (texture) => {
-            texture.minFilter = NearestFilter;
-            texture.magFilter = NearestFilter;
-        });
         this.debugSphere = new Mesh(new SphereGeometry( this.radius, 12, 12 ), new MeshBasicMaterial( { color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.3}) );
         this.debugSphere.position.y += this.radius;
         this.debugSphere.visible = false;
@@ -238,8 +234,6 @@ export class Mouse
         this.object = new Object3D();
         this.object.add(this.debugSphere);
         this.object.add(this.headPivot);
-        this.object.position.x += Math.random()* 5 - 2.5;
-        this.object.position.z += Math.random()* 5 - 2.5;
         this.butt.position.copy(this.object.position);
         this.butt.position.z += this.bodyLength;
         this.butt.position.y = this.radius;

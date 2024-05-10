@@ -11,6 +11,9 @@ import { FreeCamera } from './game/FreeCamera';
 import { Player } from './server/MultiplayerTypes'
 import { Level } from './game/Level';
 import level_ascii from './assets/level_ascii.txt?raw'
+import toonTexture from "./assets/threeTone_bright.jpg";
+import { NearestFilter } from 'three';
+
 const NETWORK_TIME_BETWEEN_UPDATES = 1/15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
 
@@ -29,7 +32,12 @@ imgLoader.loadAsync(skyTexture).then((tex) => {
   scene.background = tex;
 });
 
-let level = new Level(level_ascii);
+const toonRamp = imgLoader.load(toonTexture, (texture) => {
+    texture.minFilter = NearestFilter;
+    texture.magFilter = NearestFilter;
+});
+
+let level = new Level(level_ascii, toonRamp);
 scene.add(level.object);
 
 const skinList : Array<MouseSkin> = [
@@ -42,7 +50,8 @@ const skinList : Array<MouseSkin> = [
   { skinColor: 0xcc8888, eyeColor: 0x000000, furColor: 0x646464 }, // classic gray
 ]
 const seed = getRandomInt(skinList.length-1)
-const player = new Mouse(scene, imgLoader, skinList[seed]);
+const player = new Mouse(scene, toonRamp, skinList[seed]);
+level.getTileWorldPosition(level.start, player.object.position);
 
 //camera.position.x = 10;
 const cameraWantedDisplacement = new THREE.Vector3(0,10,10);
@@ -65,7 +74,7 @@ mp.onPlayerConnected((newPlayer : Player) => {
   }
   else { // Remote players
     if (!playerIdToPlayerObj.has(newPlayer.id)) {
-      playerIdToPlayerObj.set(newPlayer.id, new Mouse(scene, imgLoader, skinList[newPlayer.skin]));
+      playerIdToPlayerObj.set(newPlayer.id, new Mouse(scene, toonRamp, skinList[newPlayer.skin]));
     }
   }
 });
@@ -92,13 +101,13 @@ sun.quaternion.setFromAxisAngle(new THREE.Vector3(0,0,1), Math.PI * 0.1);
 scene.add(sun);
 
 const floor = new THREE.Object3D();
-const worldBoundaries = new THREE.Box2(new THREE.Vector2(-50, -30), new THREE.Vector2(50, 30));
+const worldBoundaries = new THREE.Box2(new THREE.Vector2(-100, -100), new THREE.Vector2(100, 100));
 var worldSize = new THREE.Vector2();
 worldBoundaries.getSize(worldSize);
 floor.add(new THREE.Mesh(new THREE.PlaneGeometry(worldSize.width,worldSize.height), new THREE.MeshBasicMaterial({color : 0x775577, map: imgLoader.load(mouseTexture), })));
 floor.rotation.x -= Math.PI/2;
 //scene.add(floor);
-//scene.add(new THREE.AxesHelper());
+scene.add(new THREE.AxesHelper());
 
 var gameTime = <Time>({
   deltaTime: 0,
