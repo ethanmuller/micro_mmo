@@ -4,7 +4,6 @@ import * as THREE from 'three';
 import { Mouse, MouseSkin, SerializedPlayerData } from './game/Mouse';
 import { Time } from './game/Time';
 import skyTexture from './assets/sky_gradient.png';
-import mouseTexture from "./assets/mouse_texture.png";
 import { MultiplayerClient } from './game/MultiplayerClient';
 import { InputManager } from './game/InputManager';
 import { FreeCamera } from './game/FreeCamera';
@@ -26,7 +25,7 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(256, 256);
 renderer.setPixelRatio(2)
 
-const url = new URL(window.location);
+const url = new URL(window.location.toString());
 const URLParams = new URLSearchParams(url.search);
 
 const scene = new THREE.Scene();
@@ -57,7 +56,7 @@ const seed = getRandomInt(skinList.length - 1)
 const player = new Mouse(scene, toonRamp, skinList[seed]);
 level.getWorldPositionFromTile(level.start, player.object.position);
 
-let cameraWantedDisplacement
+let cameraWantedDisplacement: THREE.Vector3
 // TODO: check for param change while game is running, not only while initializing
 if (URLParams.get('cam') === 'top') {
 	cameraWantedDisplacement = new THREE.Vector3(0, 30, 0);
@@ -222,7 +221,7 @@ addEventListener("resize", onWindowResize, false);
 		<canvas id="auxcanvas"></canvas>
 		<div ref="trackballEl" id="trackball"></div>
 		<div class="nametag">
-			<qrcode-vue :value="host" class="qr" size="50"></qrcode-vue>
+			<qrcode-vue :value="host" class="qr" :size="50"></qrcode-vue>
 			<div id="logbox">
 				<span class="longstring">{{ mp.localPlayerDisplayString.value }}</span><br />{{ mp.playersOnline.value }}
 			</div>
