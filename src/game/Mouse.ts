@@ -6,6 +6,7 @@ import { Constants } from "./constants";
 import { Utils } from "./Utils";
 // @ts-ignore
 import { TailGeometry } from "./extensions/TailGeometry"
+import { Level } from "./Level";
 
 export type SerializedPlayerData = {
     position: Vector3,
@@ -46,10 +47,11 @@ export class Mouse
 
     // movement
     velocity : Vector3 = new Vector3();
-    radius : number = 1;
+    radius : number = 0.8;
     maxSpeed : number = 40;
     drag : number = 0.5;
     collisionSpeedDrop = 0.3; // 
+    wallDrag : number = 3;
 
     // animation
     randomlyLookHeadMinMax : Vector2 = new Vector2(0.3, 1.5);
@@ -337,7 +339,7 @@ export class Mouse
 
     private previousFramePosition = new Vector3();
 
-    update(time : Time, worldBoundaries : Box2, input? : InputManager, camera? : Object3D, otherMice? : Map<string, Mouse>)
+    update(time : Time, level : Level, input? : InputManager, camera? : Object3D, otherMice? : Map<string, Mouse>)
     {
         let positionBefore = this.previousFramePosition.copy(this.object.position);
 
@@ -439,20 +441,12 @@ export class Mouse
             }
         }        
 
-        // Move and collide against AABB world boundaries 
-        if (this.object.position.x + this.radius > worldBoundaries.max.x)
-        {
-            this.object.position.x = worldBoundaries.max.x - this.radius;
-        }
-        else if (this.object.position.x - this.radius < worldBoundaries.min.x) {
-            this.object.position.x = worldBoundaries.min.x + this.radius;
-        }
-        if (this.object.position.z + this.radius > worldBoundaries.max.y)
-        {
-            this.object.position.z = worldBoundaries.max.y - this.radius;
-        }
-        else if (this.object.position.z - this.radius < worldBoundaries.min.y) {
-            this.object.position.z = worldBoundaries.min.y + this.radius;
+        // Move and collide against the level
+        let collided = level.collideCircle(this.object.position, this.radius);
+
+        if (collided) {
+            // TODO, stop?
+            this.velocity.lerp(Constants.zero, this.wallDrag * time.deltaTime);
         }
 
         // Visually update, animations

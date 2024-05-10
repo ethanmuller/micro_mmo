@@ -51,7 +51,7 @@ const skinList : Array<MouseSkin> = [
 ]
 const seed = getRandomInt(skinList.length-1)
 const player = new Mouse(scene, toonRamp, skinList[seed]);
-level.getTileWorldPosition(level.start, player.object.position);
+level.getWorldPositionFromTile(level.start, player.object.position);
 
 //camera.position.x = 10;
 const cameraWantedDisplacement = new THREE.Vector3(0,10,10);
@@ -99,15 +99,8 @@ const sun = new THREE.DirectionalLight();
 sun.intensity = Math.PI
 sun.quaternion.setFromAxisAngle(new THREE.Vector3(0,0,1), Math.PI * 0.1);
 scene.add(sun);
-
-const floor = new THREE.Object3D();
-const worldBoundaries = new THREE.Box2(new THREE.Vector2(-100, -100), new THREE.Vector2(100, 100));
-var worldSize = new THREE.Vector2();
-worldBoundaries.getSize(worldSize);
-floor.add(new THREE.Mesh(new THREE.PlaneGeometry(worldSize.width,worldSize.height), new THREE.MeshBasicMaterial({color : 0x775577, map: imgLoader.load(mouseTexture), })));
-floor.rotation.x -= Math.PI/2;
-//scene.add(floor);
-scene.add(new THREE.AxesHelper());
+let axesHelper = new THREE.AxesHelper();
+//scene.add(axesHelper);
 
 var gameTime = <Time>({
   deltaTime: 0,
@@ -135,12 +128,15 @@ function mainLoop()
   // update
 
   playerIdToPlayerObj.forEach((plObj : Mouse) => {
-    plObj.update(gameTime, worldBoundaries);
+    plObj.update(gameTime, level);
   })
 
-	player.update(gameTime, worldBoundaries, input, camera, playerIdToPlayerObj);
+	player.update(gameTime, level, input, camera, playerIdToPlayerObj);
 
   // Camera updates
+  let axesTile = level.getTileFromWorldPosition(player.object.position, new THREE.Vector2());
+  level.getWorldPositionFromTile(axesTile, axesHelper.position);
+
   player.object.getWorldPosition(cameraPivot.position);
   //cameraPivot.position.copy(player.object.position);
   if (input.flyCameraButton.pressedThisFrame) {

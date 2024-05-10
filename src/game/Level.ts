@@ -5,6 +5,7 @@ const TILE_SIZE = 7;
 const WALL_HEIGHT = 3;
 
 const CARDINAL = [new Vector2(0,1), new Vector2(1,0), new Vector2(0,-1), new Vector2(-1, 0)];
+const DIAGONAL = [new Vector2(1,1), new Vector2(1,-1), new Vector2(-1,-1), new Vector2(-1, 1)];
 
 export class Level
 {
@@ -89,8 +90,6 @@ export class Level
             });
         });
 
-        console.log(this.object.children.length);
-
         this.object.position.set(TILE_SIZE * 0.5, 0, TILE_SIZE * 0.5);
         this.object.updateMatrixWorld(true);
     }
@@ -99,8 +98,89 @@ export class Level
         return i >= 0 && j >= 0 && j < this.levelData.length && i < this.levelData[j].length && this.levelData[j][i] != ' ';
     }
 
-    getTileWorldPosition(p : Vector2, out : Vector3) : Vector3 {
+    getWorldPositionFromTile(p : Vector2, out : Vector3) : Vector3 {
         out.set(p.x * this.tileSize, 0, p.y * this.tileSize);
         return out;
+    }
+
+    getTileFromWorldPosition(p: Vector3, out : Vector2) : Vector2 {
+        out.set(Math.floor((p.x + 0.5 * this.tileSize)/this.tileSize), Math.floor((p.z + 0.5 * this.tileSize)/this.tileSize));
+        return out;
+    }
+
+    collisionV2 = new Vector2();
+    collisionV22 = new Vector2();
+    collideCircle(p: Vector3, r: number) : boolean
+    {   // PRECONDITION: r < TILE_SIZE
+        let tile = this.getTileFromWorldPosition(p, this.collisionV2);
+
+        if (!this.isTileWalkable(tile.x, tile.y)) {
+            // weird but ok
+            let newTile = this.findClosestWalkableTile(tile);
+            //this.getWorldPositionFromTile(newTile, p);
+            return true;
+        }
+
+        let halfTileSize = this.tileSize * 0.5;
+        let collided = false;
+        CARDINAL.forEach(v => {
+            let tileX = tile.x + v.x;
+            let tileY = tile.y + v.y;
+            if (!this.isTileWalkable(tileX, tileY))
+            {
+                let tileCenterX = tileX * this.tileSize;
+                let tileCenterZ = tileY * this.tileSize;
+                if (v.x > 0 && p.x + r > tileCenterX - halfTileSize) {
+                    p.x = tileCenterX - halfTileSize - r;
+                    collided = true;
+                }
+                else if (v.x < 0 && p.x - r < tileCenterX + halfTileSize) {
+                    p.x = tileCenterX + halfTileSize + r;
+                    collided = true;
+                }
+                if (v.y > 0 && p.z + r > tileCenterZ - halfTileSize) {
+                    p.z = tileCenterZ - halfTileSize - r;
+                    collided = true;
+                }
+                else if (v.y < 0 && p.z - r < tileCenterZ + halfTileSize) {
+                    p.z = tileCenterZ + halfTileSize + r;
+                    collided = true;
+                    //console.log(`collided with tile (${tileX}, ${tileY})`);
+                }
+            }
+        });
+        
+        let r2 = r * r;
+        let deltaPos = this.collisionV22;
+        DIAGONAL.forEach(v => {
+            let tileX = tile.x + v.x;
+            let tileY = tile.y + v.y;
+            if (!this.isTileWalkable(tileX, tileY))
+            {
+                let closestCornerX = tileX * this.tileSize - v.x * halfTileSize;
+                let closestCornerZ = tileY * this.tileSize - v.y * halfTileSize;
+
+                deltaPos.set(p.x - closestCornerX, p.z - closestCornerZ);
+                if (deltaPos.lengthSq() < r2) {
+                    collided = true;
+
+                    deltaPos.normalize().multiplyScalar(r);
+                    p.x = closestCornerX + deltaPos.x;
+                    p.z = closestCornerZ + deltaPos.y;
+                }
+            }
+        });
+
+        return collided;
+    }
+
+    findClosestWalkableTile(p : Vector2) : Vector2 {
+        let v = p.clone();
+
+
+
+
+
+        return v;
     }
 }
