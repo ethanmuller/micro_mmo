@@ -43,8 +43,11 @@ export class Level
         this.levelData.push(currentRow);
         this.rows++;
 
-        const wallMesh = new Mesh(new BoxGeometry(TILE_SIZE, WALL_HEIGHT, TILE_SIZE, 1, 1, 1), new MeshToonMaterial({color: 0xffd154, gradientMap: toonRamp}));
-        const floorMesh = new Mesh(new PlaneGeometry(TILE_SIZE, TILE_SIZE, 1, 1), new MeshToonMaterial({color: 0x8a72a8, gradientMap: toonRamp}));
+        const wallMaterial = new MeshToonMaterial({color: 0x331111, gradientMap: toonRamp})
+        const floorMaterial = new MeshToonMaterial({color: 0x110000, gradientMap: toonRamp})
+
+        const wallMesh = new Mesh(new BoxGeometry(TILE_SIZE, WALL_HEIGHT, TILE_SIZE, 1, 1, 1), wallMaterial);
+        const floorMesh = new Mesh(new PlaneGeometry(TILE_SIZE, TILE_SIZE, 1, 1), floorMaterial);
         const wall = new Object3D();
         wallMesh.position.y = WALL_HEIGHT * 0.5;
         wall.add(wallMesh);

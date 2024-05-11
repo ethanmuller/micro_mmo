@@ -3,7 +3,6 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import * as THREE from 'three';
 import { Mouse, MouseSkin, SerializedPlayerData } from './game/Mouse';
 import { Time } from './game/Time';
-import skyTexture from './assets/sky_gradient.png';
 import { MultiplayerClient } from './game/MultiplayerClient';
 import { InputManager } from './game/InputManager';
 import { FreeCamera } from './game/FreeCamera';
@@ -30,10 +29,6 @@ const URLParams = new URLSearchParams(url.search);
 
 const scene = new THREE.Scene();
 const imgLoader = new THREE.TextureLoader();
-imgLoader.loadAsync(skyTexture).then((tex) => {
-	tex.magFilter = THREE.LinearFilter;
-	scene.background = tex;
-});
 
 const toonRamp = imgLoader.load(toonTexture, (texture) => {
 	texture.minFilter = NearestFilter;
