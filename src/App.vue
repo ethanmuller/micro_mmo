@@ -19,7 +19,7 @@ const gamecanvas = ref<HTMLDivElement>();
 const trackballEl = ref<HTMLDivElement>();
 const host = ref<string>();
 
-const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(90, 1, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(256, 256);
 renderer.setPixelRatio(2)
