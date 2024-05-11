@@ -44,7 +44,7 @@ export class Level
         this.rows++;
 
         const wallMaterial = new MeshToonMaterial({color: 0x331111, gradientMap: toonRamp})
-        const floorMaterial = new MeshToonMaterial({color: 0x110000, gradientMap: toonRamp})
+        const floorMaterial = new MeshToonMaterial({color: 0x220000, gradientMap: toonRamp})
 
         const wallMesh = new Mesh(new BoxGeometry(TILE_SIZE, WALL_HEIGHT, TILE_SIZE, 1, 1, 1), wallMaterial);
         const floorMesh = new Mesh(new PlaneGeometry(TILE_SIZE, TILE_SIZE, 1, 1), floorMaterial);
