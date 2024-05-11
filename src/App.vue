@@ -199,7 +199,11 @@ onBeforeUnmount(() => {
 })
 
 function onWindowResize(): void {
+  const minFov = 80
+  const maxFov = 100
+  const fov = Math.max(Math.min(window.innerHeight / window.innerWidth * 90, maxFov), minFov)
 	renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.fov = fov
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
 	renderer.setSize(window.innerWidth, window.innerHeight);
