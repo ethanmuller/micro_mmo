@@ -17,7 +17,17 @@ let lastNetworkUpdate = 0;
 
 const gamecanvas = ref<HTMLDivElement>();
 const trackballEl = ref<HTMLDivElement>();
+const messages = ref<string[]>([]);
 const host = ref<string>();
+
+function log(msg) {
+  messages.value.unshift(msg)
+}
+
+log('logging enabled')
+document.addEventListener('press', (e) => {
+  log(`${e.oldVelocity.x} ${e.oldVelocity.y}`)
+})
 
 const camera = new THREE.PerspectiveCamera(90, 1, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
@@ -144,7 +154,7 @@ function mainLoop() {
 	//cameraPivot.position.copy(player.object.position);
 	if (input.flyCameraButton.pressedThisFrame) {
 		freeCamera.enabled = !freeCamera.enabled;
-		console.log(`Free camera ${freeCamera.enabled ? "enabled" : "disabled"}`);
+		log(`Free camera ${freeCamera.enabled ? "enabled" : "disabled"}`);
 
 		if (!freeCamera.enabled) {
 			// camera.removeFromParent();
@@ -199,11 +209,11 @@ onBeforeUnmount(() => {
 })
 
 function onWindowResize(): void {
-  const minFov = 80
-  const maxFov = 100
-  const fov = Math.max(Math.min(window.innerHeight / window.innerWidth * 90, maxFov), minFov)
+	const minFov = 80
+	const maxFov = 100
+	const fov = Math.max(Math.min(window.innerHeight / window.innerWidth * 90, maxFov), minFov)
 	renderer.setSize(window.innerWidth, window.innerHeight);
-  camera.fov = fov
+	camera.fov = fov
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
 	renderer.setSize(window.innerWidth, window.innerHeight);
@@ -221,14 +231,38 @@ addEventListener("resize", onWindowResize, false);
 		<div ref="trackballEl" id="trackball"></div>
 		<div class="nametag">
 			<qrcode-vue :value="host" class="qr" :size="50"></qrcode-vue>
-			<div id="logbox">
-				<span class="longstring">{{ mp.localPlayerDisplayString.value }}</span><br />{{ mp.playersOnline.value }}
+			<div class="nametag__text">
+				<span class="longstring">{{ mp.localPlayerDisplayString.value }}</span><br />{{
+					mp.playersOnline.value }}
 			</div>
+		</div>
+		<div class="tmp">
+      <span v-for="message in messages.slice(0,5).reverse()">{{ message }}</span>
 		</div>
 	</div>
 </template>
 
 <style scoped>
+.tmp {
+  box-sizing: border-box;
+  width: 100%;
+  position: absolute;
+	color: white;
+  transform: translate3d(0,0,0);
+	pointer-events: none;
+	top: 0;
+	left: 0;
+	z-index: 3;
+	padding: 1rem;
+	font-family: monospace;
+	font-size: 0.8rem;
+  text-align: left;
+}
+
+.tmp span {
+  display: block;
+}
+
 #gamecanvas {
 	position: absolute;
 	left: 0;
@@ -239,7 +273,7 @@ addEventListener("resize", onWindowResize, false);
 	display: none;
 }
 
-#logbox {
+.nametag__text {
 	font-family: monospace;
 	font-size: 0.8rem;
 	display: flex;

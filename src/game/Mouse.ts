@@ -6,6 +6,7 @@ import { Utils } from "./Utils";
 // @ts-ignore
 import { TailGeometry } from "./extensions/TailGeometry"
 import { Level } from "./Level";
+import * as Tone from 'tone'
 
 export type SerializedPlayerData = {
     position: Vector3,
@@ -47,7 +48,7 @@ export class Mouse {
     velocity: Vector3 = new Vector3();
     radius: number = 0.8;
     maxSpeed: number = 40;
-    drag: number = 0.5;
+    drag: number = 0.989;
     collisionSpeedDrop = 0.3; // 
     // wallDrag: number = 3;
 
@@ -102,6 +103,10 @@ export class Mouse {
     backRightFootId = 2;
     backLeftFootId = 3;
 
+    vol: Tone.Volume;
+    pickupSampler: Tone.Sampler;
+    // sampler: Tone.Sampler;
+
     private var = { // just random vectors and quaternions for use during update operations
         q1: new Quaternion(),
         q2: new Quaternion(),
@@ -121,6 +126,33 @@ export class Mouse {
     private frameDisplacementDirection: Vector3 = new Vector3();
 
     constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin) {
+        this.vol = new Tone.Volume(0).toDestination();
+
+        this.pickupSampler = new Tone.Sampler({
+            urls: {
+                A1: 'ui-ch.wav',
+                A5: 'ui-k.wav',
+            },
+            baseUrl: "https://mush.network/files/sfx/",
+        }).connect(this.vol)
+
+        document.addEventListener('press', () => {
+          this.pickupSampler.triggerAttack('A1')
+        })
+
+        document.addEventListener('pressup', (e) => {
+          this.pickupSampler.triggerAttack('A5')
+        })
+
+        // footstep sampler
+        // this.sampler = new Tone.Sampler({
+        //     urls: {
+        //         A1: 'mouse-step-a.wav',
+        //         A2: 'mouse-step-b.wav',
+        //     },
+        //     baseUrl: "https://mush.network/files/sfx/",
+        // }).connect(this.vol)
+
         this.debugSphere = new Mesh(new SphereGeometry(this.radius, 12, 12), new MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.3 }));
         this.debugSphere.position.y += this.radius;
         this.debugSphere.visible = false;
@@ -335,6 +367,8 @@ export class Mouse {
     private previousFramePosition = new Vector3();
 
     update(time: Time, level: Level, input?: InputManager, camera?: Object3D, otherMice?: Map<string, Mouse>) {
+        //this.vol.volume.value = -Infinity
+
         let positionBefore = this.previousFramePosition.copy(this.object.position);
 
         if (input && camera) { // Local players
@@ -342,7 +376,7 @@ export class Mouse {
                 let cameraQuaterinion = camera.getWorldQuaternion(this.var.q1);
                 this.velocity.set(0, 0, 0);
                 let relativeRight = this.var.v2.set(1, 0, 0);
-                relativeRight.applyQuaternion(cameraQuaterinion)
+                // relativeRight.applyQuaternion(cameraQuaterinion)
                 relativeRight.y = 0
                 relativeRight.normalize()
                 let trackballRight = relativeRight;
@@ -350,7 +384,7 @@ export class Mouse {
                 this.velocity.add(trackballRight)
 
                 let relativeForward = this.var.v2.set(0, 0, -1);
-                relativeForward.applyQuaternion(cameraQuaterinion)
+                // relativeForward.applyQuaternion(cameraQuaterinion)
                 relativeForward.y = 0
                 relativeForward.normalize()
                 let trackballForward = relativeForward
@@ -364,7 +398,8 @@ export class Mouse {
                 this.wantedFaceAngle = 0;
             }
             else {
-                this.velocity.lerp(Constants.zero, time.deltaTime * this.drag); // TODO make drag dependant on current velocity magnitude, maybe increase drag at slow speeds
+              this.velocity.multiplyScalar(this.drag)
+                // this.velocity.lerp(Constants.zero, 1 - this.drag); // TODO make drag dependant on current velocity magnitude, maybe increase drag at slow speeds
             }
 
 

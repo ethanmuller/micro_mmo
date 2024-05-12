@@ -43,7 +43,6 @@ export class InputManager {
     pageDown: ButtonInput;
     trackball: TrackballInput;
     fingerDown: Boolean;
-    fingerMovement: Vector2 = new Vector2();
     shift: ButtonInput;
     ctrl: ButtonInput;
 
@@ -79,28 +78,33 @@ export class InputManager {
         this.trackball = new TrackballInput()
 
         const mc = new Hammer.Manager(trackballElement)
-        mc.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 2 }));
+        mc.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 4 }));
         mc.add(new Hammer.Press({ time: 0 }));
 
         this.fingerDown = false
         const screenFactor = window.innerHeight * 0.03;
 
         mc.on('pan', (e: HammerInput) => {
-            this.trackball.velocity.set(e.velocityX, e.velocityY).multiplyScalar(screenFactor)
-            this.fingerMovement.set(e.deltaX * screenFactor, e.deltaY * screenFactor)
+            const velocity = new Vector2(e.velocityX, e.velocityY).multiplyScalar(screenFactor)
+            // velocity.clampLength(10, Infinity)
+            this.trackball.velocity.copy(velocity)
             this.trackball.lastMove = e.timeStamp
             if (e.isFinal) {
                 this.fingerDown = false
-                this.fingerMovement.set(0, 0);
+                const event = new Event("pressup");
+                event.velocity=velocity
+                document.dispatchEvent(event)
             }
         })
         mc.on('press', () => {
+            const event = new Event("press");
+            event.oldVelocity = this.trackball.velocity.clone()
+            document.dispatchEvent(event)
             this.trackball.velocity.set(0, 0);
             this.fingerDown = true
         })
         mc.on('pressup', () => {
             this.fingerDown = false
-            this.fingerMovement.set(0, 0);
         })
     }
 
@@ -140,7 +144,7 @@ export class InputManager {
 
     public update() {
         const now = Date.now()
-        if (this.fingerDown && (now - this.trackball.lastMove) > 1) {
+        if (this.fingerDown && (now - this.trackball.lastMove) > 10) {
             this.trackball.velocity.x = 0
             this.trackball.velocity.y = 0
         }

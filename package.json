@@ -17,6 +17,7 @@
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",
     "three": "^0.163.0",
+    "tone": "^14.9.17",
     "vue": "^3.4.21"
   },
   "devDependencies": {
