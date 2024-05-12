@@ -4,27 +4,24 @@ import toonTexture from "../assets/threeTone_bright.jpg";
 const TILE_SIZE = 7;
 const WALL_HEIGHT = 3;
 
-const CARDINAL = [new Vector2(0,1), new Vector2(1,0), new Vector2(0,-1), new Vector2(-1, 0)];
-const DIAGONAL = [new Vector2(1,1), new Vector2(1,-1), new Vector2(-1,-1), new Vector2(-1, 1)];
+const CARDINAL = [new Vector2(0, 1), new Vector2(1, 0), new Vector2(0, -1), new Vector2(-1, 0)];
+const DIAGONAL = [new Vector2(1, 1), new Vector2(1, -1), new Vector2(-1, -1), new Vector2(-1, 1)];
 
-export class Level
-{
-    object : Object3D = new Object3D();
-    start : Vector2 = new Vector2();
-    levelData : string[][] = [];
+export class Level {
+    object: Object3D = new Object3D();
+    start: Vector2 = new Vector2();
+    levelData: string[][] = [];
     rows = 0;
     columns = 0;
-    tileSize : number = TILE_SIZE;
+    tileSize: number = TILE_SIZE;
 
-    constructor(levelString : string, toonRamp : Texture)
-    {
+    constructor(levelString: string, toonRamp: Texture) {
         console.log("Loading level.. ");
         console.log(levelString);
 
-        let currentRow : string[] = [];
+        let currentRow: string[] = [];
 
-        for (let s = 0; s < levelString.length; ++s)
-        {
+        for (let s = 0; s < levelString.length; ++s) {
             let v = levelString[s];
             if (v == '\r') continue;
             if (v == '\n') {
@@ -43,8 +40,8 @@ export class Level
         this.levelData.push(currentRow);
         this.rows++;
 
-        const wallMaterial = new MeshToonMaterial({color: 0x331111, gradientMap: toonRamp})
-        const floorMaterial = new MeshToonMaterial({color: 0x220000, gradientMap: toonRamp})
+        const wallMaterial = new MeshToonMaterial({ color: 0x553333, gradientMap: toonRamp })
+        const floorMaterial = new MeshToonMaterial({ color: 0x331111, gradientMap: toonRamp })
 
         const wallMesh = new Mesh(new BoxGeometry(TILE_SIZE, WALL_HEIGHT, TILE_SIZE, 1, 1, 1), wallMaterial);
         const floorMesh = new Mesh(new PlaneGeometry(TILE_SIZE, TILE_SIZE, 1, 1), floorMaterial);
@@ -57,7 +54,7 @@ export class Level
         this.object.matrixAutoUpdate = false;
 
         // extremely simple instantiation (not the most efficient, too many vertices and meshes)
-        let needsWall : Map<number, Set<number>> = new Map<number, Set<number>>();
+        let needsWall: Map<number, Set<number>> = new Map<number, Set<number>>();
         let setWallNeded = function(i: number, j: number) {
             if (!needsWall.has(j)) {
                 let s = new Set<number>();
@@ -85,7 +82,7 @@ export class Level
             }
         }
 
-        needsWall.forEach((s : Set<number>, j : number) => {
+        needsWall.forEach((s: Set<number>, j: number) => {
             s.forEach(i => {
                 let w = wall.clone();
                 w.position.set(i * TILE_SIZE, 0, j * TILE_SIZE);
@@ -101,20 +98,19 @@ export class Level
         return i >= 0 && j >= 0 && j < this.levelData.length && i < this.levelData[j].length && this.levelData[j][i] != ' ';
     }
 
-    getWorldPositionFromTile(p : Vector2, out : Vector3) : Vector3 {
+    getWorldPositionFromTile(p: Vector2, out: Vector3): Vector3 {
         out.set(p.x * this.tileSize, 0, p.y * this.tileSize);
         return out;
     }
 
-    getTileFromWorldPosition(p: Vector3, out : Vector2) : Vector2 {
-        out.set(Math.floor((p.x + 0.5 * this.tileSize)/this.tileSize), Math.floor((p.z + 0.5 * this.tileSize)/this.tileSize));
+    getTileFromWorldPosition(p: Vector3, out: Vector2): Vector2 {
+        out.set(Math.floor((p.x + 0.5 * this.tileSize) / this.tileSize), Math.floor((p.z + 0.5 * this.tileSize) / this.tileSize));
         return out;
     }
 
     collisionV2 = new Vector2();
     collisionV22 = new Vector2();
-    collideCircle(p: Vector3, r: number) : boolean
-    {   // PRECONDITION: r < TILE_SIZE
+    collideCircle(p: Vector3, r: number): boolean {   // PRECONDITION: r < TILE_SIZE
         let tile = this.getTileFromWorldPosition(p, this.collisionV2);
 
         if (!this.isTileWalkable(tile.x, tile.y)) {
@@ -129,8 +125,7 @@ export class Level
         CARDINAL.forEach(v => {
             let tileX = tile.x + v.x;
             let tileY = tile.y + v.y;
-            if (!this.isTileWalkable(tileX, tileY))
-            {
+            if (!this.isTileWalkable(tileX, tileY)) {
                 let tileCenterX = tileX * this.tileSize;
                 let tileCenterZ = tileY * this.tileSize;
                 if (v.x > 0 && p.x + r > tileCenterX - halfTileSize) {
@@ -152,14 +147,13 @@ export class Level
                 }
             }
         });
-        
+
         let r2 = r * r;
         let deltaPos = this.collisionV22;
         DIAGONAL.forEach(v => {
             let tileX = tile.x + v.x;
             let tileY = tile.y + v.y;
-            if (!this.isTileWalkable(tileX, tileY))
-            {
+            if (!this.isTileWalkable(tileX, tileY)) {
                 let closestCornerX = tileX * this.tileSize - v.x * halfTileSize;
                 let closestCornerZ = tileY * this.tileSize - v.y * halfTileSize;
 
@@ -177,7 +171,7 @@ export class Level
         return collided;
     }
 
-    findClosestWalkableTile(p : Vector2) : Vector2 {
+    findClosestWalkableTile(p: Vector2): Vector2 {
         let v = p.clone();
 
 
