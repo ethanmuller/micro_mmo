@@ -12,6 +12,7 @@ import level_ascii from './assets/level_ascii.txt?raw'
 import toonTexture from "./assets/threeTone_bright.jpg";
 import { NearestFilter } from 'three';
 import QrcodeVue from 'qrcode.vue'
+import { RGBELoader } from 'three/examples/jsm/Addons.js';
 import { CameraMovement } from './game/CameraMovement';
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
@@ -34,11 +35,23 @@ const camera = new THREE.PerspectiveCamera(110, 1, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(256, 256);
 renderer.setPixelRatio(2)
-
-const url = new URL(window.location.toString());
-const URLParams = new URLSearchParams(url.search);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.6;
 
 const scene = new THREE.Scene();
+
+scene.background = new THREE.Color(0xddddee)
+
+new RGBELoader()
+	.load('/vintage_measuring_lab_1k.hdr', function ( texture ) {
+
+		texture.mapping = THREE.EquirectangularReflectionMapping;
+
+		scene.background = texture;
+		scene.environment = texture;
+		scene.backgroundBlurriness = 0.06
+	});
+
 const imgLoader = new THREE.TextureLoader();
 
 const toonRamp = imgLoader.load(toonTexture, (texture) => {

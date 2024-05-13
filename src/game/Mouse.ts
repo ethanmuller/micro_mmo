@@ -376,7 +376,7 @@ export class Mouse {
                 let cameraQuaterinion = camera.getWorldQuaternion(this.var.q1);
                 this.velocity.set(0, 0, 0);
                 let relativeRight = this.var.v2.set(1, 0, 0);
-                // relativeRight.applyQuaternion(cameraQuaterinion)
+                relativeRight.applyQuaternion(cameraQuaterinion)
                 relativeRight.y = 0
                 relativeRight.normalize()
                 let trackballRight = relativeRight;
@@ -384,7 +384,7 @@ export class Mouse {
                 this.velocity.add(trackballRight)
 
                 let relativeForward = this.var.v2.set(0, 0, -1);
-                // relativeForward.applyQuaternion(cameraQuaterinion)
+                relativeForward.applyQuaternion(cameraQuaterinion)
                 relativeForward.y = 0
                 relativeForward.normalize()
                 let trackballForward = relativeForward
