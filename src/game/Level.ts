@@ -1,8 +1,9 @@
-import { Box2, BoxGeometry, Mesh, MeshBasicMaterial, MeshToonMaterial, Object3D, PlaneGeometry, Texture, Vector2, Vector3 } from "three";
+import { Box2, BoxGeometry, Mesh, MeshBasicMaterial, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3 } from "three";
 import toonTexture from "../assets/threeTone_bright.jpg";
+import brickTexture from "../assets/brickwall.jpg";
 
 const TILE_SIZE = 7;
-const WALL_HEIGHT = 3;
+const WALL_HEIGHT = 7;
 
 const CARDINAL = [new Vector2(0,1), new Vector2(1,0), new Vector2(0,-1), new Vector2(-1, 0)];
 const DIAGONAL = [new Vector2(1,1), new Vector2(1,-1), new Vector2(-1,-1), new Vector2(-1, 1)];
@@ -43,7 +44,7 @@ export class Level
         this.levelData.push(currentRow);
         this.rows++;
 
-        const wallMaterial = new MeshToonMaterial({color: 0x331111, gradientMap: toonRamp})
+        const wallMaterial = new MeshToonMaterial({color: 0xffffff, gradientMap: toonRamp, map: new TextureLoader().load(brickTexture)})
         const floorMaterial = new MeshToonMaterial({color: 0x220000, gradientMap: toonRamp})
 
         const wallMesh = new Mesh(new BoxGeometry(TILE_SIZE, WALL_HEIGHT, TILE_SIZE, 1, 1, 1), wallMaterial);
