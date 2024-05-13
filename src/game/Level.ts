@@ -1,5 +1,4 @@
-import { Box2, BoxGeometry, Mesh, MeshBasicMaterial, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3 } from "three";
-import toonTexture from "../assets/threeTone_bright.jpg";
+import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3 } from "three";
 import brickTexture from "../assets/win95/wall.png";
 import floorTexture from "../assets/win95/floor.png";
 import ceilingTexture from "../assets/win95/ceiling.png";
@@ -124,9 +123,6 @@ export class Level {
         let tile = this.getTileFromWorldPosition(p, this.collisionV2);
 
         if (!this.isTileWalkable(tile.x, tile.y)) {
-            // weird but ok
-            let newTile = this.findClosestWalkableTile(tile);
-            //this.getWorldPositionFromTile(newTile, p);
             return true;
         }
 
