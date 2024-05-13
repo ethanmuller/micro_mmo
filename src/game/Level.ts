@@ -18,6 +18,7 @@ export class Level
     rows = 0;
     columns = 0;
     tileSize : number = TILE_SIZE;
+    wallHeight : number = WALL_HEIGHT;
 
     constructor(levelString : string, toonRamp : Texture)
     {
