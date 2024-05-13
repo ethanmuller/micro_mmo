@@ -29,4 +29,18 @@ export class Utils {
             return base - maxDistance;
         return wanted;
     }
+
+    static MoveTowards(current: Vector3, to: Vector3, maxDistanceDelta: number) : boolean
+    {
+        this.aux.copy(to).sub(current);
+        let magnitude = this.aux.length();
+        if (magnitude <= maxDistanceDelta || magnitude == 0)
+        {
+            current.copy(to);
+            return false;
+        }
+        this.aux.multiplyScalar(maxDistanceDelta/magnitude).add(current);
+        current.copy(this.aux);
+        return true;
+    }
 }

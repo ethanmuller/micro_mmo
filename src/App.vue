@@ -12,6 +12,7 @@ import level_ascii from './assets/level_ascii.txt?raw'
 import toonTexture from "./assets/threeTone_bright.jpg";
 import { NearestFilter } from 'three';
 import QrcodeVue from 'qrcode.vue'
+import { CameraMovement } from './game/CameraMovement';
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
 
@@ -61,23 +62,20 @@ const seed = getRandomInt(skinList.length - 1)
 const player = new Mouse(scene, toonRamp, skinList[seed]);
 level.getWorldPositionFromTile(level.start, player.object.position);
 
-let cameraWantedDisplacement: THREE.Vector3
-// TODO: check for param change while game is running, not only while initializing
-if (URLParams.get('cam') === 'top') {
-	cameraWantedDisplacement = new THREE.Vector3(0, 30, 0);
-} else {
-	cameraWantedDisplacement = new THREE.Vector3(0, 10, 10);
-}
+// let cameraWantedDisplacement: THREE.Vector3
+// // TODO: check for param change while game is running, not only while initializing
+// if (URLParams.get('cam') === 'top') {
+// 	cameraWantedDisplacement = new THREE.Vector3(0, 30, 0);
+// } else {
+// 	cameraWantedDisplacement = new THREE.Vector3(0, 10, 10);
+// }
 
-camera.position.copy(cameraWantedDisplacement);
-camera.lookAt(new THREE.Vector3(0, 0, 0));
-camera.updateProjectionMatrix();
+const cameraMovement = new CameraMovement(camera);
 const freeCamera = new FreeCamera(camera);
-const cameraPivot = new THREE.Object3D();
-cameraPivot.add(camera);
-cameraPivot.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 0), Math.PI * 0.75 * -1)
 
-scene.add(cameraPivot);
+// camera.position.copy(cameraWantedDisplacement);
+// camera.lookAt(new THREE.Vector3(0, 0, 0));
+// camera.updateProjectionMatrix();
 
 const mp = new MultiplayerClient(seed)
 let playerIdToPlayerObj: Map<string, Mouse> = new Map<string, Mouse>();
@@ -129,6 +127,7 @@ function getRandomInt(max: number) {
 	return Math.floor(Math.random() * Math.floor(max + 1));
 }
 
+let axesHelperV2 = new THREE.Vector2();
 function mainLoop() {
 	var now = new Date().getTime();
 	gameTime.deltaTime = (now - lastTickTime) / 1000;
@@ -147,11 +146,11 @@ function mainLoop() {
 	player.update(gameTime, level, input, camera, playerIdToPlayerObj);
 
 	// Camera updates
-	let axesTile = level.getTileFromWorldPosition(player.object.position, new THREE.Vector2());
+	let axesTile = level.getTileFromWorldPosition(player.object.position, axesHelperV2);
 	level.getWorldPositionFromTile(axesTile, axesHelper.position);
 
-	player.object.getWorldPosition(cameraPivot.position);
-	//cameraPivot.position.copy(player.object.position);
+	
+	
 	if (input.flyCameraButton.pressedThisFrame) {
 		freeCamera.enabled = !freeCamera.enabled;
 		log(`Free camera ${freeCamera.enabled ? "enabled" : "disabled"}`);
@@ -159,9 +158,9 @@ function mainLoop() {
 		if (!freeCamera.enabled) {
 			// camera.removeFromParent();
 			// cameraPivot.add(camera);
-			camera.position.copy(cameraWantedDisplacement);
-			camera.lookAt(player.object.position);
-			camera.updateProjectionMatrix();
+			// camera.position.copy(cameraWantedDisplacement);
+			// camera.lookAt(player.object.position);
+			// camera.updateProjectionMatrix();
 		}
 		else {
 			// camera.removeFromParent();
@@ -173,6 +172,9 @@ function mainLoop() {
 		freeCamera.update(gameTime, input);
 		camera.updateMatrix();
 		camera.updateProjectionMatrix();
+	}
+	else {
+		cameraMovement.update(gameTime, player, level);
 	}
 
 	// draw
