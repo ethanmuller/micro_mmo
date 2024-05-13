@@ -22,6 +22,8 @@ export class CameraMovement
     wantedLookAtPosition : Vector3 = new Vector3();
     lerping = false;
 
+    lookAtPlayer = false; // If false, we will look at the center of the tile we are facing
+
     cameraSpeed = 10;
 
     update(time: Time, player: Mouse, level: Level)
@@ -45,7 +47,6 @@ export class CameraMovement
             this.lerping = true;
         }
 
-
         if (this.lerping) {
 
             let maxFrameDisplacement = time.deltaTime * this.cameraSpeed;
@@ -57,8 +58,14 @@ export class CameraMovement
             else {
                 Utils.MoveTowards(this.lookAtPosition, this.wantedLookAtPosition, maxFrameDisplacement);
             }
+            if (!this.lookAtPlayer) {
+                this.camera.lookAt(this.lookAtPosition);
+                this.camera.updateProjectionMatrix();
+            }
         }
-        this.camera.lookAt(player.object.position);
-        this.camera.updateProjectionMatrix();
+        if (this.lookAtPlayer) {
+            this.camera.lookAt(player.object.position);
+            this.camera.updateProjectionMatrix();
+        }
     }
 }
