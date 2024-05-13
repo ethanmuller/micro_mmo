@@ -30,7 +30,7 @@ document.addEventListener('press', (e) => {
   log(`${e.oldVelocity.x} ${e.oldVelocity.y}`)
 })
 
-const camera = new THREE.PerspectiveCamera(90, 1, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(110, 1, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(256, 256);
 renderer.setPixelRatio(2)

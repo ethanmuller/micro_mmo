@@ -24,7 +24,7 @@ export class CameraMovement
 
     lookAtPlayer = false; // If false, we will look at the center of the tile we are facing
 
-    cameraSpeed = 10;
+    cameraSpeed = 30;
 
     update(time: Time, player: Mouse, level: Level)
     {
