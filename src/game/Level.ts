@@ -1,6 +1,8 @@
 import { Box2, BoxGeometry, Mesh, MeshBasicMaterial, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3 } from "three";
 import toonTexture from "../assets/threeTone_bright.jpg";
-import brickTexture from "../assets/brickwall.jpg";
+import brickTexture from "../assets/win95/wall.png";
+import floorTexture from "../assets/win95/floor.png";
+import ceilingTexture from "../assets/win95/ceiling.png";
 
 const TILE_SIZE = 7;
 const WALL_HEIGHT = 7;
@@ -44,17 +46,23 @@ export class Level
         this.levelData.push(currentRow);
         this.rows++;
 
-        const wallMaterial = new MeshToonMaterial({color: 0xffffff, gradientMap: toonRamp, map: new TextureLoader().load(brickTexture)})
-        const floorMaterial = new MeshToonMaterial({color: 0x220000, gradientMap: toonRamp})
+        const texLoader = new TextureLoader();
+        const wallMaterial = new MeshToonMaterial({color: 0xffffff, gradientMap: toonRamp, map: texLoader.load(brickTexture)})
+        const floorMaterial = new MeshToonMaterial({color: 0xffffff, gradientMap: toonRamp, map: texLoader.load(floorTexture)})
+        const ceilingMaterial = new MeshToonMaterial({color: 0xffffff, gradientMap: toonRamp, map: texLoader.load(ceilingTexture)})
 
         const wallMesh = new Mesh(new BoxGeometry(TILE_SIZE, WALL_HEIGHT, TILE_SIZE, 1, 1, 1), wallMaterial);
         const floorMesh = new Mesh(new PlaneGeometry(TILE_SIZE, TILE_SIZE, 1, 1), floorMaterial);
+        const ceilingMesh = new Mesh(new PlaneGeometry(TILE_SIZE, TILE_SIZE, 1, 1), ceilingMaterial);
         const wall = new Object3D();
         wallMesh.position.y = WALL_HEIGHT * 0.5;
         wall.add(wallMesh);
         const floor = new Object3D();
         floorMesh.rotation.x -= Math.PI * 0.5;
+        ceilingMesh.rotation.x += Math.PI * 0.5;
+        ceilingMesh.position.y = TILE_SIZE;
         floor.add(floorMesh);
+        floor.add(ceilingMesh);
         this.object.matrixAutoUpdate = false;
 
         // extremely simple instantiation (not the most efficient, too many vertices and meshes)
