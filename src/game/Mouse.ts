@@ -6,7 +6,6 @@ import { Utils } from "./Utils";
 // @ts-ignore
 import { TailGeometry } from "./extensions/TailGeometry"
 import { Level } from "./Level";
-import * as Tone from 'tone'
 
 export type SerializedPlayerData = {
     position: Vector3,
@@ -103,11 +102,6 @@ export class Mouse {
     backRightFootId = 2;
     backLeftFootId = 3;
 
-    vol: Tone.Volume;
-    pickupSampler: Tone.Sampler;
-    playerFootsteps: Tone.Part
-    // sampler: Tone.Sampler;
-
     private var = { // just random vectors and quaternions for use during update operations
         q1: new Quaternion(),
         q2: new Quaternion(),
@@ -126,51 +120,7 @@ export class Mouse {
 
     private frameDisplacementDirection: Vector3 = new Vector3();
 
-    constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin, localOnly: boolean) {
-        if (localOnly) {
-            this.vol = new Tone.Volume(0).toDestination();
-
-            this.pickupSampler = new Tone.Sampler({
-                urls: {
-                    A1: 'mouse-footstep-hi-end.wav',
-                    A5: 'anime-chirp.wav',
-                },
-                baseUrl: "https://mush.network/files/sfx/",
-            }).connect(this.vol)
-
-            this.playerFootsteps = new Tone.Part(((time, note) => {
-                this.pickupSampler.triggerAttack(note, time, Math.random())
-                this.velocity.length()
-            }), [[0, "A1"],["0:1", "A1"],["0:2", "A1"],["0:3", "A1"]])
-
-            this.playerFootsteps.loop = true
-            Tone.getTransport().start(0)
-
-            document.addEventListener('press', (e) => {
-                this.playerFootsteps.stop(0)
-            })
-
-            document.addEventListener('flick', (e) => {
-                this.setFoostepRateBasedOnVelocity(e.velocity)
-
-                this.playerFootsteps.start(0)
-
-                if (e.velocity.length() > 10) {
-                // this.pickupSampler.triggerAttack('A1')
-                this.pickupSampler.triggerAttack(880 + Math.random()*100 - 50, Tone.now(), 0.05)
-                }
-            })
-        }
-
-        // footstep sampler
-        // this.sampler = new Tone.Sampler({
-        //     urls: {
-        //         A1: 'mouse-step-a.wav',
-        //         A2: 'mouse-step-b.wav',
-        //     },
-        //     baseUrl: "https://mush.network/files/sfx/",
-        // }).connect(this.vol)
-
+    constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin) {
         this.debugSphere = new Mesh(new SphereGeometry(this.radius, 12, 12), new MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.3 }));
         this.debugSphere.position.y += this.radius;
         this.debugSphere.visible = false;
@@ -380,16 +330,6 @@ export class Mouse {
         this.getFootNeutralPosition(id, f.obj.position, Constants.forward, Constants.right);
         f.stepEndPosition.copy(f.stepEndPosition.copy(f.obj.position));
         return id;
-    }
-
-    setFoostepRateBasedOnVelocity(v: Vector3) {
-        if (v.length() > 35) {
-            this.playerFootsteps.playbackRate = 6
-        } else if (v.length() > 15) {
-            this.playerFootsteps.playbackRate = 3
-        } else {
-            this.playerFootsteps.playbackRate = 2.5
-        }
     }
 
     private previousFramePosition = new Vector3();
