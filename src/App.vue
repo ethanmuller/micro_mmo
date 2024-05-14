@@ -30,9 +30,13 @@ log('logging enabled')
 document.addEventListener('press', (e) => {
 //   log(`${e.oldVelocity.length()}`)
 })
+
+function formatDecimalPlaces(num: number) {
+  return (Math.round(num * 100) / 100).toFixed(2);
+}
 document.addEventListener('flick', (e) => {
 	// TODO: make a proper custom flick event that lets us pass velocity around, without complaining about the fact that there's no velocity on the Event type.
-  log(`${e.velocity.length()}`)
+  log(`FLICK VECTOR: x:${formatDecimalPlaces( e.velocity.x )} y: ${formatDecimalPlaces(e.velocity.y)}`)
 })
 
 const camera = new THREE.PerspectiveCamera(110, 1, 0.1, 1000);
@@ -255,14 +259,14 @@ addEventListener("resize", onWindowResize, false);
 					mp.playersOnline.value }}
 			</div>
 		</div>
-		<div class="tmp">
+		<div class="logs">
       <span v-for="message in messages.slice(0,5).reverse()">{{ message }}</span>
 		</div>
 	</div>
 </template>
 
 <style scoped>
-.tmp {
+.logs {
   box-sizing: border-box;
   width: 100%;
   position: absolute;
@@ -274,11 +278,12 @@ addEventListener("resize", onWindowResize, false);
 	z-index: 3;
 	padding: 1rem;
 	font-family: monospace;
+  color: #00ff00;
 	font-size: 0.8rem;
   text-align: left;
 }
 
-.tmp span {
+.logs span {
   display: block;
 }
 
