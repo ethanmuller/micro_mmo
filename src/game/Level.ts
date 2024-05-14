@@ -2,8 +2,8 @@ import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, 
 import brickTexture from "../assets/win95/wall.png";
 import floorTexture from "../assets/win95/floor.png";
 
-const TILE_SIZE = 7;
-const WALL_HEIGHT = 7;
+const TILE_SIZE = 14;
+const WALL_HEIGHT = 14;
 
 const CARDINAL = [new Vector2(0, 1), new Vector2(1, 0), new Vector2(0, -1), new Vector2(-1, 0)];
 const DIAGONAL = [new Vector2(1, 1), new Vector2(1, -1), new Vector2(-1, -1), new Vector2(-1, 1)];
