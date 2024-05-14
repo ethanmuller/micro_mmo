@@ -78,7 +78,7 @@ export class InputManager {
         this.trackball = new TrackballInput()
 
         const mc = new Hammer.Manager(trackballElement)
-        mc.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 4 }));
+        mc.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 5 }));
         mc.add(new Hammer.Press({ time: 0 }));
 
         this.fingerDown = false
@@ -91,7 +91,7 @@ export class InputManager {
             this.trackball.lastMove = e.timeStamp
             if (e.isFinal) {
                 this.fingerDown = false
-                const event = new Event("pressup");
+                const event = new Event("flick");
                 event.velocity=velocity
                 document.dispatchEvent(event)
             }

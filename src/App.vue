@@ -22,13 +22,17 @@ const trackballEl = ref<HTMLDivElement>();
 const messages = ref<string[]>([]);
 const host = ref<string>();
 
-function log(msg) {
+function log(msg: string) {
   messages.value.unshift(msg)
 }
 
 log('logging enabled')
 document.addEventListener('press', (e) => {
-  log(`${e.oldVelocity.x} ${e.oldVelocity.y}`)
+//   log(`${e.oldVelocity.length()}`)
+})
+document.addEventListener('flick', (e) => {
+	// TODO: make a proper custom flick event that lets us pass velocity around, without complaining about the fact that there's no velocity on the Event type.
+  log(`${e.velocity.length()}`)
 })
 
 const camera = new THREE.PerspectiveCamera(110, 1, 0.1, 1000);
@@ -72,7 +76,7 @@ const skinList: Array<MouseSkin> = [
 	{ skinColor: 0xcc8888, eyeColor: 0x000000, furColor: 0x646464 }, // classic gray
 ]
 const seed = getRandomInt(skinList.length - 1)
-const player = new Mouse(scene, toonRamp, skinList[seed]);
+const player = new Mouse(scene, toonRamp, skinList[seed], true);
 level.getWorldPositionFromTile(level.start, player.object.position);
 
 // let cameraWantedDisplacement: THREE.Vector3
@@ -99,7 +103,7 @@ mp.onPlayerConnected((newPlayer: Player) => {
 	}
 	else { // Remote players
 		if (!playerIdToPlayerObj.has(newPlayer.id)) {
-			playerIdToPlayerObj.set(newPlayer.id, new Mouse(scene, toonRamp, skinList[newPlayer.skin]));
+			playerIdToPlayerObj.set(newPlayer.id, new Mouse(scene, toonRamp, skinList[newPlayer.skin], false));
 		}
 	}
 });

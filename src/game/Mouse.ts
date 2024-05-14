@@ -105,6 +105,7 @@ export class Mouse {
 
     vol: Tone.Volume;
     pickupSampler: Tone.Sampler;
+    playerFootsteps: Tone.Part
     // sampler: Tone.Sampler;
 
     private var = { // just random vectors and quaternions for use during update operations
@@ -125,24 +126,41 @@ export class Mouse {
 
     private frameDisplacementDirection: Vector3 = new Vector3();
 
-    constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin) {
-        this.vol = new Tone.Volume(0).toDestination();
+    constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin, localOnly: boolean) {
+        if (localOnly) {
+            this.vol = new Tone.Volume(0).toDestination();
 
-        this.pickupSampler = new Tone.Sampler({
-            urls: {
-                A1: 'ui-ch.wav',
-                A5: 'ui-k.wav',
-            },
-            baseUrl: "https://mush.network/files/sfx/",
-        }).connect(this.vol)
+            this.pickupSampler = new Tone.Sampler({
+                urls: {
+                    A1: 'mouse-footstep-hi-end.wav',
+                    A5: 'anime-chirp.wav',
+                },
+                baseUrl: "https://mush.network/files/sfx/",
+            }).connect(this.vol)
 
-        document.addEventListener('press', () => {
-          this.pickupSampler.triggerAttack('A1')
-        })
+            this.playerFootsteps = new Tone.Part(((time, note) => {
+                this.pickupSampler.triggerAttack(note, time, Math.random())
+                this.velocity.length()
+            }), [[0, "A1"],["0:1", "A1"],["0:2", "A1"],["0:3", "A1"]])
 
-        document.addEventListener('pressup', (e) => {
-          this.pickupSampler.triggerAttack('A5')
-        })
+            this.playerFootsteps.loop = true
+            Tone.getTransport().start(0)
+
+            document.addEventListener('press', (e) => {
+                this.playerFootsteps.stop(0)
+            })
+
+            document.addEventListener('flick', (e) => {
+                this.setFoostepRateBasedOnVelocity(e.velocity)
+
+                this.playerFootsteps.start(0)
+
+                if (e.velocity.length() > 10) {
+                // this.pickupSampler.triggerAttack('A1')
+                this.pickupSampler.triggerAttack(880 + Math.random()*100 - 50, Tone.now(), 0.05)
+                }
+            })
+        }
 
         // footstep sampler
         // this.sampler = new Tone.Sampler({
@@ -364,6 +382,16 @@ export class Mouse {
         return id;
     }
 
+    setFoostepRateBasedOnVelocity(v: Vector3) {
+        if (v.length() > 35) {
+            this.playerFootsteps.playbackRate = 6
+        } else if (v.length() > 15) {
+            this.playerFootsteps.playbackRate = 3
+        } else {
+            this.playerFootsteps.playbackRate = 2.5
+        }
+    }
+
     private previousFramePosition = new Vector3();
 
     update(time: Time, level: Level, input?: InputManager, camera?: Object3D, otherMice?: Map<string, Mouse>) {
@@ -399,6 +427,7 @@ export class Mouse {
             }
             else {
               this.velocity.multiplyScalar(this.drag)
+              console.log(this.velocity.length())
                 // this.velocity.lerp(Constants.zero, 1 - this.drag); // TODO make drag dependant on current velocity magnitude, maybe increase drag at slow speeds
             }
 
