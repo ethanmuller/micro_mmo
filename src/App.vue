@@ -8,12 +8,20 @@ import { InputManager } from './game/InputManager';
 import { FreeCamera } from './game/FreeCamera';
 import { Player } from './server/MultiplayerTypes'
 import { Level } from './game/Level';
-import level_ascii from './assets/level_ascii.txt?raw'
+
+import ohio from './assets/ohio.txt?raw'
+import lab from './assets/lab.txt?raw'
+import taiwan from './assets/taiwan.txt?raw'
+
 import toonTexture from "./assets/threeTone_bright.jpg";
 import { NearestFilter } from 'three';
 import QrcodeVue from 'qrcode.vue'
 import { RGBELoader } from 'three/examples/jsm/Addons.js';
 import { CameraMovement } from './game/CameraMovement';
+
+const ascii_levels = { ohio, lab, taiwan }
+console.log(ascii_levels)
+
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
 
@@ -67,7 +75,10 @@ const toonRamp = imgLoader.load(toonTexture, (texture) => {
 	texture.magFilter = NearestFilter;
 });
 
-let level = new Level(level_ascii, toonRamp);
+const urlParams = new URLSearchParams(window.location.search);
+const ascii_level = ascii_levels[urlParams.get('level')] || ascii_levels.ohio
+
+let level = new Level(ascii_level, toonRamp);
 scene.add(level.object);
 
 const skinList: Array<MouseSkin> = [
