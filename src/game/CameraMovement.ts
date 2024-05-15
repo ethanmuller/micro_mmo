@@ -1,6 +1,6 @@
 import { Camera, PerspectiveCamera, Vector2, Vector3 } from "three";
 import { Time } from "./Time";
-import { CARDINAL, Level } from "./Level";
+import { CARDINAL, DIAGONAL, Level } from "./Level";
 import { Mouse } from "./Mouse";
 import { Utils } from "./Utils";
 
@@ -15,8 +15,8 @@ export class CameraMovement
     {
         this.camera = cam;
         this.distanceFromFloor = level.wallHeight * 0.5;
-        this.distanceFromWall = level.tileSize * 0.5;
-        this.distanceFromPlayer = level.tileSize;
+        this.distanceFromWall = level.tileSize * 0.5; // Max is half of the level tile size
+        this.distanceFromPlayer = level.tileSize; // uncertain what happens if you change this value, keep it at 1 tilesize for now
 
         // init
         level.getTileFromWorldPosition(player.object.position, this.currentPlayerTile);
@@ -36,8 +36,10 @@ export class CameraMovement
 
         this.cameraDeltaPosition.set(this.cameraDeltaTile.x * this.distanceFromPlayer, this.distanceFromFloor, this.cameraDeltaTile.y * this.distanceFromPlayer);
         this.camera.position.copy(player.object.position).add(this.cameraDeltaPosition);
+        this.currentClampedPosition.copy(this.camera.position);
         this.camera.lookAt(player.object.position);
         this.camera.updateProjectionMatrix();
+        this.lastFramePlayerPosition.copy(player.object.position);
     }
 
     currentPlayerTile : Vector2 = new Vector2();
@@ -46,10 +48,21 @@ export class CameraMovement
     cameraDeltaTile : Vector2 = new Vector2();
     cameraDeltaPosition : Vector3 = new Vector3();
     wantedDeltaPosition : Vector3 = new Vector3();
+
+    clampedPlayerPosition : Vector3 = new Vector3();
+    currentClampedPosition : Vector3 = new Vector3();
     
     lerping = false;
+    lookAtPlayer = false;
 
     cameraSpeed = 20;
+
+    // variables
+    wallTileCheck : Vector2 = new Vector2();
+    wallPosition : Vector3 = new Vector3();
+    wallTileActual : Vector2 = new Vector2();
+    cornerDelta : Vector3 = new Vector3();
+    lastFramePlayerPosition : Vector3 = new Vector3();
 
     update(time: Time, player: Mouse, level: Level)
     {
@@ -102,9 +115,11 @@ export class CameraMovement
             this.previousPlayerTile.copy(this.currentPlayerTile);
         }
 
+        let playerFrameDisplacement = this.lastFramePlayerPosition.sub(player.object.position);
+
         if (this.lerping) {
 
-            let maxFrameDisplacement = time.deltaTime * this.cameraSpeed;
+            let maxFrameDisplacement = playerFrameDisplacement.length() * 2;
             this.lerping = Utils.MoveTowards(this.cameraDeltaPosition, this.wantedDeltaPosition, maxFrameDisplacement);
 
             if (!this.lerping) {
@@ -112,8 +127,63 @@ export class CameraMovement
             }
         }
 
-        this.camera.position.copy(player.object.position).add(this.cameraDeltaPosition);
-        this.camera.lookAt(player.object.position);
+        this.lastFramePlayerPosition.copy(player.object.position);
+
+        this.clampedPlayerPosition.copy(player.object.position).add(this.cameraDeltaPosition);
+        level.getTileFromWorldPosition(this.currentClampedPosition, this.wallTileActual);
+        // stay away from walls
+        let scope = this;
+
+        CARDINAL.forEach(d => {
+            let t = scope.wallTileCheck.copy(scope.wallTileActual).add(d);
+
+            if (!level.isTileWalkable(t.x, t.y)) {
+                let p = level.getWorldPositionFromTile(t, scope.wallPosition);
+                if (d.x < 0)
+                    scope.clampedPlayerPosition.x = Math.max(scope.clampedPlayerPosition.x, p.x + level.tileSize * 0.5 + scope.distanceFromWall);
+                else if (d.x > 0)
+                    scope.clampedPlayerPosition.x = Math.min(scope.clampedPlayerPosition.x, p.x - level.tileSize * 0.5 - scope.distanceFromWall);
+                else if (d.y < 0)
+                    scope.clampedPlayerPosition.z = Math.max(scope.clampedPlayerPosition.z, p.z + level.tileSize * 0.5 + scope.distanceFromWall);
+                else if (d.y > 0)
+                    scope.clampedPlayerPosition.z = Math.min(scope.clampedPlayerPosition.z, p.z - level.tileSize * 0.5 - scope.distanceFromWall);
+            }
+        })
+
+        let wallDistanceSqrd = this.distanceFromWall * this.distanceFromWall;
+        let hitCorner = false;
+        DIAGONAL.forEach(d => {
+            if (hitCorner) return;
+            let t = scope.wallTileActual;
+
+            if (level.isTileWalkable(t.x + d.x, t.y + 0) && level.isTileWalkable(t.x + 0, t.y + d.y) && !level.isTileWalkable(t.x + d.x, t.y + d.y))
+            {
+                // take diagonal corner into account
+                let cornerPosition = level.getWorldPositionFromTile(t, scope.wallPosition);
+                cornerPosition.x += d.x * level.tileSize * 0.5;
+                cornerPosition.z += d.y * level.tileSize * 0.5;
+
+                let deltaCorner = scope.cornerDelta.copy(cornerPosition).sub(scope.clampedPlayerPosition).multiplyScalar(-1);
+                deltaCorner.y = 0;
+
+                if (deltaCorner.lengthSq() < wallDistanceSqrd) {
+                    deltaCorner.normalize().multiplyScalar(scope.distanceFromWall);
+                    scope.clampedPlayerPosition.copy(cornerPosition).add(deltaCorner);
+                    scope.clampedPlayerPosition.y = scope.cameraDeltaPosition.y;
+                    hitCorner = true;
+                }
+            }
+        })
+
+
+        this.camera.position.copy(this.clampedPlayerPosition);//.add(this.cameraDeltaPosition);
+        this.currentClampedPosition.copy(this.clampedPlayerPosition);
+        if (this.lookAtPlayer)
+            this.camera.lookAt(player.object.position);
+        else {
+            this.clampedPlayerPosition.sub(this.cameraDeltaPosition);
+            this.camera.lookAt(this.clampedPlayerPosition);
+        }
         this.camera.updateProjectionMatrix();
     }
 }
