@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 export const useSettingsStore = defineStore('settings', {
   state: () => {
     return {
-      showLogs: false,
+      showLogs: true,
       invertControls: false,
     }
   },

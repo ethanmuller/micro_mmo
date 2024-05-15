@@ -1,6 +1,7 @@
 import * as socket from 'socket.io-client';
 import { ref } from 'vue'
 import { ServerToClientEvents, ClientToServerEvents, Player, } from '../server/MultiplayerTypes';
+import { useLogStore } from "../stores/logs";
 
 export class MultiplayerClient {
 
@@ -12,11 +13,12 @@ export class MultiplayerClient {
   serverTimeOffset : number = 0;
 
   constructor(skin : number) {
+    const logs = useLogStore()
     console.log('setting up multiplayer client...')
     
     this.connection = socket.io(window.location.hostname+`:3000`, { query: { skin } });
     this.connection.on('connect', () => {
-      console.log('connected to server :)')
+      console.log('connected to multiplayer server')
     })
 
     this.connection.on('serverInfo', (serverDateNow) => {
@@ -29,7 +31,7 @@ export class MultiplayerClient {
     })
 
     this.connection.on('playerConnected', newPlayer => {
-      console.log(`player ${newPlayer.id} connected`);
+      logs.add(`associate connected......${newPlayer.id.slice(0,9)}`);
       if (newPlayer.id == this.connection.id) {
         this.localPlayer = newPlayer;
         this.localPlayerDisplayString.value = `ID: ${newPlayer.id}`;
@@ -43,7 +45,7 @@ export class MultiplayerClient {
       else this.processNewRemotePlayer(newPlayer);
     })
     this.connection.on('playerDisconnected', (id) => {
-      console.log(`player ${id} disconnected`);
+      logs.add(`associate disconnected...${id.slice(0, 9)}`);
       this.onRemotePlayerDisconnectedCallbacks.forEach(cb => cb(id));
     })
     this.connection.on('serverSentPlayerFrameData', (serverTime, id, data, sentTime) => {

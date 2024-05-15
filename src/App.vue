@@ -9,6 +9,7 @@ import { FreeCamera } from './game/FreeCamera';
 import { Player } from './server/MultiplayerTypes'
 import { Level } from './game/Level';
 import { useSettingsStore } from "./stores/settings";
+import { useLogStore } from "./stores/logs";
 
 import ohio from './assets/ohio.txt?raw'
 import lab from './assets/lab.txt?raw'
@@ -33,23 +34,13 @@ const host = ref<string>();
 const settingsPanelOpen = ref<boolean>(false);
 
 const settings = useSettingsStore()
+const logs = useLogStore()
 
-function log(msg: string) {
-  messages.value.unshift(msg)
-}
-
-log('logging enabled')
-document.addEventListener('press', (e) => {
-//   log(`${e.oldVelocity.length()}`)
-})
+logs.add('logging enabled')
 
 function formatDecimalPlaces(num: number) {
   return (Math.round(num * 100) / 100).toFixed(2);
 }
-document.addEventListener('flick', (e) => {
-	// TODO: make a proper custom flick event that lets us pass velocity around, without complaining about the fact that there's no velocity on the Event type.
-  log(`FLICK VECTOR: x:${formatDecimalPlaces( e.velocity.x )} y: ${formatDecimalPlaces(e.velocity.y)}`)
-})
 
 const camera = new THREE.PerspectiveCamera(110, 1, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
@@ -279,7 +270,7 @@ function settingsToggle() {
 			</div>
 		</div>
 		<div class="logs" v-if="settings.showLogs">
-      <span v-for="message in messages.slice(0,5).reverse()">{{ message }}</span>
+      <span v-for="message in logs.messages.slice(0,5).reverse()">{{ message }}</span>
 		</div>
     <div class="settings">
       <div class="settings__panel" v-if="settingsPanelOpen">
@@ -313,6 +304,7 @@ function settingsToggle() {
   color: #00ff00;
 	font-size: 0.8rem;
   text-align: left;
+  white-space: pre;
 }
 
 .logs span {
