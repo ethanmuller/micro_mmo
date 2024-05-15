@@ -36,7 +36,7 @@ const settingsPanelOpen = ref<boolean>(false);
 const settings = useSettingsStore()
 const logs = useLogStore()
 
-logs.add('logging enabled')
+logs.add('ESTABLISHING ENCRYPTED CONNECTION...OK')
 
 function formatDecimalPlaces(num: number) {
   return (Math.round(num * 100) / 100).toFixed(2);
