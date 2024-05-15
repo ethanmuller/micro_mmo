@@ -10,13 +10,15 @@ export class CameraMovement
     distanceFromFloor : number;
     distanceFromWall : number;
     distanceFromPlayer : number;
+    lookAtShift : Vector3;
 
     constructor(cam : PerspectiveCamera, player: Mouse, level: Level)
     {
         this.camera = cam;
         this.distanceFromFloor = level.wallHeight * 0.5;
-        this.distanceFromWall = level.tileSize * 0.5; // Max is half of the level tile size
-        this.distanceFromPlayer = level.tileSize; // uncertain what happens if you change this value, keep it at 1 tilesize for now
+        this.distanceFromWall = 1; // Maximum level.tileSize * 0.5, can be less
+        this.distanceFromPlayer = level.tileSize; // Minimum level.tileSize, can be more
+        this.lookAtShift = new Vector3(0,2,0); // To tilt the camera up or down mainly
 
         // init
         level.getTileFromWorldPosition(player.object.position, this.currentPlayerTile);
@@ -178,12 +180,16 @@ export class CameraMovement
 
         this.camera.position.copy(this.clampedPlayerPosition);//.add(this.cameraDeltaPosition);
         this.currentClampedPosition.copy(this.clampedPlayerPosition);
-        if (this.lookAtPlayer)
-            this.camera.lookAt(player.object.position);
-        else {
-            this.clampedPlayerPosition.sub(this.cameraDeltaPosition);
-            this.camera.lookAt(this.clampedPlayerPosition);
+        let lookAtPosition = this.clampedPlayerPosition;
+        if (this.lookAtPlayer) {
+            lookAtPosition.copy(player.object.position);
         }
+        else {
+            lookAtPosition.sub(this.cameraDeltaPosition);
+        }
+        
+        lookAtPosition.add(this.lookAtShift);
+        this.camera.lookAt(lookAtPosition);
         this.camera.updateProjectionMatrix();
     }
 }
