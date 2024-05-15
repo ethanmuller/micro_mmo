@@ -9,16 +9,18 @@ export class CameraMovement
     camera : PerspectiveCamera;
     distanceFromFloor : number;
     distanceFromWall : number;
+    distanceFromPlayer : number;
 
     constructor(cam : PerspectiveCamera, player: Mouse, level: Level)
     {
         this.camera = cam;
         this.distanceFromFloor = level.wallHeight * 0.5;
         this.distanceFromWall = level.tileSize * 0.5;
+        this.distanceFromPlayer = level.tileSize;
 
         // init
         level.getTileFromWorldPosition(player.object.position, this.currentPlayerTile);
-        this.lookAtTile.copy(this.currentPlayerTile);
+        this.previousPlayerTile.copy(this.currentPlayerTile);
 
         let found = false;
         CARDINAL.forEach((d) => {
@@ -30,70 +32,88 @@ export class CameraMovement
             }
         });
 
-        level.getWorldPositionFromTile(this.currentTile, this.camera.position);
-        this.wantedTile.copy(this.currentTile);
-        this.camera.position.y += this.distanceFromFloor;
-        level.getWorldPositionFromTile(this.lookAtTile, this.lookAtPosition);
-        this.wantedLookAtTile.copy(this.lookAtTile);
-        this.camera.lookAt(this.lookAtPosition);
+        this.cameraDeltaTile.copy(this.currentTile).sub(this.currentPlayerTile);
+
+        this.cameraDeltaPosition.set(this.cameraDeltaTile.x * this.distanceFromPlayer, this.distanceFromFloor, this.cameraDeltaTile.y * this.distanceFromPlayer);
+        this.camera.position.copy(player.object.position).add(this.cameraDeltaPosition);
+        this.camera.lookAt(player.object.position);
         this.camera.updateProjectionMatrix();
     }
 
     currentPlayerTile : Vector2 = new Vector2();
-    lookAtTile : Vector2 = new Vector2();
-    lookAtPosition : Vector3 = new Vector3();
+    previousPlayerTile : Vector2 = new Vector2();
     currentTile : Vector2 = new Vector2();
-
-    wantedLookAtTile : Vector2 = new Vector2();
-    wantedTile : Vector2 = new Vector2();
-    wantedPosition : Vector3 = new Vector3();
-    wantedLookAtPosition : Vector3 = new Vector3();
+    cameraDeltaTile : Vector2 = new Vector2();
+    cameraDeltaPosition : Vector3 = new Vector3();
+    wantedDeltaPosition : Vector3 = new Vector3();
+    
     lerping = false;
 
-    lookAtPlayer = false; // If false, we will look at the center of the tile we are facing
-
-    cameraSpeed = 10;
+    cameraSpeed = 20;
 
     update(time: Time, player: Mouse, level: Level)
     {
         level.getTileFromWorldPosition(player.object.position, this.currentPlayerTile);
 
-        if (this.currentPlayerTile.x != this.lookAtTile.x || this.currentPlayerTile.y != this.lookAtTile.y)
+        if (this.currentPlayerTile.x != this.previousPlayerTile.x || this.currentPlayerTile.y != this.previousPlayerTile.y)
         {
-            this.wantedLookAtTile.copy(this.currentPlayerTile);
-            this.wantedTile.copy(this.lookAtTile);
-        }
+            let walkingIntoCamera = (this.currentPlayerTile.x == this.currentTile.x && this.currentPlayerTile.y == this.currentTile.y);
 
-        if (this.wantedTile.x != this.currentTile.x || this.wantedTile.y != this.currentTile.y || this.wantedLookAtTile.x != this.lookAtTile.x || this.wantedLookAtTile.y != this.lookAtTile.y)
-        {
-            this.wantedTile.copy(this.wantedTile);
-            this.lookAtTile.copy(this.wantedLookAtTile);
-            level.getWorldPositionFromTile(this.wantedTile, this.wantedPosition);
-            this.wantedPosition.y += this.distanceFromFloor;
-            level.getWorldPositionFromTile(this.lookAtTile, this.wantedLookAtPosition);
+            this.currentTile.copy(this.currentPlayerTile).add(this.cameraDeltaTile);
+            if (!level.isTileWalkable(this.currentTile.x, this.currentTile.y)) {
 
-            this.lerping = true;
+                let foundCurrentTile = false;
+                if (walkingIntoCamera) {
+                    CARDINAL.forEach((d) => {
+                        if (foundCurrentTile)
+                            return;
+                        if (d.x != -this.cameraDeltaTile.x || d.y != -this.cameraDeltaTile.y)
+                        {   // Only consider tiles that don't force the camera over the player first
+                            this.currentTile.copy(this.currentPlayerTile).add(d);
+
+                            if (level.isTileWalkable(this.currentTile.x, this.currentTile.y))
+                                foundCurrentTile = true;
+                        }
+                    });
+                }
+
+                if (!foundCurrentTile) {
+                    this.currentTile.copy(this.previousPlayerTile); // the best bet is just use the previous player tile
+
+                    if (!level.isTileWalkable(this.currentTile.x, this.currentTile.y)) // shouldn't happen, but just in case
+                    {
+                        CARDINAL.forEach((d) => {
+                            if (foundCurrentTile)
+                                return;
+                            
+                            this.currentTile.copy(this.currentPlayerTile).add(d);
+
+                            if (level.isTileWalkable(this.currentTile.x, this.currentTile.y))
+                                foundCurrentTile = true;
+                        });
+                    }
+                }
+                
+                this.cameraDeltaTile.copy(this.currentTile).sub(this.currentPlayerTile);
+                this.wantedDeltaPosition.set(this.cameraDeltaTile.x * this.distanceFromPlayer, this.distanceFromFloor, this.cameraDeltaTile.y * this.distanceFromPlayer);
+                this.lerping = true;
+            }
+
+            this.previousPlayerTile.copy(this.currentPlayerTile);
         }
 
         if (this.lerping) {
 
             let maxFrameDisplacement = time.deltaTime * this.cameraSpeed;
-            this.lerping = Utils.MoveTowards(this.camera.position, this.wantedPosition, maxFrameDisplacement);
+            this.lerping = Utils.MoveTowards(this.cameraDeltaPosition, this.wantedDeltaPosition, maxFrameDisplacement);
 
             if (!this.lerping) {
-                this.lookAtPosition.copy(this.wantedLookAtPosition);
-            }
-            else {
-                Utils.MoveTowards(this.lookAtPosition, this.wantedLookAtPosition, maxFrameDisplacement);
-            }
-            if (!this.lookAtPlayer) {
-                this.camera.lookAt(this.lookAtPosition);
-                this.camera.updateProjectionMatrix();
+                this.cameraDeltaPosition.copy(this.wantedDeltaPosition);
             }
         }
-        if (this.lookAtPlayer) {
-            this.camera.lookAt(player.object.position);
-            this.camera.updateProjectionMatrix();
-        }
+
+        this.camera.position.copy(player.object.position).add(this.cameraDeltaPosition);
+        this.camera.lookAt(player.object.position);
+        this.camera.updateProjectionMatrix();
     }
 }
