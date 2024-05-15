@@ -22,7 +22,7 @@ app.get('/', (_req, res) => {
 });
 
 io.on('connection', async (socket) => {
-  const level = socket.handshake.query.requestedLevel?.toString() || 'taiwan'
+  const level = socket.handshake.query.requestedLevel?.toString() || 'lab'
   socket.join(level)
   const skinNumber = parseInt(<string>socket.handshake.query.skin || "0", 10)
   playerList.push({ id: socket.id, skin: skinNumber, level })

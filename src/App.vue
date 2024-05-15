@@ -71,7 +71,7 @@ const toonRamp = imgLoader.load(toonTexture, (texture) => {
 });
 
 const urlParams = new URLSearchParams(window.location.search);
-const requestedLevel = urlParams.get('level') || 'taiwan'
+const requestedLevel = urlParams.get('level') || 'lab'
 const ascii_level = ascii_levels[requestedLevel]
 
 let level = new Level(ascii_level, toonRamp);
