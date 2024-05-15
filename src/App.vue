@@ -209,7 +209,7 @@ function mainLoop() {
 }
 
 onMounted(() => {
-	host.value = 'http://'.concat(window.location.host)
+	host.value = window.location.toString()
 
 	if (trackballEl.value) {
 		input = new InputManager(trackballEl.value);
