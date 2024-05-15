@@ -22,25 +22,27 @@ app.get('/', (_req, res) => {
 });
 
 io.on('connection', async (socket) => {
+  const level = socket.handshake.query.requestedLevel?.toString() || 'taiwan'
+  socket.join(level)
   const skinNumber = parseInt(<string>socket.handshake.query.skin || "0", 10)
-  playerList.push({ id: socket.id, skin: skinNumber })
+  playerList.push({ id: socket.id, skin: skinNumber, level })
   console.log(playerList)
   console.log(`CLIENT CONNECTED.    total sockets: ${playerList.length}`)
   io.emit('serverInfo', Date.now());
-  io.emit('playerList', playerList);
-  io.emit('playerConnected', { id: socket.id, skin: skinNumber });
+  io.to(level).emit('playerList', playerList.filter((p) => p.level === level));
+  io.to(level).emit('playerConnected', { id: socket.id, skin: skinNumber, level });
 
   socket.on('disconnect', async () => {
     const disconnectedPlayerIndex = playerList.findIndex((p) => p.id === socket.id)
     playerList.splice(disconnectedPlayerIndex, 1)
     console.log(playerList)
     console.log(`CLIENT DISCONNECTED. total sockets: ${playerList.length}`)
-    io.emit('playerList', playerList)
-    io.emit('playerDisconnected', socket.id);
+    io.to(level).emit('playerList', playerList.filter((p) => p.level === level))
+    io.to(level).emit('playerDisconnected', socket.id);
   });
 
   socket.on('playerSentFrameData', (data : any, sentTime : number) => {
-    socket.broadcast.emit('serverSentPlayerFrameData', Date.now(), socket.id, data, sentTime);
+    socket.broadcast.to(level).emit('serverSentPlayerFrameData', Date.now(), socket.id, data, sentTime);
   });
 });
 

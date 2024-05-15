@@ -71,7 +71,8 @@ const toonRamp = imgLoader.load(toonTexture, (texture) => {
 });
 
 const urlParams = new URLSearchParams(window.location.search);
-const ascii_level = ascii_levels[urlParams.get('level')] || ascii_levels.ohio
+const requestedLevel = urlParams.get('level') || 'taiwan'
+const ascii_level = ascii_levels[requestedLevel]
 
 let level = new Level(ascii_level, toonRamp);
 scene.add(level.object);
@@ -89,22 +90,10 @@ const seed = getRandomInt(skinList.length - 1)
 const player = new Mouse(scene, toonRamp, skinList[seed], true);
 level.getWorldPositionFromTile(level.start, player.object.position);
 
-// let cameraWantedDisplacement: THREE.Vector3
-// // TODO: check for param change while game is running, not only while initializing
-// if (URLParams.get('cam') === 'top') {
-// 	cameraWantedDisplacement = new THREE.Vector3(0, 30, 0);
-// } else {
-// 	cameraWantedDisplacement = new THREE.Vector3(0, 10, 10);
-// }
-
 const cameraMovement = new CameraMovement(camera, player, level);
 const freeCamera = new FreeCamera(camera);
 
-// camera.position.copy(cameraWantedDisplacement);
-// camera.lookAt(new THREE.Vector3(0, 0, 0));
-// camera.updateProjectionMatrix();
-
-const mp = new MultiplayerClient(seed)
+const mp = new MultiplayerClient(seed, requestedLevel)
 let playerIdToPlayerObj: Map<string, Mouse> = new Map<string, Mouse>();
 
 mp.onPlayerConnected((newPlayer: Player) => {

@@ -8,15 +8,15 @@ export class MultiplayerClient {
   connection: socket.Socket<ServerToClientEvents, ClientToServerEvents>;
   playersOnline = ref("");
   localPlayerDisplayString = ref("");
-  localPlayer : Player = {id: "", skin: -1};
+  localPlayer : Player = {id: "", skin: -1, level: ''};
   playerList: Player[] = [];
   serverTimeOffset : number = 0;
 
-  constructor(skin : number) {
+  constructor(skin : number, requestedLevel : string) {
     const logs = useLogStore()
     console.log('setting up multiplayer client...')
     
-    this.connection = socket.io(window.location.hostname+`:3000`, { query: { skin } });
+    this.connection = socket.io(window.location.hostname+`:3000`, { query: { skin, requestedLevel } });
     this.connection.on('connect', () => {
       console.log('connected to multiplayer server')
     })

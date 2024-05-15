@@ -8,8 +8,6 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
-  howdy: (player : Player ) => void;
-  
   playerSentFrameData: (data : any, sentTime : number) => void;
   playerConnected: (id : string, skinNumber : number) => void;
 }
@@ -18,4 +16,5 @@ export interface ClientToServerEvents {
 export type Player = {
   id : string,
   skin : number,
+  level : string,
 }
