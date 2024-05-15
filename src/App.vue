@@ -8,6 +8,7 @@ import { InputManager } from './game/InputManager';
 import { FreeCamera } from './game/FreeCamera';
 import { Player } from './server/MultiplayerTypes'
 import { Level } from './game/Level';
+import { useSettingsStore } from "./stores/settings";
 
 import ohio from './assets/ohio.txt?raw'
 import lab from './assets/lab.txt?raw'
@@ -30,7 +31,8 @@ const trackballEl = ref<HTMLDivElement>();
 const messages = ref<string[]>([]);
 const host = ref<string>();
 const settingsPanelOpen = ref<boolean>(false);
-const showLogs = ref<boolean>(false);
+
+const settings = useSettingsStore()
 
 function log(msg: string) {
   messages.value.unshift(msg)
@@ -276,13 +278,18 @@ function settingsToggle() {
 					mp.playersOnline.value }}
 			</div>
 		</div>
-		<div class="logs" v-if="showLogs">
+		<div class="logs" v-if="settings.showLogs">
       <span v-for="message in messages.slice(0,5).reverse()">{{ message }}</span>
 		</div>
     <div class="settings">
       <div class="settings__panel" v-if="settingsPanelOpen">
         <label>
-          <input type="checkbox" v-model="showLogs" />
+          <input type="checkbox" v-model="settings.invertControls" />
+          invert controls
+        </label>
+        <span class="settings__hint">{{settings.invertControls ? 'You control the level' : 'You control the mouse'}}</span>
+        <label>
+          <input type="checkbox" v-model="settings.showLogs" />
           show logs
         </label>
       </div>
@@ -367,6 +374,7 @@ function settingsToggle() {
 
 .settings {
   position: absolute;
+  width: 50%;
   top: 0;
   right: 0;
   display: flex;
@@ -374,9 +382,23 @@ function settingsToggle() {
   align-items: end;
 }
 .settings__panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
   background: white;
   color: black;
   padding: 1rem;
+}
+.settings__hint {
+  font-size: 0.8rem;
+  padding-left: 1.5rem;
+  opacity: 0.5;
+}
+.settings__panel label {
+  display: block;
+  width: 100%;
+  text-align: left;
 }
 .settings__toggle {
   background: white;

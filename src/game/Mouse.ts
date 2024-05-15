@@ -6,6 +6,7 @@ import { Utils } from "./Utils";
 // @ts-ignore
 import { TailGeometry } from "./extensions/TailGeometry"
 import { Level } from "./Level";
+import { useSettingsStore } from "../stores/settings";
 
 export type SerializedPlayerData = {
     position: Vector3,
@@ -101,8 +102,6 @@ export class Mouse {
     leftFootId = 1;
     backRightFootId = 2;
     backLeftFootId = 3;
-
-    invertDrag = true;
 
     private var = { // just random vectors and quaternions for use during update operations
         q1: new Quaternion(),
@@ -337,7 +336,8 @@ export class Mouse {
     private previousFramePosition = new Vector3();
 
     update(time: Time, level: Level, input?: InputManager, camera?: Object3D, otherMice?: Map<string, Mouse>) {
-        //this.vol.volume.value = -Infinity
+        // putting this in update feels wrong, but if this only happens in the constructor, setting will not be updated unless page refreshes, so maybe it does belong here? I dunno.
+        const settings = useSettingsStore()
 
         let positionBefore = this.previousFramePosition.copy(this.object.position);
 
@@ -351,7 +351,7 @@ export class Mouse {
                 relativeRight.normalize()
                 let trackballRight = relativeRight;
                 trackballRight.multiplyScalar(input.trackball.velocity.x)
-                if (this.invertDrag)
+                if (settings.invertControls)
                     trackballRight.multiplyScalar(-1);
                 this.velocity.add(trackballRight)
 
@@ -361,7 +361,7 @@ export class Mouse {
                 relativeForward.normalize()
                 let trackballForward = relativeForward
                 trackballForward.multiplyScalar(-input.trackball.velocity.y)
-                if (this.invertDrag)
+                if (settings.invertControls)
                     trackballForward.multiplyScalar(-1);
                 this.velocity.add(trackballForward)
 
