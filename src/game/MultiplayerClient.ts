@@ -31,7 +31,7 @@ export class MultiplayerClient {
     })
 
     this.connection.on('playerConnected', newPlayer => {
-      logs.add(`associate connected......${newPlayer.id.slice(0,9)}`);
+      logs.add(`HELLO.....${newPlayer.id.slice(0,9)}`);
       if (newPlayer.id == this.connection.id) {
         this.localPlayer = newPlayer;
         this.localPlayerDisplayString.value = `ID: ${newPlayer.id}`;
@@ -45,7 +45,7 @@ export class MultiplayerClient {
       else this.processNewRemotePlayer(newPlayer);
     })
     this.connection.on('playerDisconnected', (id) => {
-      logs.add(`associate disconnected...${id.slice(0, 9)}`);
+      logs.add(`GOODBYE...${id.slice(0, 9)}`);
       this.onRemotePlayerDisconnectedCallbacks.forEach(cb => cb(id));
     })
     this.connection.on('serverSentPlayerFrameData', (serverTime, id, data, sentTime) => {
