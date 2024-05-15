@@ -29,6 +29,8 @@ const gamecanvas = ref<HTMLDivElement>();
 const trackballEl = ref<HTMLDivElement>();
 const messages = ref<string[]>([]);
 const host = ref<string>();
+const settingsPanelOpen = ref<boolean>(false);
+const showLogs = ref<boolean>(false);
 
 function log(msg: string) {
   messages.value.unshift(msg)
@@ -256,6 +258,10 @@ function onWindowResize(): void {
 
 addEventListener("resize", onWindowResize, false);
 
+function settingsToggle() {
+  settingsPanelOpen.value = !settingsPanelOpen.value
+}
+
 </script>
 
 <template>
@@ -270,9 +276,18 @@ addEventListener("resize", onWindowResize, false);
 					mp.playersOnline.value }}
 			</div>
 		</div>
-		<div class="logs">
+		<div class="logs" v-if="showLogs">
       <span v-for="message in messages.slice(0,5).reverse()">{{ message }}</span>
 		</div>
+    <div class="settings">
+      <div class="settings__panel" v-if="settingsPanelOpen">
+        <label>
+          <input type="checkbox" v-model="showLogs" />
+          show logs
+        </label>
+      </div>
+      <button class="settings__toggle" @click="settingsToggle">⚙️ settings</button>
+    </div>
 	</div>
 </template>
 
@@ -286,7 +301,6 @@ addEventListener("resize", onWindowResize, false);
 	pointer-events: none;
 	top: 0;
 	left: 0;
-	z-index: 3;
 	padding: 1rem;
 	font-family: monospace;
   color: #00ff00;
@@ -349,5 +363,27 @@ addEventListener("resize", onWindowResize, false);
 	padding: 0 0.75em 0 0;
 	mix-blend-mode: multiply;
 	opacity: 0.8
+}
+
+.settings {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+}
+.settings__panel {
+  background: white;
+  color: black;
+  padding: 1rem;
+}
+.settings__toggle {
+  background: white;
+  color: black;
+  padding: 1rem;
+  border: none;
+  border-radius: 0 0 1rem 1rem;
+  margin-right: 0.5rem;
 }
 </style>
