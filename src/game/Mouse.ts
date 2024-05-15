@@ -102,6 +102,8 @@ export class Mouse {
     backRightFootId = 2;
     backLeftFootId = 3;
 
+    invertDrag = true;
+
     private var = { // just random vectors and quaternions for use during update operations
         q1: new Quaternion(),
         q2: new Quaternion(),
@@ -349,6 +351,8 @@ export class Mouse {
                 relativeRight.normalize()
                 let trackballRight = relativeRight;
                 trackballRight.multiplyScalar(input.trackball.velocity.x)
+                if (this.invertDrag)
+                    trackballRight.multiplyScalar(-1);
                 this.velocity.add(trackballRight)
 
                 let relativeForward = this.var.v2.set(0, 0, -1);
@@ -357,6 +361,8 @@ export class Mouse {
                 relativeForward.normalize()
                 let trackballForward = relativeForward
                 trackballForward.multiplyScalar(-input.trackball.velocity.y)
+                if (this.invertDrag)
+                    trackballForward.multiplyScalar(-1);
                 this.velocity.add(trackballForward)
 
                 this.velocity.clampLength(0, this.maxSpeed)
