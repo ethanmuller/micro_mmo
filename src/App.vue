@@ -36,8 +36,6 @@ const settingsPanelOpen = ref<boolean>(false);
 const settings = useSettingsStore()
 const logs = useLogStore()
 
-logs.add('logging enabled')
-
 function formatDecimalPlaces(num: number) {
   return (Math.round(num * 100) / 100).toFixed(2);
 }
@@ -305,6 +303,10 @@ function settingsToggle() {
 	font-size: 0.8rem;
   text-align: left;
   white-space: pre;
+  min-height: 6rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
 }
 
 .logs span {
