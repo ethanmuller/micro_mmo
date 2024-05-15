@@ -1,4 +1,4 @@
-import { Camera, PerspectiveCamera, Vector2, Vector3 } from "three";
+import { PerspectiveCamera, Vector2, Vector3 } from "three";
 import { Time } from "./Time";
 import { CARDINAL, DIAGONAL, Level } from "./Level";
 import { Mouse } from "./Mouse";

@@ -1,6 +1,5 @@
-import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, Box2, MeshToonMaterial, Material, TextureLoader, Quaternion, Vector3, CylinderGeometry, ConeGeometry, MathUtils, NearestFilter, TetrahedronGeometry, LineBasicMaterial, CubicBezierCurve3, LineSegments, BufferGeometry, SkinnedMesh, Uint16BufferAttribute, Float32BufferAttribute, Skeleton, Bone, ColorRepresentation, Texture } from "three";
+import { Scene, MeshBasicMaterial, Mesh, SphereGeometry, CircleGeometry, Object3D, Vector2, MeshToonMaterial, Material, Quaternion, Vector3, CylinderGeometry, ConeGeometry, MathUtils, TetrahedronGeometry, LineBasicMaterial, CubicBezierCurve3, LineSegments, BufferGeometry, SkinnedMesh, Uint16BufferAttribute, Float32BufferAttribute, Skeleton, Bone, ColorRepresentation, Texture } from "three";
 import { Time } from "./Time";
-import toonTexture from "../assets/threeTone_bright.jpg";
 import { InputManager } from "./InputManager";
 import { Constants } from "./constants";
 import { Utils } from "./Utils";
@@ -48,7 +47,7 @@ export class Mouse {
     velocity: Vector3 = new Vector3();
     radius: number = 0.8;
     maxSpeed: number = 40;
-    drag: number = 0.5;
+    drag: number = 0.989;
     collisionSpeedDrop = 0.3; // 
     // wallDrag: number = 3;
 
@@ -336,6 +335,8 @@ export class Mouse {
     private previousFramePosition = new Vector3();
 
     update(time: Time, level: Level, input?: InputManager, camera?: Object3D, otherMice?: Map<string, Mouse>) {
+        //this.vol.volume.value = -Infinity
+
         let positionBefore = this.previousFramePosition.copy(this.object.position);
 
         if (input && camera) { // Local players
@@ -365,7 +366,9 @@ export class Mouse {
                 this.wantedFaceAngle = 0;
             }
             else {
-                this.velocity.lerp(Constants.zero, time.deltaTime * this.drag); // TODO make drag dependant on current velocity magnitude, maybe increase drag at slow speeds
+              this.velocity.multiplyScalar(this.drag)
+            //   console.log(this.velocity.length())
+                // this.velocity.lerp(Constants.zero, 1 - this.drag); // TODO make drag dependant on current velocity magnitude, maybe increase drag at slow speeds
             }
 
 

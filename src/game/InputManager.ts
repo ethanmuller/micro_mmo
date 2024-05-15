@@ -4,55 +4,54 @@ import Hammer from 'hammerjs'
 
 
 class ButtonInput {
-    pressed : boolean = false;
-    pressedThisFrame : boolean = false;
-    releasedThisFrame : boolean = false;
-    keycodes : string[];
+    pressed: boolean = false;
+    pressedThisFrame: boolean = false;
+    releasedThisFrame: boolean = false;
+    keycodes: string[];
 
-    constructor(keys : string[]) {
+    constructor(keys: string[]) {
         this.keycodes = keys;
     }
 }
 
 class TrackballInput {
-  velocity : Vector2;
-  lastMove : number = 0;
+    velocity: Vector2;
+    lastMove: number = 0;
 
-  constructor() {
-    this.velocity = new Vector2(0, 0)
-  }
+    constructor() {
+        this.velocity = new Vector2(0, 0)
+    }
 }
 
-let reference : InputManager;
+let reference: InputManager;
 
 export class InputManager {
 
-    private buttons : ButtonInput[] = [];
+    private buttons: ButtonInput[] = [];
 
-    W : ButtonInput;
-    S : ButtonInput;
-    A : ButtonInput;
-    D : ButtonInput;
-    Q : ButtonInput;
-    E : ButtonInput;
-    upArrow : ButtonInput;
-    downArrow : ButtonInput;
-    leftArrow : ButtonInput;
-    rightArrow : ButtonInput;
-    pageUp : ButtonInput;
-    pageDown : ButtonInput;
-    trackball : TrackballInput;
+    W: ButtonInput;
+    S: ButtonInput;
+    A: ButtonInput;
+    D: ButtonInput;
+    Q: ButtonInput;
+    E: ButtonInput;
+    upArrow: ButtonInput;
+    downArrow: ButtonInput;
+    leftArrow: ButtonInput;
+    rightArrow: ButtonInput;
+    pageUp: ButtonInput;
+    pageDown: ButtonInput;
+    trackball: TrackballInput;
     fingerDown: Boolean;
-    fingerMovement: Vector2 = new Vector2();
-    shift : ButtonInput;
-    ctrl : ButtonInput;
+    shift: ButtonInput;
+    ctrl: ButtonInput;
 
 
-    
-    debugButton : ButtonInput;
-    flyCameraButton : ButtonInput;
 
-    constructor(trackballElement : HTMLElement) {
+    debugButton: ButtonInput;
+    flyCameraButton: ButtonInput;
+
+    constructor(trackballElement: HTMLElement) {
         reference = this;
 
         window.addEventListener('keydown', this.onkeydown);
@@ -79,33 +78,37 @@ export class InputManager {
         this.trackball = new TrackballInput()
 
         const mc = new Hammer.Manager(trackballElement)
-        mc.add( new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 2 }) );
-        mc.add( new Hammer.Press({ time: 0 }) );
+        mc.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 5 }));
+        mc.add(new Hammer.Press({ time: 0 }));
 
         this.fingerDown = false
-        const screenFactor = window.innerHeight*0.03;
+        const screenFactor = window.innerHeight * 0.03;
 
         mc.on('pan', (e: HammerInput) => {
-            this.trackball.velocity.set(e.velocityX, e.velocityY).multiplyScalar(screenFactor)
-            this.fingerMovement.set(e.deltaX * screenFactor, e.deltaY * screenFactor)
+            const velocity = new Vector2(e.velocityX, e.velocityY).multiplyScalar(screenFactor)
+            // velocity.clampLength(10, Infinity)
+            this.trackball.velocity.copy(velocity)
             this.trackball.lastMove = e.timeStamp
             if (e.isFinal) {
                 this.fingerDown = false
-                this.fingerMovement.set(0,0);
+                const event = new Event("flick");
+                event.velocity=velocity
+                document.dispatchEvent(event)
             }
         })
         mc.on('press', () => {
-            this.trackball.velocity.set(0,0);
+            const event = new Event("press");
+            event.oldVelocity = this.trackball.velocity.clone()
+            document.dispatchEvent(event)
+            this.trackball.velocity.set(0, 0);
             this.fingerDown = true
         })
         mc.on('pressup', () => {
             this.fingerDown = false
-            this.fingerMovement.set(0,0);
         })
     }
 
-    private onkeydown(event : Event)
-    {
+    private onkeydown(event: Event) {
         let kbe = event as KeyboardEvent;
         if (!kbe) return;
 
@@ -113,7 +116,7 @@ export class InputManager {
         for (let i = 0; i < reference.buttons.length; ++i) {
             let button = reference.buttons[i];
             if (button.keycodes.includes(code)) {
-                if (!button.pressed) 
+                if (!button.pressed)
                     button.pressedThisFrame = true;
                 button.pressed = true;
                 button.releasedThisFrame = false;
@@ -122,8 +125,7 @@ export class InputManager {
         };
     }
 
-    private onkeyup(event : Event)
-    {
+    private onkeyup(event: Event) {
         let kbe = event as KeyboardEvent;
         if (!kbe) return;
 
@@ -142,7 +144,7 @@ export class InputManager {
 
     public update() {
         const now = Date.now()
-        if (this.fingerDown && (now - this.trackball.lastMove) > 1) {
+        if (this.fingerDown && (now - this.trackball.lastMove) > 10) {
             this.trackball.velocity.x = 0
             this.trackball.velocity.y = 0
         }

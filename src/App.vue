@@ -8,27 +8,66 @@ import { InputManager } from './game/InputManager';
 import { FreeCamera } from './game/FreeCamera';
 import { Player } from './server/MultiplayerTypes'
 import { Level } from './game/Level';
-import level_ascii from './assets/level_ascii.txt?raw'
+
+import ohio from './assets/ohio.txt?raw'
+import lab from './assets/lab.txt?raw'
+import taiwan from './assets/taiwan.txt?raw'
+
 import toonTexture from "./assets/threeTone_bright.jpg";
 import { NearestFilter } from 'three';
 import QrcodeVue from 'qrcode.vue'
+import { RGBELoader } from 'three/examples/jsm/Addons.js';
 import { CameraMovement } from './game/CameraMovement';
+
+const ascii_levels = { ohio, lab, taiwan }
+console.log(ascii_levels)
+
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
 
 const gamecanvas = ref<HTMLDivElement>();
 const trackballEl = ref<HTMLDivElement>();
+const messages = ref<string[]>([]);
 const host = ref<string>();
 
-const camera = new THREE.PerspectiveCamera(90, 1, 0.1, 1000);
+function log(msg: string) {
+  messages.value.unshift(msg)
+}
+
+log('logging enabled')
+document.addEventListener('press', (e) => {
+//   log(`${e.oldVelocity.length()}`)
+})
+
+function formatDecimalPlaces(num: number) {
+  return (Math.round(num * 100) / 100).toFixed(2);
+}
+document.addEventListener('flick', (e) => {
+	// TODO: make a proper custom flick event that lets us pass velocity around, without complaining about the fact that there's no velocity on the Event type.
+  log(`FLICK VECTOR: x:${formatDecimalPlaces( e.velocity.x )} y: ${formatDecimalPlaces(e.velocity.y)}`)
+})
+
+const camera = new THREE.PerspectiveCamera(110, 1, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(256, 256);
 renderer.setPixelRatio(2)
-
-const url = new URL(window.location.toString());
-const URLParams = new URLSearchParams(url.search);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.6;
 
 const scene = new THREE.Scene();
+
+scene.background = new THREE.Color(0xddddee)
+
+new RGBELoader()
+	.load('/vintage_measuring_lab_1k.hdr', function ( texture ) {
+
+		texture.mapping = THREE.EquirectangularReflectionMapping;
+
+		scene.background = texture;
+		scene.environment = texture;
+		scene.backgroundBlurriness = 0.06
+	});
+
 const imgLoader = new THREE.TextureLoader();
 
 const toonRamp = imgLoader.load(toonTexture, (texture) => {
@@ -36,7 +75,10 @@ const toonRamp = imgLoader.load(toonTexture, (texture) => {
 	texture.magFilter = NearestFilter;
 });
 
-let level = new Level(level_ascii, toonRamp);
+const urlParams = new URLSearchParams(window.location.search);
+const ascii_level = ascii_levels[urlParams.get('level')] || ascii_levels.ohio
+
+let level = new Level(ascii_level, toonRamp);
 scene.add(level.object);
 
 const skinList: Array<MouseSkin> = [
@@ -49,7 +91,7 @@ const skinList: Array<MouseSkin> = [
 	{ skinColor: 0xcc8888, eyeColor: 0x000000, furColor: 0x646464 }, // classic gray
 ]
 const seed = getRandomInt(skinList.length - 1)
-const player = new Mouse(scene, toonRamp, skinList[seed]);
+const player = new Mouse(scene, toonRamp, skinList[seed], true);
 level.getWorldPositionFromTile(level.start, player.object.position);
 
 // let cameraWantedDisplacement: THREE.Vector3
@@ -76,7 +118,7 @@ mp.onPlayerConnected((newPlayer: Player) => {
 	}
 	else { // Remote players
 		if (!playerIdToPlayerObj.has(newPlayer.id)) {
-			playerIdToPlayerObj.set(newPlayer.id, new Mouse(scene, toonRamp, skinList[newPlayer.skin]));
+			playerIdToPlayerObj.set(newPlayer.id, new Mouse(scene, toonRamp, skinList[newPlayer.skin], false));
 		}
 	}
 });
@@ -143,7 +185,7 @@ function mainLoop() {
 	
 	if (input.flyCameraButton.pressedThisFrame) {
 		freeCamera.enabled = !freeCamera.enabled;
-		console.log(`Free camera ${freeCamera.enabled ? "enabled" : "disabled"}`);
+		log(`Free camera ${freeCamera.enabled ? "enabled" : "disabled"}`);
 
 		if (!freeCamera.enabled) {
 			// camera.removeFromParent();
@@ -201,11 +243,11 @@ onBeforeUnmount(() => {
 })
 
 function onWindowResize(): void {
-  const minFov = 80
-  const maxFov = 100
-  const fov = Math.max(Math.min(window.innerHeight / window.innerWidth * 90, maxFov), minFov)
+	const minFov = 80
+	const maxFov = 100
+	const fov = Math.max(Math.min(window.innerHeight / window.innerWidth * 90, maxFov), minFov)
 	renderer.setSize(window.innerWidth, window.innerHeight);
-  camera.fov = fov
+	camera.fov = fov
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
 	renderer.setSize(window.innerWidth, window.innerHeight);
@@ -223,14 +265,39 @@ addEventListener("resize", onWindowResize, false);
 		<div ref="trackballEl" id="trackball"></div>
 		<div class="nametag">
 			<qrcode-vue :value="host" class="qr" :size="50"></qrcode-vue>
-			<div id="logbox">
-				<span class="longstring">{{ mp.localPlayerDisplayString.value }}</span><br />{{ mp.playersOnline.value }}
+			<div class="nametag__text">
+				<span class="longstring">{{ mp.localPlayerDisplayString.value }}</span><br />{{
+					mp.playersOnline.value }}
 			</div>
+		</div>
+		<div class="logs">
+      <span v-for="message in messages.slice(0,5).reverse()">{{ message }}</span>
 		</div>
 	</div>
 </template>
 
 <style scoped>
+.logs {
+  box-sizing: border-box;
+  width: 100%;
+  position: absolute;
+	color: white;
+  transform: translate3d(0,0,0);
+	pointer-events: none;
+	top: 0;
+	left: 0;
+	z-index: 3;
+	padding: 1rem;
+	font-family: monospace;
+  color: #00ff00;
+	font-size: 0.8rem;
+  text-align: left;
+}
+
+.logs span {
+  display: block;
+}
+
 #gamecanvas {
 	position: absolute;
 	left: 0;
@@ -241,7 +308,7 @@ addEventListener("resize", onWindowResize, false);
 	display: none;
 }
 
-#logbox {
+.nametag__text {
 	font-family: monospace;
 	font-size: 0.8rem;
 	display: flex;
