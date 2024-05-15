@@ -8,6 +8,8 @@ const WALL_HEIGHT = 14;
 const CARDINAL = [new Vector2(0, 1), new Vector2(1, 0), new Vector2(0, -1), new Vector2(-1, 0)];
 const DIAGONAL = [new Vector2(1, 1), new Vector2(1, -1), new Vector2(-1, -1), new Vector2(-1, 1)];
 
+export {CARDINAL, DIAGONAL};
+
 export class Level {
     object: Object3D = new Object3D();
     start: Vector2 = new Vector2();

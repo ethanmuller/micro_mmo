@@ -15,9 +15,9 @@ export class CameraMovement
     constructor(cam : PerspectiveCamera, player: Mouse, level: Level)
     {
         this.camera = cam;
-        this.distanceFromFloor = level.wallHeight * 0.5;
+        this.distanceFromFloor = 3.5;
         this.distanceFromWall = 1; // Maximum level.tileSize * 0.5, can be less
-        this.distanceFromPlayer = level.tileSize; // Minimum level.tileSize, can be more
+        this.distanceFromPlayer = 6; // Minimum should be level.tileSize, can be more
         this.lookAtShift = new Vector3(0,2,0); // To tilt the camera up or down mainly
 
         // init
