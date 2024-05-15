@@ -60,7 +60,7 @@ level.getWorldPositionFromTile(level.start, player.object.position);
 // 	cameraWantedDisplacement = new THREE.Vector3(0, 10, 10);
 // }
 
-const cameraMovement = new CameraMovement(camera);
+const cameraMovement = new CameraMovement(camera, player, level);
 const freeCamera = new FreeCamera(camera);
 
 // camera.position.copy(cameraWantedDisplacement);

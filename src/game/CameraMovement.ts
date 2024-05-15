@@ -1,14 +1,42 @@
 import { Camera, PerspectiveCamera, Vector2, Vector3 } from "three";
 import { Time } from "./Time";
-import { Level } from "./Level";
+import { CARDINAL, Level } from "./Level";
 import { Mouse } from "./Mouse";
 import { Utils } from "./Utils";
 
 export class CameraMovement
 {
     camera : PerspectiveCamera;
-    constructor(cam : PerspectiveCamera) {
+    distanceFromFloor : number;
+    distanceFromWall : number;
+
+    constructor(cam : PerspectiveCamera, player: Mouse, level: Level)
+    {
         this.camera = cam;
+        this.distanceFromFloor = level.wallHeight * 0.5;
+        this.distanceFromWall = level.tileSize * 0.5;
+
+        // init
+        level.getTileFromWorldPosition(player.object.position, this.currentPlayerTile);
+        this.lookAtTile.copy(this.currentPlayerTile);
+
+        let found = false;
+        CARDINAL.forEach((d) => {
+            if (!found) {
+                this.currentTile.copy(this.currentPlayerTile).add(d);
+
+                if (level.isTileWalkable(this.currentTile.x, this.currentTile.y))
+                    found = true;
+            }
+        });
+
+        level.getWorldPositionFromTile(this.currentTile, this.camera.position);
+        this.wantedTile.copy(this.currentTile);
+        this.camera.position.y += this.distanceFromFloor;
+        level.getWorldPositionFromTile(this.lookAtTile, this.lookAtPosition);
+        this.wantedLookAtTile.copy(this.lookAtTile);
+        this.camera.lookAt(this.lookAtPosition);
+        this.camera.updateProjectionMatrix();
     }
 
     currentPlayerTile : Vector2 = new Vector2();
@@ -41,7 +69,7 @@ export class CameraMovement
             this.wantedTile.copy(this.wantedTile);
             this.lookAtTile.copy(this.wantedLookAtTile);
             level.getWorldPositionFromTile(this.wantedTile, this.wantedPosition);
-            this.wantedPosition.y += level.wallHeight * 0.5;
+            this.wantedPosition.y += this.distanceFromFloor;
             level.getWorldPositionFromTile(this.lookAtTile, this.wantedLookAtPosition);
 
             this.lerping = true;
