@@ -8,7 +8,7 @@ import { InputManager } from './game/InputManager';
 import { FreeCamera } from './game/FreeCamera';
 import { Player } from './server/MultiplayerTypes'
 import { Level } from './game/Level';
-import { useSettingsStore } from "./stores/settings";
+import { useSettingsStore, cameraModes } from "./stores/settings";
 import { useCrumbStore } from "./stores/crumb";
 import { useLogStore } from "./stores/logs";
 
@@ -27,9 +27,9 @@ const ascii_levels = { ohio, lab, taiwan }
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
 
-const rtc = useCrumbStore()
+const crumbPouch = useCrumbStore()
 
-console.log(new Date(rtc.lastCrumb).toTimeString())
+console.log(new Date(crumbPouch.lastCrumb).toTimeString())
 
 const gamecanvas = ref<HTMLDivElement>();
 const trackballEl = ref<HTMLDivElement>();
@@ -45,7 +45,7 @@ const logs = useLogStore()
 logs.add('ESTABLISHING ENCRYPTED CONNECTION...OK')
 
 function formatDecimalPlaces(num: number) {
-  return (Math.round(num * 100) / 100).toFixed(2);
+	return (Math.round(num * 100) / 100).toFixed(2);
 }
 
 const camera = new THREE.PerspectiveCamera(110, 1, 0.1, 1000);
@@ -60,7 +60,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xddddee)
 
 new RGBELoader()
-	.load('/vintage_measuring_lab_1k.hdr', function ( texture ) {
+	.load('/vintage_measuring_lab_1k.hdr', function (texture) {
 
 		texture.mapping = THREE.EquirectangularReflectionMapping;
 
@@ -171,8 +171,8 @@ function mainLoop() {
 	let axesTile = level.getTileFromWorldPosition(player.object.position, axesHelperV2);
 	level.getWorldPositionFromTile(axesTile, axesHelper.position);
 
-	
-	
+
+
 	if (input.flyCameraButton.pressedThisFrame) {
 		freeCamera.enabled = !freeCamera.enabled;
 		console.log(`Free camera ${freeCamera.enabled ? "enabled" : "disabled"}`);
@@ -247,7 +247,7 @@ function onWindowResize(): void {
 addEventListener("resize", onWindowResize, false);
 
 function settingsToggle() {
-  settingsPanelOpen.value = !settingsPanelOpen.value
+	settingsPanelOpen.value = !settingsPanelOpen.value
 }
 
 </script>
@@ -258,60 +258,72 @@ function settingsToggle() {
 		<canvas id="auxcanvas"></canvas>
 		<div ref="trackballEl" id="trackball"></div>
 		<div class="nametag">
-			<qrcode-vue :value="host" @click="qrCodeBigger = !qrCodeBigger" class="qr" :size="qrCodeBigger ? 150 : 50"></qrcode-vue>
+			<qrcode-vue :value="host" @click="qrCodeBigger = !qrCodeBigger" class="qr"
+				:size="qrCodeBigger ? 150 : 50"></qrcode-vue>
 			<div class="nametag__text">
 				<span class="longstring">{{ mp.localPlayerDisplayString.value }}</span><br />{{
 					mp.playersOnline.value }}
 			</div>
 		</div>
 		<div class="logs" v-if="settings.showLogs">
-      <span v-for="message in logs.messages.slice(0,6).reverse()">{{ message }}</span>
+			<span v-for="message in logs.messages.slice(0, 6).reverse()">{{ message }}</span>
 		</div>
-    <div class="settings">
-      <div class="settings__panel" v-if="settingsPanelOpen">
-        <label>
-          <input type="checkbox" v-model="settings.invertControls" />
-          invert controls
-        </label>
-        <span class="settings__hint">{{settings.invertControls ? 'You control the level' : 'You control the mouse'}}</span>
-        <label>
-          <input type="checkbox" v-model="settings.showLogs" />
-          show logs
-        </label>
-		<label>
-          <input type="checkbox" v-model="settings.enableCameraTurnback" />
-          enable camera turnback
-        </label>
-      </div>
-      <button class="settings__toggle" @click="settingsToggle">⚙️ settings</button>
-    </div>
+		<div class="settings">
+			<div class="settings__panel" v-if="settingsPanelOpen">
+				<div>
+					<label>
+						<input type="checkbox" v-model="settings.invertControls" />
+						invert controls
+					</label>
+					<span class="settings__hint">{{ settings.invertControls ? `You control the
+						level` : `You
+						control the mouse`}}</span>
+				</div>
+				<label>
+					<input type="checkbox" v-model="settings.showLogs" />
+					show logs
+				</label>
+				<div>
+					<div>camera mode: <strong>{{ settings.cameraMode }}</strong></div>
+					<div v-for="mode in cameraModes">
+						<label>
+							<input :value="mode" type="radio"
+								v-model="settings.cameraMode" />
+							{{ mode }}
+						</label>
+					</div>
+				</div>
+
+			</div>
+			<button class="settings__toggle" @click="settingsToggle">⚙️ settings</button>
+		</div>
 	</div>
 </template>
 
 <style scoped>
 .logs {
-  box-sizing: border-box;
-  width: 100%;
-  position: absolute;
+	box-sizing: border-box;
+	width: 100%;
+	position: absolute;
 	color: white;
-  transform: translate3d(0,0,0);
+	transform: translate3d(0, 0, 0);
 	pointer-events: none;
 	top: 0;
 	left: 0;
 	padding: 1rem;
 	font-family: monospace;
-  color: #00ff00;
+	color: #00ff00;
 	font-size: 0.8rem;
-  text-align: left;
-  white-space: pre;
-  min-height: 8rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: end;
+	text-align: left;
+	white-space: pre;
+	min-height: 8rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: end;
 }
 
 .logs span {
-  display: block;
+	display: block;
 }
 
 #gamecanvas {
@@ -367,39 +379,47 @@ function settingsToggle() {
 }
 
 .settings {
-  position: absolute;
-  width: 50%;
-  top: 0;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: end;
+	position: absolute;
+	width: 50%;
+	top: 0;
+	right: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: end;
 }
+
 .settings__panel {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-  background: white;
-  color: black;
-  padding: 1rem;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: start;
+	background: white;
+	color: black;
+	padding: 1rem;
 }
+
+.settings__panel>* {
+	margin-top: 1rem;
+}
+
 .settings__hint {
-  font-size: 0.8rem;
-  padding-left: 1.5rem;
-  opacity: 0.5;
+	font-size: 0.8rem;
+	padding-left: 1.5rem;
+	opacity: 0.5;
 }
+
 .settings__panel label {
-  display: block;
-  width: 100%;
-  text-align: left;
+	display: block;
+	width: 100%;
+	text-align: left;
 }
+
 .settings__toggle {
-  background: white;
-  color: black;
-  padding: 1rem;
-  border: none;
-  border-radius: 0 0 1rem 1rem;
-  margin-right: 0.5rem;
+	background: white;
+	color: black;
+	padding: 1rem;
+	border: none;
+	border-radius: 0 0 1rem 1rem;
+	margin-right: 0.5rem;
 }
 </style>
