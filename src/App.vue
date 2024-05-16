@@ -9,6 +9,7 @@ import { FreeCamera } from './game/FreeCamera';
 import { Player } from './server/MultiplayerTypes'
 import { Level } from './game/Level';
 import { useSettingsStore } from "./stores/settings";
+import { useCrumbStore } from "./stores/crumb";
 import { useLogStore } from "./stores/logs";
 
 import ohio from './assets/ohio.txt?raw'
@@ -25,6 +26,10 @@ const ascii_levels = { ohio, lab, taiwan }
 
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
+
+const rtc = useCrumbStore()
+
+console.log(new Date(rtc.lastCrumb).toTimeString())
 
 const gamecanvas = ref<HTMLDivElement>();
 const trackballEl = ref<HTMLDivElement>();
@@ -88,7 +93,7 @@ const skinList: Array<MouseSkin> = [
 	{ skinColor: 0xcc8888, eyeColor: 0x000000, furColor: 0x646464 }, // classic gray
 ]
 const seed = getRandomInt(skinList.length - 1)
-const player = new Mouse(scene, toonRamp, skinList[seed], true);
+const player = new Mouse(scene, toonRamp, skinList[seed]);
 level.getWorldPositionFromTile(level.start, player.object.position);
 
 const cameraMovement = new CameraMovement(camera, player, level);
@@ -103,7 +108,7 @@ mp.onPlayerConnected((newPlayer: Player) => {
 	}
 	else { // Remote players
 		if (!playerIdToPlayerObj.has(newPlayer.id)) {
-			playerIdToPlayerObj.set(newPlayer.id, new Mouse(scene, toonRamp, skinList[newPlayer.skin], false));
+			playerIdToPlayerObj.set(newPlayer.id, new Mouse(scene, toonRamp, skinList[newPlayer.skin]));
 		}
 	}
 });

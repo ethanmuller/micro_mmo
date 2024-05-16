@@ -1,5 +1,5 @@
 import { Vector2 } from 'three';
-
+import { useCrumbStore } from "../stores/crumb";
 import Hammer from 'hammerjs'
 
 
@@ -102,6 +102,8 @@ export class InputManager {
             document.dispatchEvent(event)
             this.trackball.velocity.set(0, 0);
             this.fingerDown = true
+            const rtc = useCrumbStore()
+            rtc.getNugget()
         })
         mc.on('pressup', () => {
             this.fingerDown = false
