@@ -5,6 +5,7 @@ export const useSettingsStore = defineStore('settings', {
     return {
       showLogs: true,
       invertControls: false,
+      enableCameraTurnback: true,
     }
   },
   getters: {

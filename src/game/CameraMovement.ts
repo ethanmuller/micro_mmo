@@ -3,6 +3,7 @@ import { Time } from "./Time";
 import { CARDINAL, DIAGONAL, Level } from "./Level";
 import { Mouse } from "./Mouse";
 import { Utils } from "./Utils";
+import { useSettingsStore } from "../stores/settings";
 
 export class CameraMovement
 {
@@ -65,65 +66,82 @@ export class CameraMovement
     wallTileActual : Vector2 = new Vector2();
     cornerDelta : Vector3 = new Vector3();
     lastFramePlayerPosition : Vector3 = new Vector3();
+    walkingIntoCameraCount = 0;
 
     update(time: Time, player: Mouse, level: Level)
     {
+        const settings = useSettingsStore()
+
         level.getTileFromWorldPosition(player.object.position, this.currentPlayerTile);
 
         if (this.currentPlayerTile.x != this.previousPlayerTile.x || this.currentPlayerTile.y != this.previousPlayerTile.y)
         {
             let walkingIntoCamera = (this.currentPlayerTile.x == this.currentTile.x && this.currentPlayerTile.y == this.currentTile.y);
 
-            this.currentTile.copy(this.currentPlayerTile).add(this.cameraDeltaTile);
-            if (!level.isTileWalkable(this.currentTile.x, this.currentTile.y)) {
+            if (!walkingIntoCamera)
+                this.walkingIntoCameraCount = 0;
+            else this.walkingIntoCameraCount++;
+            
+            if (settings.enableCameraTurnback && walkingIntoCamera && this.walkingIntoCameraCount > 1) {
+                this.currentTile.copy(this.previousPlayerTile); // let's try flipping
 
-                let foundCurrentTile = false;
-                if (walkingIntoCamera) {
-                    let furthestDistance = 0;
-                    let furthestDelta = CARDINAL[0];
-                    CARDINAL.forEach((d) => {
-                        if (d.x != -this.cameraDeltaTile.x || d.y != -this.cameraDeltaTile.y)
-                        {   // Only consider tiles that don't force the camera over the player first
-                            this.currentTile.copy(this.currentPlayerTile).add(d);
-
-                            if (level.isTileWalkable(this.currentTile.x, this.currentTile.y)) {
-                                level.getWorldPositionFromTile(this.currentTile, this.wallPosition);
-
-                                let deltaPos = this.wallPosition.sub(player.object.position);
-                                let dist = deltaPos.length();
-                                if (furthestDistance < dist) {
-                                    furthestDelta = d;
-                                    furthestDistance = dist;
-                                    foundCurrentTile = true;
-                                }
-                            }
-                        }
-                    });
-
-                    if (foundCurrentTile)
-                        this.currentTile.copy(this.currentPlayerTile).add(furthestDelta);
-                }
-
-                if (!foundCurrentTile) {
-                    this.currentTile.copy(this.previousPlayerTile); // the best bet is just use the previous player tile
-
-                    if (!level.isTileWalkable(this.currentTile.x, this.currentTile.y)) // shouldn't happen, but just in case
-                    {
-                        CARDINAL.forEach((d) => {
-                            if (foundCurrentTile)
-                                return;
-                            
-                            this.currentTile.copy(this.currentPlayerTile).add(d);
-
-                            if (level.isTileWalkable(this.currentTile.x, this.currentTile.y))
-                                foundCurrentTile = true;
-                        });
-                    }
-                }
-                
                 this.cameraDeltaTile.copy(this.currentTile).sub(this.currentPlayerTile);
                 this.wantedDeltaPosition.set(this.cameraDeltaTile.x * this.distanceFromPlayer, this.distanceFromFloor, this.cameraDeltaTile.y * this.distanceFromPlayer);
                 this.lerping = true;
+            }
+            else {
+                this.currentTile.copy(this.currentPlayerTile).add(this.cameraDeltaTile);
+
+                if (!level.isTileWalkable(this.currentTile.x, this.currentTile.y)) {
+
+                    let foundCurrentTile = false;
+                    if (walkingIntoCamera) {
+                        let furthestDistance = 0;
+                        let furthestDelta = CARDINAL[0];
+                        CARDINAL.forEach((d) => {
+                            if (d.x != -this.cameraDeltaTile.x || d.y != -this.cameraDeltaTile.y)
+                            {   // Only consider tiles that don't force the camera over the player first
+                                this.currentTile.copy(this.currentPlayerTile).add(d);
+
+                                if (level.isTileWalkable(this.currentTile.x, this.currentTile.y)) {
+                                    level.getWorldPositionFromTile(this.currentTile, this.wallPosition);
+
+                                    let deltaPos = this.wallPosition.sub(player.object.position);
+                                    let dist = deltaPos.length();
+                                    if (furthestDistance < dist) {
+                                        furthestDelta = d;
+                                        furthestDistance = dist;
+                                        foundCurrentTile = true;
+                                    }
+                                }
+                            }
+                        });
+
+                        if (foundCurrentTile)
+                            this.currentTile.copy(this.currentPlayerTile).add(furthestDelta);
+                    }
+
+                    if (!foundCurrentTile) {
+                        this.currentTile.copy(this.previousPlayerTile); // the best bet is just use the previous player tile
+
+                        if (!level.isTileWalkable(this.currentTile.x, this.currentTile.y)) // shouldn't happen, but just in case
+                        {
+                            CARDINAL.forEach((d) => {
+                                if (foundCurrentTile)
+                                    return;
+                                
+                                this.currentTile.copy(this.currentPlayerTile).add(d);
+
+                                if (level.isTileWalkable(this.currentTile.x, this.currentTile.y))
+                                    foundCurrentTile = true;
+                            });
+                        }
+                    }
+                    
+                    this.cameraDeltaTile.copy(this.currentTile).sub(this.currentPlayerTile);
+                    this.wantedDeltaPosition.set(this.cameraDeltaTile.x * this.distanceFromPlayer, this.distanceFromFloor, this.cameraDeltaTile.y * this.distanceFromPlayer);
+                    this.lerping = true;
+                }
             }
 
             this.previousPlayerTile.copy(this.currentPlayerTile);

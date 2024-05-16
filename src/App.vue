@@ -272,6 +272,10 @@ function settingsToggle() {
           <input type="checkbox" v-model="settings.showLogs" />
           show logs
         </label>
+		<label>
+          <input type="checkbox" v-model="settings.enableCameraTurnback" />
+          enable camera turnback
+        </label>
       </div>
       <button class="settings__toggle" @click="settingsToggle">⚙️ settings</button>
     </div>
