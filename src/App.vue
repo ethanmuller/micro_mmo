@@ -33,6 +33,8 @@ const messages = ref<string[]>([]);
 const host = ref<string>();
 const settingsPanelOpen = ref<boolean>(false);
 
+const qrCodeBigger = ref<boolean>(false);
+
 const settings = useSettingsStore()
 const logs = useLogStore()
 
@@ -252,7 +254,7 @@ function settingsToggle() {
 		<canvas id="auxcanvas"></canvas>
 		<div ref="trackballEl" id="trackball"></div>
 		<div class="nametag">
-			<qrcode-vue :value="host" class="qr" :size="50"></qrcode-vue>
+			<qrcode-vue :value="host" @click="qrCodeBigger = !qrCodeBigger" class="qr" :size="qrCodeBigger ? 150 : 50"></qrcode-vue>
 			<div class="nametag__text">
 				<span class="longstring">{{ mp.localPlayerDisplayString.value }}</span><br />{{
 					mp.playersOnline.value }}
@@ -347,7 +349,6 @@ function settingsToggle() {
 	left: 0;
 	background: #ffffcc;
 	border: 0.75em #ffffcc solid;
-	pointer-events: none;
 	white-space: pre;
 }
 
