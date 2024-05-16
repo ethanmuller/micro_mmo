@@ -300,6 +300,10 @@ function settingsToggle() {
 	font-size: 0.8rem;
   text-align: left;
   white-space: pre;
+  min-height: 6rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
 }
 
 .logs span {
