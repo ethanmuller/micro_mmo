@@ -261,7 +261,7 @@ function settingsToggle() {
 			</div>
 		</div>
 		<div class="logs" v-if="settings.showLogs">
-      <span v-for="message in logs.messages.slice(0,5).reverse()">{{ message }}</span>
+      <span v-for="message in logs.messages.slice(0,6).reverse()">{{ message }}</span>
 		</div>
     <div class="settings">
       <div class="settings__panel" v-if="settingsPanelOpen">
@@ -300,7 +300,7 @@ function settingsToggle() {
 	font-size: 0.8rem;
   text-align: left;
   white-space: pre;
-  min-height: 6rem;
+  min-height: 8rem;
   display: flex;
   flex-direction: column;
   justify-content: end;
