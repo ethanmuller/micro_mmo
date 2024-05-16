@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 
-export const cameraModes = ['mazecam', 'topdown', 'nothing'] as const;
+export const cameraModes = ['topdown', 'mazecam', 'nothing'] as const;
 export type CameraMode = typeof cameraModes[number];
 
 interface Settings {
