@@ -22,7 +22,6 @@ import { RGBELoader } from 'three/examples/jsm/Addons.js';
 import { CameraMovement } from './game/CameraMovement';
 
 const ascii_levels = { ohio, lab, taiwan }
-console.log(ascii_levels)
 
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
