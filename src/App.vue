@@ -169,7 +169,7 @@ function mainLoop() {
 	
 	if (input.flyCameraButton.pressedThisFrame) {
 		freeCamera.enabled = !freeCamera.enabled;
-		log(`Free camera ${freeCamera.enabled ? "enabled" : "disabled"}`);
+		console.log(`Free camera ${freeCamera.enabled ? "enabled" : "disabled"}`);
 
 		if (!freeCamera.enabled) {
 			// camera.removeFromParent();

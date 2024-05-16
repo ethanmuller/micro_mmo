@@ -79,17 +79,29 @@ export class CameraMovement
 
                 let foundCurrentTile = false;
                 if (walkingIntoCamera) {
+                    let furthestDistance = 0;
+                    let furthestDelta = CARDINAL[0];
                     CARDINAL.forEach((d) => {
-                        if (foundCurrentTile)
-                            return;
                         if (d.x != -this.cameraDeltaTile.x || d.y != -this.cameraDeltaTile.y)
                         {   // Only consider tiles that don't force the camera over the player first
                             this.currentTile.copy(this.currentPlayerTile).add(d);
 
-                            if (level.isTileWalkable(this.currentTile.x, this.currentTile.y))
-                                foundCurrentTile = true;
+                            if (level.isTileWalkable(this.currentTile.x, this.currentTile.y)) {
+                                level.getWorldPositionFromTile(this.currentTile, this.wallPosition);
+
+                                let deltaPos = this.wallPosition.sub(player.object.position);
+                                let dist = deltaPos.length();
+                                if (furthestDistance < dist) {
+                                    furthestDelta = d;
+                                    furthestDistance = dist;
+                                    foundCurrentTile = true;
+                                }
+                            }
                         }
                     });
+
+                    if (foundCurrentTile)
+                        this.currentTile.copy(this.currentPlayerTile).add(furthestDelta);
                 }
 
                 if (!foundCurrentTile) {

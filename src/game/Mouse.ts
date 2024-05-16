@@ -478,7 +478,9 @@ export class Mouse {
         this.butt.position.copy(headPos).sub(buttDisplacement);
         let buttFrameDisplacement = buttPreviousPosition.sub(this.butt.position).multiplyScalar(-1);
         this.butt.position.y = this.buttRadius;
-        this.butt.quaternion.setFromUnitVectors(Constants.forward, deltaHead);
+        buttDisplacement.multiplyScalar(-2).add(headPos);
+        this.butt.lookAt(buttDisplacement)
+        //this.butt.quaternion.setFromUnitVectors(Constants.forward, deltaHead);
         // deal with squishing
         deltaHead.copy(headPos);
         deltaHead.sub(this.butt.position);
