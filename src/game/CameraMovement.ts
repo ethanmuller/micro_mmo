@@ -78,11 +78,20 @@ export class CameraMovement {
             this.camera.updateProjectionMatrix();
         }
         if (settings.cameraMode === 'topdown') {
-            this.camera.fov = 30
-            this.camera.position.copy(player.object.position);
-            this.camera.position.add(new Vector3(0, 60, 0))
-            this.camera.lookAt(player.object.position);
-            this.camera.updateProjectionMatrix();
+          // this is to roughly provide the same information
+          // to portrait phone players
+          // and landscape players
+          this.camera.fov = 17 * window.innerHeight/window.innerWidth
+          // if (window.innerHeight > window.innerWidth) {
+          //   this.camera.fov = 30
+          // } else {
+          //   this.camera.fov = 15
+          // }
+
+          this.camera.position.copy(player.object.position);
+          this.camera.position.add(new Vector3(0, 90, 0))
+          this.camera.lookAt(player.object.position);
+          this.camera.updateProjectionMatrix();
         }
         if (settings.cameraMode === 'mazecam') {
             this.camera.fov = 100
