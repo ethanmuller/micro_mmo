@@ -52,8 +52,8 @@ const camera = new THREE.PerspectiveCamera(110, 1, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(256, 256);
 renderer.setPixelRatio(2)
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.6;
+//renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
 
 const scene = new THREE.Scene();
 

@@ -1,9 +1,10 @@
-import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3 } from "three";
-import brickTexture from "../assets/win95/wall.png";
-import floorTexture from "../assets/win95/floor.png";
+import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3, NearestFilter } from "three";
+import dirtWallBrickTopImagePath from "../assets/mc/grassdirt.png"
+import blueBrickImage from "../assets/mc/grass.png";
+import dirtImage from "../assets/mc/dirt.png";
 
-const TILE_SIZE = 7;
-const WALL_HEIGHT = 2;
+const TILE_SIZE = 5;
+const WALL_HEIGHT = 5;
 
 const CARDINAL = [new Vector2(0, 1), new Vector2(1, 0), new Vector2(0, -1), new Vector2(-1, 0)];
 const DIAGONAL = [new Vector2(1, 1), new Vector2(1, -1), new Vector2(-1, -1), new Vector2(-1, 1)];
@@ -45,10 +46,39 @@ export class Level {
         this.rows++;
 
         const texLoader = new TextureLoader();
-        const wallMaterial = new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: texLoader.load(brickTexture) })
-        const floorMaterial = new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: texLoader.load(floorTexture) })
+        const wallTexture = texLoader.load(dirtWallBrickTopImagePath)
+        wallTexture.minFilter = NearestFilter
+        wallTexture.magFilter = NearestFilter
 
-        const wallMesh = new Mesh(new BoxGeometry(TILE_SIZE, WALL_HEIGHT, TILE_SIZE, 1, 1, 1), wallMaterial);
+        const floorTexture = texLoader.load(dirtImage)
+        floorTexture.minFilter = NearestFilter
+        floorTexture.magFilter = NearestFilter
+        const floorMaterial = new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: floorTexture })
+
+        const blueBrickTexture = new TextureLoader().load(blueBrickImage);
+        blueBrickTexture.minFilter = NearestFilter;
+        blueBrickTexture.magFilter = NearestFilter;
+
+        // Load the brick texture
+        const sideTexture = new TextureLoader().load(dirtWallBrickTopImagePath);
+        sideTexture.minFilter = NearestFilter;
+        sideTexture.magFilter = NearestFilter;
+
+        // Create materials for each face of the wall
+        const wallMaterials = [
+            new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: sideTexture }), // Front face
+            new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: sideTexture }), // Back face
+            new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: blueBrickTexture }), // Top face
+            new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: sideTexture }), // Bottom face
+            new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: sideTexture }), // Right face
+            new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: sideTexture })  // Left face
+        ];
+
+        // Create a geometry for the wall
+        const wallGeometry = new BoxGeometry(TILE_SIZE, WALL_HEIGHT, TILE_SIZE, 1, 1, 1);
+
+        // Create a mesh for the wall using the materials array
+        const wallMesh = new Mesh(wallGeometry, wallMaterials);
         const floorMesh = new Mesh(new PlaneGeometry(TILE_SIZE, TILE_SIZE, 1, 1), floorMaterial);
         //const ceilingMesh = new Mesh(new PlaneGeometry(TILE_SIZE, TILE_SIZE, 1, 1), ceilingMaterial);
         const wall = new Object3D();

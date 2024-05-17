@@ -372,8 +372,8 @@ export class Mouse {
                 this.wantedFaceAngle = 0;
             }
             else {
-              this.velocity.multiplyScalar(this.drag)
-            //   console.log(this.velocity.length())
+                this.velocity.multiplyScalar(this.drag)
+                //   console.log(this.velocity.length())
                 // this.velocity.lerp(Constants.zero, 1 - this.drag); // TODO make drag dependant on current velocity magnitude, maybe increase drag at slow speeds
             }
 

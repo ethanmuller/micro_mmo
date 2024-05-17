@@ -70,10 +70,17 @@ export class CameraMovement {
     update(time: Time, player: Mouse, level: Level) {
         const settings = useSettingsStore()
 
-        if (settings.cameraMode === 'topdown') {
+        if (settings.cameraMode === 'iso') {
             this.camera.fov = 30
             this.camera.position.copy(player.object.position);
             this.camera.position.add(new Vector3(40, 40, 40))
+            this.camera.lookAt(player.object.position);
+            this.camera.updateProjectionMatrix();
+        }
+        if (settings.cameraMode === 'topdown') {
+            this.camera.fov = 30
+            this.camera.position.copy(player.object.position);
+            this.camera.position.add(new Vector3(0, 60, 0))
             this.camera.lookAt(player.object.position);
             this.camera.updateProjectionMatrix();
         }
