@@ -1,7 +1,7 @@
-import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3, NearestFilter } from "three";
-import dirtWallBrickTopImagePath from "../assets/win95/wall.png"
-import ceilingImagePath from "../assets/win95/wall.png"
-import dirtImage from "../assets/win95/floor.png";
+import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3, NearestFilter, SRGBColorSpace } from "three";
+import wallImage from "../assets/mc/grassdirt.png"
+import topImage from "../assets/mc/grass.png"
+import floorImage from "../assets/mc/dirt.png";
 
 const TILE_SIZE = 5;
 const WALL_HEIGHT = 5;
@@ -46,21 +46,25 @@ export class Level {
         this.rows++;
 
         const texLoader = new TextureLoader();
-        const wallTexture = texLoader.load(dirtWallBrickTopImagePath)
+        const wallTexture = texLoader.load(wallImage)
+        wallTexture.colorSpace = SRGBColorSpace
         wallTexture.minFilter = NearestFilter
         wallTexture.magFilter = NearestFilter
 
-        const floorTexture = texLoader.load(dirtImage)
+        const floorTexture = texLoader.load(floorImage)
+        floorTexture.colorSpace = SRGBColorSpace
         floorTexture.minFilter = NearestFilter
         floorTexture.magFilter = NearestFilter
         const floorMaterial = new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: floorTexture })
 
-        const ceilingTexture = new TextureLoader().load(ceilingImagePath);
-        ceilingTexture.minFilter = NearestFilter;
-        ceilingTexture.magFilter = NearestFilter;
+        const topTexture = new TextureLoader().load(topImage);
+        topTexture.colorSpace = SRGBColorSpace
+        topTexture.minFilter = NearestFilter;
+        topTexture.magFilter = NearestFilter;
 
         // Load the brick texture
-        const sideTexture = new TextureLoader().load(dirtWallBrickTopImagePath);
+        const sideTexture = new TextureLoader().load(wallImage);
+        sideTexture.colorSpace = SRGBColorSpace;
         sideTexture.minFilter = NearestFilter;
         sideTexture.magFilter = NearestFilter;
 
@@ -68,7 +72,7 @@ export class Level {
         const wallMaterials = [
             new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: sideTexture }), // Front face
             new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: sideTexture }), // Back face
-            new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: ceilingTexture }), // Top face
+            new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: topTexture }), // Top face
             new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: sideTexture }), // Bottom face
             new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: sideTexture }), // Right face
             new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: sideTexture })  // Left face

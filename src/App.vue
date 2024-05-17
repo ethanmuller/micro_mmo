@@ -52,21 +52,26 @@ const camera = new THREE.PerspectiveCamera(110, 1, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(256, 256);
 renderer.setPixelRatio(2)
-//renderer.toneMapping = THREE.ACESFilmicToneMapping;
+THREE.ColorManagement.enabled = true
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
+renderer.outputColorSpace = THREE.SRGBColorSpace
 
 const scene = new THREE.Scene();
 
 scene.background = new THREE.Color(0xddddee)
 
 new RGBELoader()
-	.load('/vintage_measuring_lab_1k.hdr', function (texture) {
+	.load('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr', function (texture) {
+
+    // trying to make the colors look less overexposed, but this doesn't seem to work
+    texture.colorSpace = THREE.LinearSRGBColorSpace
 
 		texture.mapping = THREE.EquirectangularReflectionMapping;
 
 		scene.background = texture;
 		scene.environment = texture;
-		scene.backgroundBlurriness = 0.06
+		scene.backgroundBlurriness = 0.0
 	});
 
 const imgLoader = new THREE.TextureLoader();
