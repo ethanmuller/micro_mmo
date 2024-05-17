@@ -3,8 +3,19 @@ import wallImage from "../assets/mc/grassdirt.png"
 import topImage from "../assets/mc/grass.png"
 import floorImage from "../assets/mc/dirt.png";
 
-const TILE_SIZE = 5;
-const WALL_HEIGHT = 5;
+export const DEFAULT_LEVEL: LevelName = 'ohio'
+
+type LevelName = 'ohio' | 'lab'
+
+
+export interface LevelMetaData {
+  name: LevelName,
+  tileSize: number,
+  wallHeight: number,
+  sky: URL,
+  ascii: string,
+}
+
 
 const CARDINAL = [new Vector2(0, 1), new Vector2(1, 0), new Vector2(0, -1), new Vector2(-1, 0)];
 const DIAGONAL = [new Vector2(1, 1), new Vector2(1, -1), new Vector2(-1, -1), new Vector2(-1, 1)];
@@ -17,17 +28,20 @@ export class Level {
     levelData: string[][] = [];
     rows = 0;
     columns = 0;
-    tileSize: number = TILE_SIZE;
-    wallHeight: number = WALL_HEIGHT;
+    tileSize: number;
+    wallHeight: number;
 
-    constructor(levelString: string, toonRamp: Texture) {
+    constructor(level: LevelMetaData, toonRamp: Texture) {
+        this.tileSize = level.tileSize
+        this.wallHeight = level.wallHeight
+
         console.log("Loading level.. ");
-        console.log(levelString);
+        console.log(level.ascii);
 
         let currentRow: string[] = [];
 
-        for (let s = 0; s < levelString.length; ++s) {
-            let v = levelString[s];
+        for (let s = 0; s < level.ascii.length; ++s) {
+            let v = level.ascii[s];
             if (v == '\r') continue;
             if (v == '\n') {
                 this.levelData.push(currentRow);
@@ -79,19 +93,19 @@ export class Level {
         ];
 
         // Create a geometry for the wall
-        const wallGeometry = new BoxGeometry(TILE_SIZE, WALL_HEIGHT, TILE_SIZE, 1, 1, 1);
+        const wallGeometry = new BoxGeometry(this.tileSize, this.wallHeight, this.tileSize, 1, 1, 1);
 
         // Create a mesh for the wall using the materials array
         const wallMesh = new Mesh(wallGeometry, wallMaterials);
-        const floorMesh = new Mesh(new PlaneGeometry(TILE_SIZE, TILE_SIZE, 1, 1), floorMaterial);
-        //const ceilingMesh = new Mesh(new PlaneGeometry(TILE_SIZE, TILE_SIZE, 1, 1), ceilingMaterial);
+        const floorMesh = new Mesh(new PlaneGeometry(this.tileSize, this.tileSize, 1, 1), floorMaterial);
+        //const ceilingMesh = new Mesh(new PlaneGeometry(this.tileSize, this.tileSize, 1, 1), ceilingMaterial);
         const wall = new Object3D();
-        wallMesh.position.y = WALL_HEIGHT * 0.5;
+        wallMesh.position.y = this.wallHeight * 0.5;
         wall.add(wallMesh);
         const floor = new Object3D();
         floorMesh.rotation.x -= Math.PI * 0.5;
         // ceilingMesh.rotation.x += Math.PI * 0.5;
-        // ceilingMesh.position.y = TILE_SIZE;
+        // ceilingMesh.position.y = this.tileSize;
         floor.add(floorMesh);
         //floor.add(ceilingMesh);
         this.object.matrixAutoUpdate = false;
@@ -113,7 +127,7 @@ export class Level {
                 if (this.levelData[j][i] != ' ') // if we have a floor
                 {
                     let f = floor.clone();
-                    f.position.set(i * TILE_SIZE, 0, j * TILE_SIZE);
+                    f.position.set(i * this.tileSize, 0, j * this.tileSize);
                     this.object.add(f);
 
                     let scope = this;
@@ -128,12 +142,12 @@ export class Level {
         needsWall.forEach((s: Set<number>, j: number) => {
             s.forEach(i => {
                 let w = wall.clone();
-                w.position.set(i * TILE_SIZE, 0, j * TILE_SIZE);
+                w.position.set(i * this.tileSize, 0, j * this.tileSize);
                 this.object.add(w);
             });
         });
 
-        this.object.position.set(TILE_SIZE * 0.5, 0, TILE_SIZE * 0.5);
+        this.object.position.set(this.tileSize * 0.5, 0, this.tileSize * 0.5);
         this.object.updateMatrixWorld(true);
     }
 
@@ -153,7 +167,7 @@ export class Level {
 
     collisionV2 = new Vector2();
     collisionV22 = new Vector2();
-    collideCircle(p: Vector3, r: number): boolean {   // PRECONDITION: r < TILE_SIZE
+    collideCircle(p: Vector3, r: number): boolean {   // PRECONDITION: r < this.tileSize
         let tile = this.getTileFromWorldPosition(p, this.collisionV2);
 
         if (!this.isTileWalkable(tile.x, tile.y)) {

@@ -7,14 +7,13 @@ import { MultiplayerClient } from './game/MultiplayerClient';
 import { InputManager } from './game/InputManager';
 import { FreeCamera } from './game/FreeCamera';
 import { Player } from './server/MultiplayerTypes'
-import { Level } from './game/Level';
+import { DEFAULT_LEVEL, Level, LevelMetaData } from './game/Level';
 import { useSettingsStore, cameraModes } from "./stores/settings";
 import { useCrumbStore } from "./stores/crumb";
 import { useLogStore } from "./stores/logs";
 
-import ohio from './assets/ohio.txt?raw'
-import lab from './assets/lab.txt?raw'
-import taiwan from './assets/taiwan.txt?raw'
+import ohioAscii from './assets/ohio.txt?raw'
+import labAscii from './assets/lab.txt?raw'
 
 import toonTexture from "./assets/threeTone_bright.jpg";
 import { NearestFilter } from 'three';
@@ -22,7 +21,24 @@ import QrcodeVue from 'qrcode.vue'
 import { RGBELoader } from 'three/examples/jsm/Addons.js';
 import { CameraMovement } from './game/CameraMovement';
 
-const ascii_levels = { ohio, lab, taiwan }
+
+const ohio: LevelMetaData = {
+  name: 'ohio',
+  tileSize: 5,
+  wallHeight: 2.5,
+  ascii: ohioAscii,
+	sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr')
+}
+
+const lab: LevelMetaData = {
+  name: 'lab',
+  tileSize: 7,
+  wallHeight: 7,
+  ascii: labAscii,
+	sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr')
+}
+
+const levels: {[index: string]:any}  = { ohio, lab }
 
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
@@ -82,10 +98,10 @@ const toonRamp = imgLoader.load(toonTexture, (texture) => {
 });
 
 const urlParams = new URLSearchParams(window.location.search);
-const requestedLevel = urlParams.get('level') || 'lab'
-const ascii_level = ascii_levels[requestedLevel]
+const requestedLevelString = urlParams.get('level')
+const requestedLevel: LevelMetaData = levels[requestedLevelString || DEFAULT_LEVEL]
 
-let level = new Level(ascii_level, toonRamp);
+let level = new Level(requestedLevel, toonRamp);
 scene.add(level.object);
 
 const skinList: Array<MouseSkin> = [
@@ -104,7 +120,7 @@ level.getWorldPositionFromTile(level.start, player.object.position);
 const cameraMovement = new CameraMovement(camera, player, level);
 const freeCamera = new FreeCamera(camera);
 
-const mp = new MultiplayerClient(seed, requestedLevel)
+const mp = new MultiplayerClient(seed, requestedLevel.name)
 let playerIdToPlayerObj: Map<string, Mouse> = new Map<string, Mouse>();
 
 mp.onPlayerConnected((newPlayer: Player) => {
