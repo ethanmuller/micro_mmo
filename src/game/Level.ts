@@ -2,8 +2,9 @@ import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, 
 import wallImage from "../assets/mc/grassdirt.png"
 import topImage from "../assets/mc/grass.png"
 import floorImage from "../assets/mc/dirt.png";
+import { MouseholeGeometry } from "./extensions/MouseholeGeometry"
 
-export const DEFAULT_LEVEL: LevelName = 'ohio'
+export const DEFAULT_LEVEL: LevelName = 'lab'
 
 type LevelName = 'ohio' | 'lab'
 
@@ -91,14 +92,25 @@ export class Level {
             new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: sideTexture }), // Right face
             new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: sideTexture })  // Left face
         ];
+        const mouseholeMaterial = new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: sideTexture });
+        const mouseholeInsideMaterial = new MeshToonMaterial({ color: 0x444444, gradientMap: toonRamp, map: sideTexture });
+        const mouseholeTopMaterial = new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: topTexture });
+        const mouseholeFloorMaterial = new MeshToonMaterial({ color: 0x666666, gradientMap: toonRamp, map: floorTexture });
 
         // Create a geometry for the wall
         const wallGeometry = new BoxGeometry(this.tileSize, this.wallHeight, this.tileSize, 1, 1, 1);
 
+        let holeWidth = this.tileSize * 0.5;
+        const holeGeometry = new MouseholeGeometry(this.tileSize, this.wallHeight, holeWidth);
+
+
         // Create a mesh for the wall using the materials array
         const wallMesh = new Mesh(wallGeometry, wallMaterials);
         const floorMesh = new Mesh(new PlaneGeometry(this.tileSize, this.tileSize, 1, 1), floorMaterial);
-        //const ceilingMesh = new Mesh(new PlaneGeometry(this.tileSize, this.tileSize, 1, 1), ceilingMaterial);
+        const holeMesh = new Mesh(holeGeometry, mouseholeMaterial)
+        const holeRoofMesh = new Mesh(new PlaneGeometry(this.tileSize, this.tileSize, 1, 1), mouseholeTopMaterial);
+        const holeFloorMesh = new Mesh(new PlaneGeometry(this.tileSize, this.tileSize, 1, 1), mouseholeFloorMaterial);
+        const holeWallMesh = new Mesh(new PlaneGeometry(this.tileSize, this.wallHeight, 1, 1), mouseholeInsideMaterial);
         const wall = new Object3D();
         wallMesh.position.y = this.wallHeight * 0.5;
         wall.add(wallMesh);
@@ -108,6 +120,28 @@ export class Level {
         // ceilingMesh.position.y = this.tileSize;
         floor.add(floorMesh);
         //floor.add(ceilingMesh);
+
+        const exit = new Object3D();
+        holeRoofMesh.rotation.x -= Math.PI * 0.5;
+        holeRoofMesh.position.y = this.tileSize;
+        holeFloorMesh.rotation.x -= Math.PI * 0.5;
+        holeMesh.position.z = this.tileSize * 0.5;
+        exit.add(holeMesh);
+        exit.add(holeRoofMesh);
+        exit.add(holeFloorMesh);
+        holeWallMesh.position.y = this.wallHeight * 0.5;
+        holeWallMesh.position.z = -this.tileSize * 0.5;
+        exit.add(holeWallMesh);
+        let sideWall1 = holeWallMesh.clone();
+        sideWall1.position.z = 0;
+        sideWall1.position.x = -holeWidth * 0.5;
+        sideWall1.rotation.y = Math.PI * 0.5;
+        exit.add(sideWall1);
+        let sideWall2 = sideWall1.clone();
+        sideWall2.position.x = holeWidth * 0.5;
+        sideWall2.rotation.y = -Math.PI * 0.5;
+        exit.add(sideWall2);
+
         this.object.matrixAutoUpdate = false;
 
         // extremely simple instantiation (not the most efficient, too many vertices and meshes)
@@ -126,15 +160,23 @@ export class Level {
             for (let i = 0; i < this.levelData[j].length; ++i) {
                 if (this.levelData[j][i] != ' ') // if we have a floor
                 {
-                    let f = floor.clone();
-                    f.position.set(i * this.tileSize, 0, j * this.tileSize);
-                    this.object.add(f);
+                    if (this.levelData[j][i] == 'e') {
+                        let e = exit.clone();
+                        e.position.set(i * this.tileSize, 0, j * this.tileSize);
+                        // TODO rotate the exit depending if neighbours are walkable
+                        this.object.add(e);
+                    }
+                    else {
+                        let f = floor.clone();
+                        f.position.set(i * this.tileSize, 0, j * this.tileSize);
+                        this.object.add(f);
 
-                    let scope = this;
-                    CARDINAL.forEach(v => {
-                        if (!scope.isTileWalkable(i + v.x, j + v.y))
-                            setWallNeded(i + v.x, j + v.y);
-                    })
+                        let scope = this;
+                        CARDINAL.forEach(v => {
+                            if (!scope.isTileWalkable(i + v.x, j + v.y))
+                                setWallNeded(i + v.x, j + v.y);
+                        })
+                    }
                 }
             }
         }
