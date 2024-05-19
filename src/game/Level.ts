@@ -100,15 +100,13 @@ export class Level {
         // Create a geometry for the wall
         const wallGeometry = new BoxGeometry(this.tileSize, this.wallHeight, this.tileSize, 1, 1, 1);
 
-        let holeWidth = this.tileSize * 0.5;
-        const holeGeometry = new MouseholeGeometry(this.tileSize, this.wallHeight, holeWidth);
+        const holeGeometry = new MouseholeGeometry(this.tileSize, this.wallHeight, this.tileSize * 0.5, this.wallHeight * 0.6);
 
 
         // Create a mesh for the wall using the materials array
         const wallMesh = new Mesh(wallGeometry, wallMaterials);
         const floorMesh = new Mesh(new PlaneGeometry(this.tileSize, this.tileSize, 1, 1), floorMaterial);
-        const holeMesh = new Mesh(holeGeometry, [mouseholeMaterial, mouseholeFloorMaterial, mouseholeTopMaterial]);
-        const holeWallMesh = new Mesh(new PlaneGeometry(this.tileSize, this.wallHeight, 1, 1), mouseholeInsideMaterial);
+        const holeMesh = new Mesh(holeGeometry, [mouseholeMaterial, mouseholeFloorMaterial, mouseholeTopMaterial, mouseholeInsideMaterial]);
         const wall = new Object3D();
         wallMesh.position.y = this.wallHeight * 0.5;
         wall.add(wallMesh);
@@ -121,16 +119,6 @@ export class Level {
 
         const exit = new Object3D();
         exit.add(holeMesh);
-        holeWallMesh.position.y = this.wallHeight * 0.5;
-        exit.add(holeWallMesh);
-        let sideWall1 = holeWallMesh.clone();
-        sideWall1.position.x = -holeWidth * 0.5;
-        sideWall1.rotation.y = Math.PI * 0.5;
-        exit.add(sideWall1);
-        let sideWall2 = sideWall1.clone();
-        sideWall2.position.x = holeWidth * 0.5;
-        sideWall2.rotation.y = -Math.PI * 0.5;
-        exit.add(sideWall2);
 
         this.object.matrixAutoUpdate = false;
 
