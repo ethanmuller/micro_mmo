@@ -1,4 +1,4 @@
-import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3, NearestFilter, SRGBColorSpace, AxesHelper } from "three";
+import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3, NearestFilter, SRGBColorSpace, } from "three";
 import wallImage from "../assets/mc/grassdirt.png"
 import topImage from "../assets/mc/grass.png"
 import floorImage from "../assets/mc/dirt.png";
@@ -100,7 +100,7 @@ export class Level {
         // Create a geometry for the wall
         const wallGeometry = new BoxGeometry(this.tileSize, this.wallHeight, this.tileSize, 1, 1, 1);
 
-        const holeGeometry = new MouseholeGeometry(this.tileSize, this.wallHeight, this.tileSize * 0.5, this.wallHeight * 0.6);
+        const holeGeometry = new MouseholeGeometry(this.tileSize, this.wallHeight, this.tileSize * 0.4, 7 * 0.3);
 
 
         // Create a mesh for the wall using the materials array
