@@ -138,10 +138,27 @@ export class Level {
             for (let i = 0; i < this.levelData[j].length; ++i) {
                 if (this.levelData[j][i] != ' ') // if we have a floor
                 {
-                    if (this.levelData[j][i] == 'e') {
+                    if (this.levelData[j][i] != 'x' && this.levelData[j][i] != 's') { // considering any other character a potential hole to another level
                         let e = exit.clone();
                         e.position.set(i * this.tileSize, 0, j * this.tileSize);
-                        // TODO rotate the exit depending if neighbours are walkable
+                        
+                        let scope = this;
+                        let foundExitDirection = false;
+                        CARDINAL.forEach(v => {
+                            if (foundExitDirection) return;
+
+                            if (scope.isTileWalkable(i + v.x, j + v.y))
+                            {
+                                if (v.x == 1)
+                                    e.rotation.y = Math.PI * 0.5;
+                                else if (v.x == -1)
+                                    e.rotation.y = -Math.PI * 0.5;
+                                else if (v.y == -1)
+                                    e.rotation.y = Math.PI;
+
+                                foundExitDirection = true;
+                            }
+                        });
                         this.object.add(e);
                     }
                     else {
