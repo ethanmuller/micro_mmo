@@ -16,7 +16,8 @@ class MouseholeGeometry extends BufferGeometry {
 			width: width,
 			height: height,
 			holeWidth: holeWidth,
-			holeRatio: holeRatio
+			holeRatio: holeRatio,
+            archDivisions: archDivisions,
 		};
 
         archDivisions = Math.max(0, archDivisions);
@@ -34,30 +35,47 @@ class MouseholeGeometry extends BufferGeometry {
 
 		let index = 0;
 		const indexArray = [];
-		const holeHeight = holeWidth / holeRatio;
+		const holeHeight = holeWidth / holeRatio; // holeRatio = holeWidth / holeHeight
         const holeCurvatureStartHeight = Math.max(0, holeHeight - holeWidth * 0.5);
         const curveHeight = holeHeight - holeCurvatureStartHeight;
 
+        let groupStart = 0;
+        let groupCount = 0;
+        // material
+        const outsideWallMaterialIndex = 0;
+        const floorMaterialIndex = 1;
+        const insideWallMaterialIndex = 2;
+
 		// generate geometry
 
-		const normal = new Vector3(0,0,1);
+		const frontFacing = new Vector3(0,0,1);
+        const backNormal = new Vector3(0,0,-1);
+        const leftNormal = new Vector3(1,0,0);
+        const rightNormal = new Vector3(-1,0,0);
         const vertex = new Vector3();
         let vCount = 0;
 
         const halfWidth = width * 0.5;
 
-        let addVertex = function(x,y) {
-            vertices.push(x, y, 0);
-            normals.push(normal.x, normal.y, normal.z);
-            uvs.push((x+halfWidth)/width, y/height);
+        let addVertex = function(x,y, z = halfWidth, n = frontFacing, uv = "xy") {
+            vertices.push(x, y, z);
+            normals.push(n.x, n.y, n.z);
+            if (uv == "xy")
+                uvs.push((x+halfWidth)/width, y/height);
+            else if (uv == "-xy")
+                uvs.push(1 - (x+halfWidth)/width, y/height);
+            else if (uv == "zy")
+                uvs.push((z+halfWidth)/width, y/height);
+            else if (uv == "-zy")
+                uvs.push(1 - (z+halfWidth)/width, y/height);
 
             return vCount++;
         }
         
-        const leftBottom = addVertex(-halfWidth, 0);
-        const leftTop = addVertex(-halfWidth, height);
-        const rightTop = addVertex(halfWidth, height);
-        const rightBottom = addVertex(halfWidth, 0);
+        let leftBottom = addVertex(-halfWidth, 0);
+        let leftTop = addVertex(-halfWidth, height);
+        let rightTop = addVertex(halfWidth, height);
+        let rightBottom = addVertex(halfWidth, 0);
         const leftHoleBottom = addVertex(-holeWidth * 0.5, holeCurvatureStartHeight);
         const rightHoleBottom = addVertex(holeWidth * 0.5, holeCurvatureStartHeight);
         const holeTop = addVertex(0, holeHeight);
@@ -65,6 +83,7 @@ class MouseholeGeometry extends BufferGeometry {
         indices.push(leftBottom, leftHoleBottom, leftTop);
         indices.push(rightHoleBottom, rightBottom, rightTop);
         indices.push(leftTop, holeTop, rightTop);
+        
 
         if (holeCurvatureStartHeight > 0) {
             const leftHoleFloor = addVertex(-holeWidth * 0.5, 0);
@@ -104,6 +123,37 @@ class MouseholeGeometry extends BufferGeometry {
         }
         indices.push(pendingArchClose, rightTop, holeTop);
 
+        // outside walls
+        // let's do all of them for now
+        // also, we have to "duplicate" vertices to assign different normals (per vertex)
+        leftBottom = addVertex(-halfWidth, 0, halfWidth, leftNormal, "-zy");
+        leftTop = addVertex(-halfWidth, height, halfWidth, leftNormal, "-zy");
+        let blt = addVertex(-halfWidth, height, -halfWidth, rightNormal, "-zy");
+        let blb = addVertex(-halfWidth, 0, -halfWidth, leftNormal, "-zy");
+        indices.push(leftBottom, leftTop, blb);
+        indices.push(leftTop, blt, blb);
+
+        
+        rightTop = addVertex(halfWidth, height, halfWidth, rightNormal, "zy");
+        rightBottom = addVertex(halfWidth, 0, halfWidth, rightNormal, "zy");
+        let brb = addVertex(halfWidth, 0, -halfWidth, leftNormal, "zy");
+        let brt = addVertex(halfWidth, height, -halfWidth, rightNormal, "zy");
+        indices.push(rightBottom, brb, rightTop);
+        indices.push(rightTop, brb, brt);
+
+        
+        blb = addVertex(-halfWidth, 0, -halfWidth, backNormal, "-xy");
+        brb = addVertex(halfWidth, 0, -halfWidth, backNormal, "-xy");
+        blt = addVertex(-halfWidth, height, -halfWidth, backNormal, "-xy");
+        brt = addVertex(halfWidth, height, -halfWidth, backNormal, "-xy");
+        indices.push(blb, brt, brb);
+        indices.push(blb, blt, brt);
+
+
+        groupCount += indices.length;
+        this.addGroup(groupStart, groupCount, outsideWallMaterialIndex);
+
+
 		// build geometry
 
 		this.setIndex( indices );
@@ -114,7 +164,7 @@ class MouseholeGeometry extends BufferGeometry {
 
 	static fromJSON( data ) {
 
-		return new MouseholeGeometry( data.radius, data.height, data.radialSegments, data.heightSegments, data.slopePercent );
+		return new MouseholeGeometry( data.radius, data.height, data.holeWidth, data.holeRatio, data.archDivisions);
 
 	}
 

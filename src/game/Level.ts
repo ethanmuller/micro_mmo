@@ -1,4 +1,4 @@
-import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3, NearestFilter, SRGBColorSpace } from "three";
+import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3, NearestFilter, SRGBColorSpace, AxesHelper } from "three";
 import wallImage from "../assets/mc/grassdirt.png"
 import topImage from "../assets/mc/grass.png"
 import floorImage from "../assets/mc/dirt.png";
@@ -107,7 +107,7 @@ export class Level {
         // Create a mesh for the wall using the materials array
         const wallMesh = new Mesh(wallGeometry, wallMaterials);
         const floorMesh = new Mesh(new PlaneGeometry(this.tileSize, this.tileSize, 1, 1), floorMaterial);
-        const holeMesh = new Mesh(holeGeometry, mouseholeMaterial)
+        const holeMesh = new Mesh(holeGeometry, [mouseholeMaterial])
         const holeRoofMesh = new Mesh(new PlaneGeometry(this.tileSize, this.tileSize, 1, 1), mouseholeTopMaterial);
         const holeFloorMesh = new Mesh(new PlaneGeometry(this.tileSize, this.tileSize, 1, 1), mouseholeFloorMaterial);
         const holeWallMesh = new Mesh(new PlaneGeometry(this.tileSize, this.wallHeight, 1, 1), mouseholeInsideMaterial);
@@ -125,15 +125,12 @@ export class Level {
         holeRoofMesh.rotation.x -= Math.PI * 0.5;
         holeRoofMesh.position.y = this.tileSize;
         holeFloorMesh.rotation.x -= Math.PI * 0.5;
-        holeMesh.position.z = this.tileSize * 0.5;
         exit.add(holeMesh);
         exit.add(holeRoofMesh);
         exit.add(holeFloorMesh);
         holeWallMesh.position.y = this.wallHeight * 0.5;
-        holeWallMesh.position.z = -this.tileSize * 0.5;
         exit.add(holeWallMesh);
         let sideWall1 = holeWallMesh.clone();
-        sideWall1.position.z = 0;
         sideWall1.position.x = -holeWidth * 0.5;
         sideWall1.rotation.y = Math.PI * 0.5;
         exit.add(sideWall1);
@@ -141,6 +138,7 @@ export class Level {
         sideWall2.position.x = holeWidth * 0.5;
         sideWall2.rotation.y = -Math.PI * 0.5;
         exit.add(sideWall2);
+        exit.add(new AxesHelper());
 
         this.object.matrixAutoUpdate = false;
 
