@@ -44,7 +44,8 @@ class MouseholeGeometry extends BufferGeometry {
         // material
         const outsideWallMaterialIndex = 0;
         const floorMaterialIndex = 1;
-        const insideWallMaterialIndex = 2;
+        const roofMaterialIndex = 2;
+        const insideWallMaterialIndex = 3;
 
 		// generate geometry
 
@@ -52,6 +53,7 @@ class MouseholeGeometry extends BufferGeometry {
         const backNormal = new Vector3(0,0,-1);
         const leftNormal = new Vector3(1,0,0);
         const rightNormal = new Vector3(-1,0,0);
+        const upNormal = new Vector3(0,1,0);
         const vertex = new Vector3();
         let vCount = 0;
 
@@ -68,6 +70,8 @@ class MouseholeGeometry extends BufferGeometry {
                 uvs.push((z+halfWidth)/width, y/height);
             else if (uv == "-zy")
                 uvs.push(1 - (z+halfWidth)/width, y/height);
+            else if (uv == "xz")
+                uvs.push((x+halfWidth)/width, (z+halfWidth)/width);
 
             return vCount++;
         }
@@ -148,10 +152,35 @@ class MouseholeGeometry extends BufferGeometry {
         brt = addVertex(halfWidth, height, -halfWidth, backNormal, "-xy");
         indices.push(blb, brt, brb);
         indices.push(blb, blt, brt);
-
-
+        
         groupCount += indices.length;
         this.addGroup(groupStart, groupCount, outsideWallMaterialIndex);
+        groupStart += groupCount;
+        groupCount = 0;
+        // Outside walls group ends here
+
+        // floor
+        leftBottom = addVertex(-halfWidth, 0, halfWidth, upNormal, "xz");
+        rightBottom = addVertex(halfWidth, 0, halfWidth, upNormal, "xz");
+        blb = addVertex(-halfWidth, 0, -halfWidth, upNormal, "xz");
+        brb = addVertex(halfWidth, 0, -halfWidth, upNormal, "xz");
+        indices.push(leftBottom, rightBottom, brb);
+        indices.push(leftBottom, brb, blb);
+        groupCount += 6;
+        this.addGroup(groupStart, groupCount, floorMaterialIndex);
+        groupStart += groupCount;
+        groupCount = 0;
+        // roof
+        leftTop = addVertex(-halfWidth, height, halfWidth, upNormal, "xz");
+        rightTop = addVertex(halfWidth, height, halfWidth, upNormal, "xz");
+        blt = addVertex(-halfWidth, height, -halfWidth, upNormal, "xz");
+        brt = addVertex(halfWidth, height, -halfWidth, upNormal, "xz");
+        indices.push(leftTop, rightTop, brt);
+        indices.push(leftTop, brt, blt);
+        groupCount += 6;
+        this.addGroup(groupStart, groupCount, roofMaterialIndex);
+        groupStart += groupCount;
+        groupCount = 0;
 
 
 		// build geometry
