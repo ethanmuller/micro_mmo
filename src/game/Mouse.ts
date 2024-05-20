@@ -102,6 +102,8 @@ export class Mouse {
     backRightFootId = 2;
     backLeftFootId = 3;
 
+    leaving = false
+
     private var = { // just random vectors and quaternions for use during update operations
         q1: new Quaternion(),
         q2: new Quaternion(),
@@ -338,6 +340,8 @@ export class Mouse {
         // putting this in update feels wrong, but if this only happens in the constructor, setting will not be updated unless page refreshes, so maybe it does belong here? I dunno.
         const settings = useSettingsStore()
 
+        if (this.leaving) return
+
         let positionBefore = this.previousFramePosition.copy(this.object.position);
 
         if (input && camera) { // Local players
@@ -379,6 +383,15 @@ export class Mouse {
 
             if (input.debugButton.pressedThisFrame) {
                 this.debugSphere.visible = !this.debugSphere.visible;
+            }
+
+            const tileCoords = level.getTileFromWorldPosition(this.object.position, new Vector2())
+            const t = level.getCharAtTilePosition(tileCoords.x, tileCoords.y)
+            if (level.isCharDoor(t)) {
+              this.leaving = true
+              const u = new URL(window.location.toString())
+              u.searchParams.set('level', level.doors[t])
+              window.location.href = u.toString()
             }
         }
 

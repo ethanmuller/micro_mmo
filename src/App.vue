@@ -14,6 +14,7 @@ import { useLogStore } from "./stores/logs";
 
 import ohioAscii from './assets/ohio.txt?raw'
 import labAscii from './assets/lab.txt?raw'
+import taiwanAscii from './assets/taiwan.txt?raw'
 
 import toonTexture from "./assets/threeTone_bright.jpg";
 import { NearestFilter } from 'three';
@@ -30,6 +31,14 @@ const ohio: LevelMetaData = {
 	sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr')
 }
 
+const taiwan: LevelMetaData = {
+  name: 'ohio',
+  tileSize: 3,
+  wallHeight: 3,
+  ascii: taiwanAscii,
+	sky: new URL('https://mush.network/files/sky/courtyard_1k.hdr')
+}
+
 const lab: LevelMetaData = {
   name: 'lab',
   tileSize: 7,
@@ -38,7 +47,7 @@ const lab: LevelMetaData = {
 	sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr')
 }
 
-const levels: {[index: string]:any}  = { ohio, lab }
+const levels: {[index: string]:any}  = { ohio, lab, taiwan }
 
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
@@ -77,8 +86,12 @@ const scene = new THREE.Scene();
 
 scene.background = new THREE.Color(0xddddee)
 
+const urlParams = new URLSearchParams(window.location.search);
+const requestedLevelString = urlParams.get('level')
+const requestedLevel: LevelMetaData = levels[requestedLevelString || DEFAULT_LEVEL]
+
 new RGBELoader()
-	.load('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr', function (texture) {
+	.load(requestedLevel.sky.toString(), function (texture) {
 
     // trying to make the colors look less overexposed, but this doesn't seem to work
     texture.colorSpace = THREE.LinearSRGBColorSpace
@@ -96,10 +109,6 @@ const toonRamp = imgLoader.load(toonTexture, (texture) => {
 	texture.minFilter = NearestFilter;
 	texture.magFilter = NearestFilter;
 });
-
-const urlParams = new URLSearchParams(window.location.search);
-const requestedLevelString = urlParams.get('level')
-const requestedLevel: LevelMetaData = levels[requestedLevelString || DEFAULT_LEVEL]
 
 let level = new Level(requestedLevel, toonRamp);
 scene.add(level.object);

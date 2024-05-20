@@ -2,7 +2,7 @@ import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, 
 import wallImage from "../assets/mc/grassdirt.png"
 import topImage from "../assets/mc/grass.png"
 import floorImage from "../assets/mc/dirt.png";
-import { MouseholeGeometry } from "./extensions/MouseholeGeometry";
+import { MouseholeGeometry } from "./extensions/MouseholeGeometry"
 
 export const DEFAULT_LEVEL: LevelName = 'lab'
 
@@ -31,6 +31,7 @@ export class Level {
     columns = 0;
     tileSize: number;
     wallHeight: number;
+    doors: {[index: string]:any} ;
 
     constructor(level: LevelMetaData, toonRamp: Texture) {
         this.tileSize = level.tileSize
@@ -40,8 +41,20 @@ export class Level {
         const hasFrontMatter = splitAscii.length > 1
         const chars = splitAscii[hasFrontMatter ? 1 : 0]
 
-        console.log("Loading level.. ");
-        console.log(chars);
+        const doorLines = splitAscii[0].split('\n')
+
+        // this TS weirdness lets us index by string
+        this.doors = {}
+        doorLines.forEach(l => {
+          // split by a colon followed by one or more spaces
+          const s = l.split(/:[ ]{1,}/)
+          this.doors[s[0]] = s[1]
+        })
+
+        console.log(this.doors)
+
+        // console.log("Loading level.. ");
+        // console.log(chars);
 
         let currentRow: string[] = [];
 
@@ -194,6 +207,14 @@ export class Level {
 
     isTileWalkable(i: number, j: number) {
         return i >= 0 && j >= 0 && j < this.levelData.length && i < this.levelData[j].length && this.levelData[j][i] != ' ';
+    }
+
+    isCharDoor(c: string): boolean {
+      return !!this.doors[c]
+    }
+
+    getCharAtTilePosition(i: number, j: number): string {
+        return i >= 0 && j >= 0 && j < this.levelData.length && i < this.levelData[j].length && this.levelData[j][i] || '';
     }
 
     getWorldPositionFromTile(p: Vector2, out: Vector3): Vector3 {
