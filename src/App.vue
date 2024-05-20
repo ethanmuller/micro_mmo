@@ -32,7 +32,7 @@ const ohio: LevelMetaData = {
 }
 
 const taiwan: LevelMetaData = {
-  name: 'ohio',
+  name: 'taiwan',
   tileSize: 3,
   wallHeight: 3,
   ascii: taiwanAscii,

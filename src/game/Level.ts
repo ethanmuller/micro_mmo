@@ -6,7 +6,7 @@ import { MouseholeGeometry } from "./extensions/MouseholeGeometry"
 
 export const DEFAULT_LEVEL: LevelName = 'lab'
 
-type LevelName = 'ohio' | 'lab'
+type LevelName = 'ohio' | 'lab' | 'taiwan'
 
 
 export interface LevelMetaData {
