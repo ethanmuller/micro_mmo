@@ -2,12 +2,13 @@ import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, 
 import { MouseholeGeometry } from "./extensions/MouseholeGeometry"
 
 
-import ohioAscii from '../assets/ohio.txt?raw'
-import labAscii from '../assets/lab.txt?raw'
-import taiwanAscii from '../assets/taiwan.txt?raw'
+type LowercaseAlpha = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
+type DoorChar = LowercaseAlpha
+type CharToDoor = Map<DoorChar, string>
 
 export interface LevelMetaData {
     name: LevelName,
+    doors: CharToDoor,
     tileSize: number,
     wallHeight: number,
     sky: URL,
@@ -26,28 +27,27 @@ const ohio: LevelMetaData = {
     name: 'ohio',
     tileSize: 3,
     wallHeight: 3,
+    doors: new Map([['l', 'lab']]),
     ascii: `
-l: lab
----
 l                 
 #s#################
-                 #
-                 #
-                 #
-                 #
-                 #
-           #######
-           #######
-           #######
-           #######
-           #######
-           #######
-           #######
-           #######
-           #######
-           #######
-           #######
-           #######
+                  #
+                  #
+                  #
+                  #
+                  #
+            #######
+            #######
+            #######
+            #######
+            #######
+            #######
+            #######
+            #######
+            #######
+            #######
+            #######
+            #######
     `,
     sky: new URL('https://mush.network/files/sky/aerodynamics_workshop_1k.hdr'),
     topImage: "https://mush.network/files/textures/mc/grass.png",
@@ -60,9 +60,6 @@ const lab: LevelMetaData = {
     tileSize: 7,
     wallHeight: 7,
     ascii: `
-o: ohio
----
-
 ##########          
 ####     #          
 ####  #  #          
@@ -79,6 +76,7 @@ o: ohio
 ########    #          
        ######       
     `,
+    doors: new Map([['o', 'ohio']]),
     sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr'),
     wallImage: "https://mush.network/files/textures/etc/plywood.png",
     floorImage: "https://mush.network/files/textures/etc/concrete.png",
@@ -87,10 +85,11 @@ const taiwan: LevelMetaData = {
     name: 'taiwan',
     tileSize: 3,
     wallHeight: 3,
+    doors: new Map([
+      ['o', 'ohio'],
+      ['l', 'lab'],
+    ]),
     ascii: `
-o: ohio
-l: lab
----
        o       l  
        #       #  
        #       #  
@@ -130,28 +129,12 @@ export class Level {
         this.tileSize = level.tileSize
         this.wallHeight = level.wallHeight
 
-        const splitAscii = level.ascii.split(/[\r\n]+---[\r\n]+/)
-        const hasFrontMatter = splitAscii.length > 1
-        const chars = splitAscii[hasFrontMatter ? 1 : 0]
-
-        const doorLines = splitAscii[0].split(/[\r\n]+/)
-
-        this.doors = {}
-        doorLines.forEach(l => {
-            // split by a colon followed by one or more spaces
-            const s = l.split(/:[ ]{1,}/)
-            this.doors[s[0]] = s[1]
-        })
-
-        console.log(this.doors)
-
-        // console.log("Loading level.. ");
-        // console.log(chars);
+        this.doors = level.doors
 
         let currentRow: string[] = [];
 
-        for (let s = 0; s < chars.length; ++s) {
-            let v = chars[s];
+        for (let s = 0; s < level.ascii.length; ++s) {
+            let v = level.ascii[s];
             if (v == '\r') continue;
             if (v == '\n') {
                 this.levelData.push(currentRow);
@@ -301,7 +284,7 @@ export class Level {
     }
 
     isCharDoor(c: string): boolean {
-        return !!this.doors[c]
+        return !!this.doors.get(c)
     }
 
     getCharAtTilePosition(i: number, j: number): string {

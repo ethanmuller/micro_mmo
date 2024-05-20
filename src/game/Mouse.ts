@@ -390,7 +390,7 @@ export class Mouse {
             if (level.isCharDoor(t)) {
               this.leaving = true
               const u = new URL(window.location.toString())
-              u.searchParams.set('level', level.doors[t])
+              u.searchParams.set('level', level.doors.get(t))
               window.location.href = u.toString()
             }
         }
