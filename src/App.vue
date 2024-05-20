@@ -89,6 +89,7 @@ scene.background = new THREE.Color(0xddddee)
 const urlParams = new URLSearchParams(window.location.search);
 const requestedLevelString = urlParams.get('level')
 const requestedLevel: LevelMetaData = levels[requestedLevelString || DEFAULT_LEVEL]
+logs.add(`ENTERED ROOM: ${requestedLevelString}`)
 
 new RGBELoader()
 	.load(requestedLevel.sky.toString(), function (texture) {
