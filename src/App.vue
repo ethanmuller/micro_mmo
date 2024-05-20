@@ -7,14 +7,10 @@ import { MultiplayerClient } from './game/MultiplayerClient';
 import { InputManager } from './game/InputManager';
 import { FreeCamera } from './game/FreeCamera';
 import { Player } from './server/MultiplayerTypes'
-import { DEFAULT_LEVEL, Level, LevelMetaData } from './game/Level';
+import { DEFAULT_LEVEL, Level, LevelMetaData, levels } from './game/Level';
 import { useSettingsStore, cameraModes } from "./stores/settings";
 import { useCrumbStore } from "./stores/crumb";
 import { useLogStore } from "./stores/logs";
-
-import ohioAscii from './assets/ohio.txt?raw'
-import labAscii from './assets/lab.txt?raw'
-import taiwanAscii from './assets/taiwan.txt?raw'
 
 import toonTexture from "./assets/threeTone_bright.jpg";
 import { NearestFilter } from 'three';
@@ -22,32 +18,6 @@ import QrcodeVue from 'qrcode.vue'
 import { RGBELoader } from 'three/examples/jsm/Addons.js';
 import { CameraMovement } from './game/CameraMovement';
 
-
-const ohio: LevelMetaData = {
-  name: 'ohio',
-  tileSize: 5,
-  wallHeight: 2.5,
-  ascii: ohioAscii,
-	sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr')
-}
-
-const taiwan: LevelMetaData = {
-  name: 'taiwan',
-  tileSize: 3,
-  wallHeight: 3,
-  ascii: taiwanAscii,
-	sky: new URL('https://mush.network/files/sky/courtyard_1k.hdr')
-}
-
-const lab: LevelMetaData = {
-  name: 'lab',
-  tileSize: 7,
-  wallHeight: 7,
-  ascii: labAscii,
-	sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr')
-}
-
-const levels: {[index: string]:any}  = { ohio, lab, taiwan }
 
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
@@ -58,7 +28,6 @@ console.log(new Date(crumbPouch.lastCrumb).toTimeString())
 
 const gamecanvas = ref<HTMLDivElement>();
 const trackballEl = ref<HTMLDivElement>();
-const messages = ref<string[]>([]);
 const host = ref<string>();
 const settingsPanelOpen = ref<boolean>(false);
 
@@ -68,10 +37,6 @@ const settings = useSettingsStore()
 const logs = useLogStore()
 
 logs.add('ESTABLISHING ENCRYPTED CONNECTION...OK')
-
-function formatDecimalPlaces(num: number) {
-	return (Math.round(num * 100) / 100).toFixed(2);
-}
 
 const camera = new THREE.PerspectiveCamera(110, 1, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();

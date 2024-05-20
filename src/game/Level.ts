@@ -4,10 +4,9 @@ import topImage from "../assets/mc/grass.png"
 import floorImage from "../assets/mc/dirt.png";
 import { MouseholeGeometry } from "./extensions/MouseholeGeometry"
 
-export const DEFAULT_LEVEL: LevelName = 'lab'
-
-type LevelName = 'ohio' | 'lab' | 'taiwan'
-
+import ohioAscii from '../assets/ohio.txt?raw'
+import labAscii from '../assets/lab.txt?raw'
+import taiwanAscii from '../assets/taiwan.txt?raw'
 
 export interface LevelMetaData {
   name: LevelName,
@@ -17,6 +16,36 @@ export interface LevelMetaData {
   ascii: string,
 }
 
+export const DEFAULT_LEVEL: LevelName = 'lab'
+
+type LevelName = 'ohio' | 'lab' | 'taiwan'
+
+
+const ohio: LevelMetaData = {
+  name: 'ohio',
+  tileSize: 5,
+  wallHeight: 2.5,
+  ascii: ohioAscii,
+	sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr')
+}
+
+const taiwan: LevelMetaData = {
+  name: 'taiwan',
+  tileSize: 3,
+  wallHeight: 3,
+  ascii: taiwanAscii,
+	sky: new URL('https://mush.network/files/sky/courtyard_1k.hdr')
+}
+
+const lab: LevelMetaData = {
+  name: 'lab',
+  tileSize: 7,
+  wallHeight: 7,
+  ascii: labAscii,
+	sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr')
+}
+
+export const levels: {[index: string]:any}  = { ohio, lab, taiwan }
 
 const CARDINAL = [new Vector2(0, 1), new Vector2(1, 0), new Vector2(0, -1), new Vector2(-1, 0)];
 const DIAGONAL = [new Vector2(1, 1), new Vector2(1, -1), new Vector2(-1, -1), new Vector2(-1, 1)];
