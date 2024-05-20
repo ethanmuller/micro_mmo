@@ -37,7 +37,7 @@ export class Level {
         this.tileSize = level.tileSize
         this.wallHeight = level.wallHeight
 
-        const splitAscii = level.ascii.split('\n---\n')
+        const splitAscii = level.ascii.split(/[\r\n]+---[\r\n]+/)
         const hasFrontMatter = splitAscii.length > 1
         const chars = splitAscii[hasFrontMatter ? 1 : 0]
 
