@@ -1,8 +1,6 @@
 import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3, NearestFilter, SRGBColorSpace, } from "three";
-import wallImage from "../assets/mc/grassdirt.png"
-import topImage from "../assets/mc/grass.png"
-import floorImage from "../assets/mc/dirt.png";
 import { MouseholeGeometry } from "./extensions/MouseholeGeometry"
+
 
 import ohioAscii from '../assets/ohio.txt?raw'
 import labAscii from '../assets/lab.txt?raw'
@@ -14,6 +12,9 @@ export interface LevelMetaData {
     wallHeight: number,
     sky: URL,
     ascii: string,
+    floorImage: string,
+    wallImage: string,
+    topImage?: string,
 }
 
 export const DEFAULT_LEVEL: LevelName = 'lab'
@@ -26,15 +27,9 @@ const ohio: LevelMetaData = {
     tileSize: 5,
     wallHeight: 2.5,
     ascii: ohioAscii,
-    sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr')
-}
-
-const taiwan: LevelMetaData = {
-    name: 'taiwan',
-    tileSize: 3,
-    wallHeight: 3,
-    ascii: taiwanAscii,
-    sky: new URL('https://mush.network/files/sky/courtyard_1k.hdr')
+    sky: new URL('https://mush.network/files/sky/aerodynamics_workshop_1k.hdr'),
+    wallImage: "https://mush.network/files/textures/etc/plywood.png",
+    floorImage: "https://mush.network/files/textures/etc/concrete.png",
 }
 
 const lab: LevelMetaData = {
@@ -42,7 +37,20 @@ const lab: LevelMetaData = {
     tileSize: 7,
     wallHeight: 7,
     ascii: labAscii,
-    sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr')
+    sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr'),
+    wallImage: "https://mush.network/files/textures/etc/plywood.png",
+    floorImage: "https://mush.network/files/textures/etc/concrete.png",
+}
+
+const taiwan: LevelMetaData = {
+    name: 'taiwan',
+    tileSize: 3,
+    wallHeight: 3,
+    ascii: taiwanAscii,
+    sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr'),
+    topImage: "https://mush.network/files/textures/mc/grass.png",
+    wallImage: "https://mush.network/files/textures/mc/grassdirt.png",
+    floorImage: "https://mush.network/files/textures/mc/dirt.png",
 }
 
 export const levels: { [index: string]: any } = { ohio, lab, taiwan }
@@ -108,24 +116,24 @@ export class Level {
         this.rows++;
 
         const texLoader = new TextureLoader();
-        const wallTexture = texLoader.load(wallImage)
+        const wallTexture = texLoader.load(level.wallImage)
         wallTexture.colorSpace = SRGBColorSpace
         wallTexture.minFilter = NearestFilter
         wallTexture.magFilter = NearestFilter
 
-        const floorTexture = texLoader.load(floorImage)
+        const floorTexture = texLoader.load(level.floorImage)
         floorTexture.colorSpace = SRGBColorSpace
         floorTexture.minFilter = NearestFilter
         floorTexture.magFilter = NearestFilter
         const floorMaterial = new MeshToonMaterial({ color: 0xffffff, gradientMap: toonRamp, map: floorTexture })
 
-        const topTexture = new TextureLoader().load(topImage);
+        const topTexture = new TextureLoader().load(level.topImage || level.wallImage);
         topTexture.colorSpace = SRGBColorSpace
         topTexture.minFilter = NearestFilter;
         topTexture.magFilter = NearestFilter;
 
         // Load the brick texture
-        const sideTexture = new TextureLoader().load(wallImage);
+        const sideTexture = new TextureLoader().load(level.wallImage);
         sideTexture.colorSpace = SRGBColorSpace;
         sideTexture.minFilter = NearestFilter;
         sideTexture.magFilter = NearestFilter;
