@@ -9,11 +9,11 @@ import labAscii from '../assets/lab.txt?raw'
 import taiwanAscii from '../assets/taiwan.txt?raw'
 
 export interface LevelMetaData {
-  name: LevelName,
-  tileSize: number,
-  wallHeight: number,
-  sky: URL,
-  ascii: string,
+    name: LevelName,
+    tileSize: number,
+    wallHeight: number,
+    sky: URL,
+    ascii: string,
 }
 
 export const DEFAULT_LEVEL: LevelName = 'lab'
@@ -22,30 +22,30 @@ type LevelName = 'ohio' | 'lab' | 'taiwan'
 
 
 const ohio: LevelMetaData = {
-  name: 'ohio',
-  tileSize: 5,
-  wallHeight: 2.5,
-  ascii: ohioAscii,
-	sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr')
+    name: 'ohio',
+    tileSize: 5,
+    wallHeight: 2.5,
+    ascii: ohioAscii,
+    sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr')
 }
 
 const taiwan: LevelMetaData = {
-  name: 'taiwan',
-  tileSize: 3,
-  wallHeight: 3,
-  ascii: taiwanAscii,
-	sky: new URL('https://mush.network/files/sky/courtyard_1k.hdr')
+    name: 'taiwan',
+    tileSize: 3,
+    wallHeight: 3,
+    ascii: taiwanAscii,
+    sky: new URL('https://mush.network/files/sky/courtyard_1k.hdr')
 }
 
 const lab: LevelMetaData = {
-  name: 'lab',
-  tileSize: 7,
-  wallHeight: 7,
-  ascii: labAscii,
-	sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr')
+    name: 'lab',
+    tileSize: 7,
+    wallHeight: 7,
+    ascii: labAscii,
+    sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr')
 }
 
-export const levels: {[index: string]:any}  = { ohio, lab, taiwan }
+export const levels: { [index: string]: any } = { ohio, lab, taiwan }
 
 const CARDINAL = [new Vector2(0, 1), new Vector2(1, 0), new Vector2(0, -1), new Vector2(-1, 0)];
 const DIAGONAL = [new Vector2(1, 1), new Vector2(1, -1), new Vector2(-1, -1), new Vector2(-1, 1)];
@@ -60,7 +60,9 @@ export class Level {
     columns = 0;
     tileSize: number;
     wallHeight: number;
-    doors: {[index: string]:any} ;
+
+    // this TS weirdness lets us index by string
+    doors: { [index: string]: any };
 
     constructor(level: LevelMetaData, toonRamp: Texture) {
         this.tileSize = level.tileSize
@@ -70,14 +72,13 @@ export class Level {
         const hasFrontMatter = splitAscii.length > 1
         const chars = splitAscii[hasFrontMatter ? 1 : 0]
 
-        const doorLines = splitAscii[0].split('\n')
+        const doorLines = splitAscii[0].split(/[\r\n]+/)
 
-        // this TS weirdness lets us index by string
         this.doors = {}
         doorLines.forEach(l => {
-          // split by a colon followed by one or more spaces
-          const s = l.split(/:[ ]{1,}/)
-          this.doors[s[0]] = s[1]
+            // split by a colon followed by one or more spaces
+            const s = l.split(/:[ ]{1,}/)
+            this.doors[s[0]] = s[1]
         })
 
         console.log(this.doors)
@@ -187,14 +188,13 @@ export class Level {
                     if (this.levelData[j][i] != '#' && this.levelData[j][i] != 's') { // considering any other character a potential hole to another level
                         let e = exit.clone();
                         e.position.set(i * this.tileSize, 0, j * this.tileSize);
-                        
+
                         let scope = this;
                         let foundExitDirection = false;
                         CARDINAL.forEach(v => {
                             if (foundExitDirection) return;
 
-                            if (scope.isTileWalkable(i + v.x, j + v.y))
-                            {
+                            if (scope.isTileWalkable(i + v.x, j + v.y)) {
                                 if (v.x == 1)
                                     e.rotation.y = Math.PI * 0.5;
                                 else if (v.x == -1)
@@ -239,7 +239,7 @@ export class Level {
     }
 
     isCharDoor(c: string): boolean {
-      return !!this.doors[c]
+        return !!this.doors[c]
     }
 
     getCharAtTilePosition(i: number, j: number): string {
