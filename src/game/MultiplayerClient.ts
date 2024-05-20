@@ -19,6 +19,7 @@ export class MultiplayerClient {
     this.connection = socket.io(window.location.hostname+`:3000`, { query: { skin, requestedLevel } });
     this.connection.on('connect', () => {
       console.log('connected to multiplayer server')
+      logs.add(`ENTERED ROOM: ${requestedLevel}`)
     })
 
     this.connection.on('serverInfo', (serverDateNow) => {

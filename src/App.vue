@@ -54,7 +54,6 @@ scene.background = new THREE.Color(0xddddee)
 const urlParams = new URLSearchParams(window.location.search);
 const requestedLevelString = urlParams.get('level')
 const requestedLevel: LevelMetaData = levels[requestedLevelString || DEFAULT_LEVEL]
-logs.add(`ENTERED ROOM: ${requestedLevelString}`)
 
 new RGBELoader()
 	.load(requestedLevel.sky.toString(), function (texture) {
@@ -95,7 +94,7 @@ level.getWorldPositionFromTile(level.start, player.object.position);
 const cameraMovement = new CameraMovement(camera, player, level);
 const freeCamera = new FreeCamera(camera);
 
-const mp = new MultiplayerClient(seed, requestedLevel.name)
+const mp = new MultiplayerClient(seed, requestedLevel.name || DEFAULT_LEVEL)
 let playerIdToPlayerObj: Map<string, Mouse> = new Map<string, Mouse>();
 
 mp.onPlayerConnected((newPlayer: Player) => {

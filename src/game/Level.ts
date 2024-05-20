@@ -26,7 +26,29 @@ const ohio: LevelMetaData = {
     name: 'ohio',
     tileSize: 3,
     wallHeight: 3,
-    ascii: ohioAscii,
+    ascii: `
+l: lab
+---
+l                 
+#s#################
+                 #
+                 #
+                 #
+                 #
+                 #
+           #######
+           #######
+           #######
+           #######
+           #######
+           #######
+           #######
+           #######
+           #######
+           #######
+           #######
+           #######
+    `,
     sky: new URL('https://mush.network/files/sky/aerodynamics_workshop_1k.hdr'),
     topImage: "https://mush.network/files/textures/mc/grass.png",
     wallImage: "https://mush.network/files/textures/mc/grassdirt.png",
@@ -37,7 +59,26 @@ const lab: LevelMetaData = {
     name: 'lab',
     tileSize: 7,
     wallHeight: 7,
-    ascii: labAscii,
+    ascii: `
+o: ohio
+---
+
+##########          
+####     #          
+####  #  #          
+####  #  #          
+##### ####          
+######      
+#######      
+########     
+########o     
+#######s   
+###########
+########  ###
+########### #
+########    #          
+       ######       
+    `,
     sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr'),
     wallImage: "https://mush.network/files/textures/etc/plywood.png",
     floorImage: "https://mush.network/files/textures/etc/concrete.png",
@@ -46,7 +87,20 @@ const taiwan: LevelMetaData = {
     name: 'taiwan',
     tileSize: 3,
     wallHeight: 3,
-    ascii: taiwanAscii,
+    ascii: `
+o: ohio
+l: lab
+---
+       o       l  
+       #       #  
+       #       #  
+       #       #  
+       #########  
+           #      
+           #      
+           #      
+           s      
+    `,
     sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr'),
     topImage: "https://mush.network/files/textures/mc/grass.png",
     wallImage: "https://mush.network/files/textures/mc/grassdirt.png",
