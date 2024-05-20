@@ -1,16 +1,25 @@
 import { BufferGeometry } from "three";
 import { Float32BufferAttribute } from 'three';
 import { Vector3 } from 'three';
-import { Vector2 } from 'three';
 
+
+type TailGeometryParameters = {
+	radius?: number,
+	height?: number,
+	radialSegments?: number,
+	heightSegments?: number,
+	slopePercent?: number
+}
 
 class TailGeometry extends BufferGeometry {
+
+	parameters : TailGeometryParameters;
 
 	constructor( radius = 1, height = 1, radialSegments = 32, heightSegments = 1, slopePercent = 0.5) {
 
 		super();
 
-		this.type = 'TailGeometry';
+		//this.type = 'TailGeometry';
 
 		this.parameters = {
 			radius: radius,
@@ -27,15 +36,15 @@ class TailGeometry extends BufferGeometry {
 
 		// buffers
 
-		const indices = [];
-		const vertices = [];
-		const normals = [];
-		const uvs = [];
+		const indices : number[] = [];
+		const vertices : number[]  = [];
+		const normals : number[]  = [];
+		const uvs : number[]  = [];
 
 		// helper variables
 
 		let index = 0;
-		const indexArray = [];
+		const indexArray : number[][]  = [];
 		const halfHeight = height / 2;
 		let groupStart = 0;
 
@@ -147,7 +156,7 @@ class TailGeometry extends BufferGeometry {
 		}
 	}
 
-	static fromJSON( data ) {
+	static fromJSON( data : TailGeometryParameters ) {
 
 		return new TailGeometry( data.radius, data.height, data.radialSegments, data.heightSegments, data.slopePercent );
 

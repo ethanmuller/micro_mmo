@@ -1,16 +1,25 @@
 import { BufferGeometry } from "three";
 import { Float32BufferAttribute } from 'three';
 import { Vector3 } from 'three';
-import { Vector2 } from 'three';
 
+
+type MouseholeGeometryParameters = {
+    width?: number,
+    height?: number,
+    holeWidth?: number,
+    holeHeight?: number,
+    archDivisions?: number
+}
 
 class MouseholeGeometry extends BufferGeometry {
+
+    parameters : MouseholeGeometryParameters;
 
 	constructor( width = 1, height = 1, holeWidth = 0.5, holeHeight = 0.8, archDivisions = 8) {
 
 		super();
 
-		this.type = 'MouseholeGeometry';
+		//this.type = 'MouseholeGeometry'; // I can't update this
 
 		this.parameters = {
 			width: width,
@@ -22,14 +31,12 @@ class MouseholeGeometry extends BufferGeometry {
 
         archDivisions = Math.max(0, archDivisions);
 
-		const scope = this;
-
 		// buffers
 
-		const indices = [];
-		const vertices = [];
-		const normals = [];
-		const uvs = [];
+		const indices : number[] = [];
+		const vertices : number[] = [];
+		const normals : number[] = [];
+		const uvs : number[] = [];
 
 		// helper variables
 
@@ -58,7 +65,7 @@ class MouseholeGeometry extends BufferGeometry {
 
         const halfWidth = width * 0.5;
 
-        let addVertex = function(x,y, z = halfWidth, n = frontNormal, uv = "xy") {
+        let addVertex = function(x : number, y : number, z = halfWidth, n = frontNormal, uv = "xy") {
             vertices.push(x, y, z);
             normals.push(n.x, n.y, n.z);
             if (uv == "xy")
@@ -230,9 +237,9 @@ class MouseholeGeometry extends BufferGeometry {
 		this.setAttribute( 'uv', new Float32BufferAttribute( uvs, 2 ) );
 	}
 
-	static fromJSON( data ) {
+	static fromJSON( data : MouseholeGeometryParameters ) {
 
-		return new MouseholeGeometry( data.radius, data.height, data.holeWidth, data.holeHeight, data.archDivisions);
+		return new MouseholeGeometry( data.width, data.height, data.holeWidth, data.holeHeight, data.archDivisions);
 
 	}
 

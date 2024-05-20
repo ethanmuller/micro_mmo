@@ -3,10 +3,9 @@ import { Time } from "./Time";
 import { InputManager } from "./InputManager";
 import { Constants } from "./constants";
 import { Utils } from "./Utils";
-// @ts-ignore
-import { TailGeometry } from "./extensions/TailGeometry"
 import { Level } from "./Level";
 import { useSettingsStore } from "../stores/settings";
+import { TailGeometry } from "./extensions/TailGeometry";
 
 export type SerializedPlayerData = {
     position: Vector3,

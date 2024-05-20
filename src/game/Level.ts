@@ -2,7 +2,7 @@ import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, 
 import wallImage from "../assets/mc/grassdirt.png"
 import topImage from "../assets/mc/grass.png"
 import floorImage from "../assets/mc/dirt.png";
-import { MouseholeGeometry } from "./extensions/MouseholeGeometry"
+import { MouseholeGeometry } from "./extensions/MouseholeGeometry";
 
 export const DEFAULT_LEVEL: LevelName = 'lab'
 
