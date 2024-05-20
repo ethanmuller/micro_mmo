@@ -117,7 +117,7 @@ export class Level {
         // Create a geometry for the wall
         const wallGeometry = new BoxGeometry(this.tileSize, this.wallHeight, this.tileSize, 1, 1, 1);
 
-        const holeGeometry = new MouseholeGeometry(this.tileSize, this.wallHeight, this.tileSize * 0.4, 7 * 0.3);
+        const holeGeometry = new MouseholeGeometry(this.tileSize, this.wallHeight, 5 * 0.4, 7 * 0.3);
 
 
         // Create a mesh for the wall using the materials array
