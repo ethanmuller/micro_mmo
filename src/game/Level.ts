@@ -41,7 +41,6 @@ const lab: LevelMetaData = {
     wallImage: "https://mush.network/files/textures/etc/plywood.png",
     floorImage: "https://mush.network/files/textures/etc/concrete.png",
 }
-
 const taiwan: LevelMetaData = {
     name: 'taiwan',
     tileSize: 3,
