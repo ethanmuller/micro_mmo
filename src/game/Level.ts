@@ -24,8 +24,8 @@ type LevelName = 'ohio' | 'lab' | 'taiwan'
 
 const ohio: LevelMetaData = {
     name: 'ohio',
-    tileSize: 5,
-    wallHeight: 5,
+    tileSize: 3,
+    wallHeight: 3,
     ascii: ohioAscii,
     sky: new URL('https://mush.network/files/sky/aerodynamics_workshop_1k.hdr'),
     topImage: "https://mush.network/files/textures/mc/grass.png",
