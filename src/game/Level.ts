@@ -138,7 +138,7 @@ export class Level {
             for (let i = 0; i < this.levelData[j].length; ++i) {
                 if (this.levelData[j][i] != ' ') // if we have a floor
                 {
-                    if (this.levelData[j][i] != 'x' && this.levelData[j][i] != 's') { // considering any other character a potential hole to another level
+                    if (this.levelData[j][i] != '#' && this.levelData[j][i] != 's') { // considering any other character a potential hole to another level
                         let e = exit.clone();
                         e.position.set(i * this.tileSize, 0, j * this.tileSize);
                         

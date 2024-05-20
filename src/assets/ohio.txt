@@ -1,20 +1,20 @@
- 
-xxxxxxxxx
-xax x   x       
-xxxxxxx x       
-x x x x x       
-xxxxxxx x       
-x x x x x    x  
-xxxxsxx xxxxxxxxx
-     a          x
-           xxxxxx
-            xx 
-            xx 
-            x  
-            xx 
-            x  
-           xxx  
-           x                 
-           x exxxx           
-           x     x           
-           xxxxxxx           
+ o 
+##s######
+# # #   #       
+####### #       
+# # # # #       
+####### #       
+# # # # #    #  
+####### #########
+                #
+           ######
+            ## 
+            ## 
+            #  
+            ## 
+            #  
+           ###  
+           #                 
+           #  ####           
+           #     #           
+           #######           
