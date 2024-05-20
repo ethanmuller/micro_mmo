@@ -83,6 +83,13 @@ export class CameraMovement {
           this.camera.lookAt(player.object.position);
           this.camera.updateProjectionMatrix();
         }
+        if (settings.cameraMode === 'wholemap') {
+          this.camera.fov = 80
+          this.camera.position.copy(player.object.position);
+          this.camera.position.add(new Vector3(0, 90, 0))
+          this.camera.lookAt(player.object.position);
+          this.camera.updateProjectionMatrix();
+        }
         if (settings.cameraMode === 'security_cam_1') {
           this.camera.fov = 17 * window.innerHeight/window.innerWidth
           // this.camera.position.copy(player.object.position);
