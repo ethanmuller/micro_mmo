@@ -36,13 +36,17 @@ export class Level {
         this.tileSize = level.tileSize
         this.wallHeight = level.wallHeight
 
+        const splitAscii = level.ascii.split('\n---\n')
+        const hasFrontMatter = splitAscii.length > 1
+        const chars = splitAscii[hasFrontMatter ? 1 : 0]
+
         console.log("Loading level.. ");
-        console.log(level.ascii);
+        console.log(chars);
 
         let currentRow: string[] = [];
 
-        for (let s = 0; s < level.ascii.length; ++s) {
-            let v = level.ascii[s];
+        for (let s = 0; s < chars.length; ++s) {
+            let v = chars[s];
             if (v == '\r') continue;
             if (v == '\n') {
                 this.levelData.push(currentRow);
