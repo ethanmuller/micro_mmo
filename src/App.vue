@@ -137,7 +137,22 @@ player.onDoorEnterCallback = (d : string) => {
 
 const crumbs = useCrumbStore()
 
-window.setInterval(crumbs.see, 1000)
+function welcomeBack() {
+  const lastSeen = new Date(crumbs.lastSeen)
+  const now = new Date()
+  const msSinceLastSeen = now.getTime() - lastSeen.getTime()
+  logs.add(`${secondsMinutesHours(msSinceLastSeen)} since last clock in`)
+}
+
+let presenceTimer = window.setInterval(crumbs.see, 1000)
+
+window.addEventListener('blur', () => {
+  window.clearInterval(presenceTimer)
+})
+window.addEventListener('focus', () => {
+  welcomeBack()
+  presenceTimer = window.setInterval(crumbs.see, 1000)
+})
 
 function formatDecimalPlaces(num: number) {
   return (Math.round(num * 100) / 100).toFixed(2);
@@ -161,10 +176,7 @@ function secondsMinutesHours(ms: number): string {
 
 
 if (crumbs.lastSeen) {
-  const lastSeen = new Date(crumbs.lastSeen)
-  const now = new Date()
-  const msSinceLastSeen = now.getTime() - lastSeen.getTime()
-  logs.add(`${secondsMinutesHours(msSinceLastSeen)} since last clock in`)
+  welcomeBack()
 }
 
 const cameraMovement = new CameraMovement(camera, player, level);
