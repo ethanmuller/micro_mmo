@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 interface CrumbPouch {
     lastCrumb: Date,
 }
-export const useCrumbStore = defineStore('rtc', {
+export const useCrumbStore = defineStore('crumbs', {
   state: (): CrumbPouch => {
     const now = new Date()
     return {
@@ -12,7 +12,7 @@ export const useCrumbStore = defineStore('rtc', {
   getters: {
   },
   actions: {
-    getNugget() {
+    getCrumb() {
         const now = new Date()
         this.lastCrumb = now
     }
