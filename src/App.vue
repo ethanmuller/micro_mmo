@@ -164,7 +164,7 @@ if (crumbs.lastSeen) {
   const lastSeen = new Date(crumbs.lastSeen)
   const now = new Date()
   const msSinceLastSeen = now.getTime() - lastSeen.getTime()
-  logs.add(`it has been ${secondsMinutesHours(msSinceLastSeen)} since you last clocked in`)
+  logs.add(`${secondsMinutesHours(msSinceLastSeen)} since last clock in`)
 }
 
 const cameraMovement = new CameraMovement(camera, player, level);
