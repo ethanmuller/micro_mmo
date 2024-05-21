@@ -9,7 +9,7 @@ import { FreeCamera } from './game/FreeCamera';
 import { Player } from './server/MultiplayerTypes'
 import { DEFAULT_LEVEL, Level, LevelMetaData, levels } from './game/Level';
 import { useSettingsStore, cameraModes, sessionStore } from "./stores/settings";
-import { useCrumbStore } from "./stores/crumb";
+import { useSeedStore } from "./stores/seed.ts";
 import { useLogStore } from "./stores/logs";
 
 import toonTexture from "./assets/threeTone_bright.jpg";
@@ -24,9 +24,6 @@ import * as TWEEN from '@tweenjs/tween.js';
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
 
-const crumbPouch = useCrumbStore()
-
-console.log(new Date(crumbPouch.lastCrumb).toTimeString())
 
 const gamecanvas = ref<HTMLDivElement>();
 const trackballEl = ref<HTMLDivElement>();
@@ -95,9 +92,15 @@ const skinList: Array<MouseSkin> = [
 	{ skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0xc29e7c }, // cardboard brown
 	{ skinColor: 0xcc8888, eyeColor: 0x000000, furColor: 0x646464 }, // classic gray
 ]
-const seed = getRandomInt(skinList.length - 1)
 let loadingNewLevel = false;
-const player = new Mouse(scene, toonRamp, skinList[seed]);
+
+const seedStore = useSeedStore()
+
+if (!seedStore.seed) {
+  seedStore.generateSeed(skinList.length - 1)
+}
+
+const player = new Mouse(scene, toonRamp, skinList[seedStore.seed || 0]);
 let circleFadeTween : TWEEN.Tween<{value: number}>;
 player.onDoorEnterCallback = (d : string) => {
 	circleFade.uniforms.fadeOut.value = 0;
@@ -135,7 +138,7 @@ player.onDoorEnterCallback = (d : string) => {
 const cameraMovement = new CameraMovement(camera, player, level);
 const freeCamera = new FreeCamera(camera);
 
-const mp = new MultiplayerClient(seed, requestedLevel.name || DEFAULT_LEVEL)
+const mp = new MultiplayerClient(seedStore.seed || 0, requestedLevel.name || DEFAULT_LEVEL)
 let playerIdToPlayerObj: Map<string, Mouse> = new Map<string, Mouse>();
 
 mp.onPlayerConnected((newPlayer: Player) => {
@@ -182,10 +185,6 @@ var gameTime = <Time>({
 
 let lastTickTime = new Date().getTime();
 let input: InputManager
-
-function getRandomInt(max: number) {
-	return Math.floor(Math.random() * Math.floor(max + 1));
-}
 
 let axesHelperV2 = new THREE.Vector2();
 function mainLoop(reportedTime : number) {
@@ -268,7 +267,7 @@ onMounted(() => {
 	if (gamecanvas.value) {
 		gamecanvas.value.appendChild(renderer.domElement);
 		onWindowResize();
-		mainLoop();
+		mainLoop(0);
 	}
 });
 
