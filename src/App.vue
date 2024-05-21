@@ -9,6 +9,7 @@ import { FreeCamera } from './game/FreeCamera';
 import { Player } from './server/MultiplayerTypes'
 import { DEFAULT_LEVEL, Level, LevelMetaData, levels } from './game/Level';
 import { useSettingsStore, cameraModes, sessionStore } from "./stores/settings";
+import { useCrumbStore } from "./stores/crumb.ts";
 import { useSeedStore } from "./stores/seed.ts";
 import { useLogStore } from "./stores/logs";
 
@@ -31,7 +32,6 @@ const host = ref<string>();
 const settingsPanelOpen = ref<boolean>(false);
 
 const qrCodeBigger = ref<boolean>(false);
-
 const settings = useSettingsStore()
 const logs = useLogStore()
 
@@ -133,6 +133,38 @@ player.onDoorEnterCallback = (d : string) => {
 		level.getWorldPositionFromTile(level.start, player.object.position);
 
 	sessionInfo.previousRoom = levelName;
+}
+
+const crumbs = useCrumbStore()
+
+window.setInterval(crumbs.see, 1000)
+
+function formatDecimalPlaces(num: number) {
+  return (Math.round(num * 100) / 100).toFixed(2);
+}
+
+function secondsMinutesHours(ms: number): string {
+  // given a number of milliseconds, return it in terms of seconds, minutes, or hours
+  const seconds = ms/1000
+  const minutes = seconds/60
+  const hours = minutes/60
+
+
+  if (minutes > 60) {
+    return `${formatDecimalPlaces(hours)} hours`
+  } else if (seconds > 60) {
+    return `${formatDecimalPlaces(minutes)} minutes`
+  }
+
+  return `${seconds} seconds`
+}
+
+
+if (crumbs.lastSeen) {
+  const lastSeen = new Date(crumbs.lastSeen)
+  const now = new Date()
+  const msSinceLastSeen = now.getTime() - lastSeen.getTime()
+  logs.add(`it has been ${secondsMinutesHours(msSinceLastSeen)} since you last clocked in`)
 }
 
 const cameraMovement = new CameraMovement(camera, player, level);

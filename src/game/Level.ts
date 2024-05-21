@@ -6,9 +6,14 @@ type LowercaseAlpha = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' 
 type DoorChar = LowercaseAlpha
 type CharToDoor = Map<DoorChar, string>
 
+type UppercaseAlpha = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z';
+type ButtonChar = UppercaseAlpha
+type CharToButton = Map<ButtonChar, Function>
+
 export interface LevelMetaData {
     name: LevelName,
     doors: CharToDoor,
+    buttons?: CharToButton,
     tileSize: number,
     wallHeight: number,
     sky: URL,
@@ -22,6 +27,9 @@ export const DEFAULT_LEVEL: LevelName = 'lab'
 
 type LevelName = 'ohio' | 'lab' | 'taiwan'
 
+function dispenseCrumb() {
+  console.log('dispensing crumb')
+}
 
 const ohio: LevelMetaData = {
     name: 'ohio',
@@ -30,7 +38,7 @@ const ohio: LevelMetaData = {
     doors: new Map([['l', 'lab'], ['t', 'taiwan']]),
     ascii: `
 l                 
-#s#################
+#@#################
                   #
                   #
                   #
@@ -69,7 +77,7 @@ const lab: LevelMetaData = {
 ###### t     
 ########     
 ########o     
-#######s   
+#######@   
 ###########
 ########  ###
 ########### #
@@ -98,7 +106,7 @@ const taiwan: LevelMetaData = {
            #      
            #      
            #      
-           s      
+           @      
     `,
     sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr'),
     topImage: "https://mush.network/files/textures/mc/grass.png",
@@ -146,7 +154,7 @@ export class Level {
             currentRow.push(v);
             this.columns = Math.max(this.columns, currentRow.length);
 
-            if (v == 's') { // Start
+            if (v == '@') { // Start
                 this.start.set(currentRow.length - 1, this.levelData.length);
             }
             else {
@@ -237,7 +245,7 @@ export class Level {
             for (let i = 0; i < this.levelData[j].length; ++i) {
                 if (this.levelData[j][i] != ' ') // if we have a floor
                 {
-                    if (this.levelData[j][i] != '#' && this.levelData[j][i] != 's') { // considering any other character a potential hole to another level
+                    if (this.levelData[j][i].match(/[a-z]/)) { // considering any other character a potential hole to another level
                         let e = exit.clone();
                         e.position.set(i * this.tileSize, 0, j * this.tileSize);
 
