@@ -15,8 +15,9 @@ import { useLogStore } from "./stores/logs";
 import toonTexture from "./assets/threeTone_bright.jpg";
 import { NearestFilter } from 'three';
 import QrcodeVue from 'qrcode.vue'
-import { RGBELoader } from 'three/examples/jsm/Addons.js';
+import { EffectComposer, RenderPass, RGBELoader, ShaderPass } from 'three/examples/jsm/Addons.js';
 import { CameraMovement } from './game/CameraMovement';
+import { CircleTransitionShader } from './game/shaders/CircleTransitionShader';
 
 
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
@@ -40,14 +41,19 @@ logs.add('ESTABLISHING ENCRYPTED CONNECTION...OK')
 
 const camera = new THREE.PerspectiveCamera(110, 1, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
-renderer.setSize(256, 256);
-renderer.setPixelRatio(2)
+const scene = new THREE.Scene();
+const composer = new EffectComposer(renderer);
+composer.setPixelRatio(window.devicePixelRatio);
+composer.setSize(256, 256);
+composer.addPass(new RenderPass(scene, camera));
+const circleFade = new ShaderPass(CircleTransitionShader);
+composer.addPass(circleFade);
+
 THREE.ColorManagement.enabled = true
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.outputColorSpace = THREE.SRGBColorSpace
 
-const scene = new THREE.Scene();
 
 scene.background = new THREE.Color(0xddddee)
 
@@ -195,7 +201,10 @@ function mainLoop() {
 	}
 
 	// draw
-	renderer.render(scene, camera);
+	//circleFade.uniforms.fadeOut.value = (Math.sin(gameTime.time) + 1) / 2;
+	
+	circleFade.enabled = circleFade.uniforms.fadeOut.value > 0;
+	composer.render();
 
 	// send info to the server if it's time
 	if (gameTime.time - lastNetworkUpdate > NETWORK_TIME_BETWEEN_UPDATES) {
@@ -230,13 +239,20 @@ onBeforeUnmount(() => {
 function onWindowResize(): void {
 	const minFov = 80
 	const maxFov = 100
-	const fov = Math.max(Math.min(window.innerHeight / window.innerWidth * 90, maxFov), minFov)
-	renderer.setSize(window.innerWidth, window.innerHeight);
+	const width = window.innerWidth;
+	const height = window.innerHeight;
+	const ar = width / height;
+	const fov = Math.max(Math.min(90 / ar, maxFov), minFov)
 	camera.fov = fov
-	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.aspect = ar;
 	camera.updateProjectionMatrix();
-	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setSize(width, height)
 	renderer.setPixelRatio(window.devicePixelRatio);
+	composer.setSize(width, height);
+	composer.setPixelRatio(window.devicePixelRatio);
+
+	circleFade.uniforms.aspectRatio.value = ar;
+	circleFade.uniforms.halfHeightRelativeRadius.value = Math.sqrt(width * width + height * height)/height/2;
 }
 
 addEventListener("resize", onWindowResize, false);
