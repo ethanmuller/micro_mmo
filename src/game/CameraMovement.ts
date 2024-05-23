@@ -119,7 +119,7 @@ export class CameraMovement {
                 else {
                     this.currentTile.copy(this.currentPlayerTile).add(this.cameraDeltaTile);
 
-                    if (!level.isTileWalkable(this.currentTile.x, this.currentTile.y)) {
+                    if (!level.isTileWalkable(this.currentTile.x, this.currentTile.y, true)) {
 
                         let foundCurrentTile = false;
                         if (walkingIntoCamera) {
@@ -129,7 +129,7 @@ export class CameraMovement {
                                 if (d.x != -this.cameraDeltaTile.x || d.y != -this.cameraDeltaTile.y) {   // Only consider tiles that don't force the camera over the player first
                                     this.currentTile.copy(this.currentPlayerTile).add(d);
 
-                                    if (level.isTileWalkable(this.currentTile.x, this.currentTile.y)) {
+                                    if (level.isTileAccessibleV(this.currentPlayerTile, this.currentTile, true)) {
                                         level.getWorldPositionFromTile(this.currentTile, this.wallPosition);
 
                                         let deltaPos = this.wallPosition.sub(player.object.position);
@@ -150,7 +150,7 @@ export class CameraMovement {
                         if (!foundCurrentTile) {
                             this.currentTile.copy(this.previousPlayerTile); // the best bet is just use the previous player tile
 
-                            if (!level.isTileWalkable(this.currentTile.x, this.currentTile.y)) // shouldn't happen, but just in case
+                            if (!level.isTileWalkable(this.currentTile.x, this.currentTile.y, true)) // shouldn't happen, but just in case
                             {
                                 CARDINAL.forEach((d) => {
                                     if (foundCurrentTile)
@@ -158,7 +158,7 @@ export class CameraMovement {
 
                                     this.currentTile.copy(this.currentPlayerTile).add(d);
 
-                                    if (level.isTileWalkable(this.currentTile.x, this.currentTile.y))
+                                    if (level.isTileWalkable(this.currentTile.x, this.currentTile.y, true))
                                         foundCurrentTile = true;
                                 });
                             }
@@ -195,7 +195,7 @@ export class CameraMovement {
             CARDINAL.forEach(d => {
                 let t = scope.wallTileCheck.copy(scope.wallTileActual).add(d);
 
-                if (!level.isTileWalkable(t.x, t.y)) {
+                if (!level.isTileAccessibleV(scope.wallTileActual, t, true)) {
                     let p = level.getWorldPositionFromTile(t, scope.wallPosition);
                     if (d.x < 0)
                         scope.clampedPlayerPosition.x = Math.max(scope.clampedPlayerPosition.x, p.x + level.tileSize * 0.5 + scope.distanceFromWall);
@@ -214,7 +214,7 @@ export class CameraMovement {
                 if (hitCorner) return;
                 let t = scope.wallTileActual;
 
-                if (level.isTileWalkable(t.x + d.x, t.y + 0) && level.isTileWalkable(t.x + 0, t.y + d.y) && !level.isTileWalkable(t.x + d.x, t.y + d.y)) {
+                if (level.isTileWalkable(t.x + d.x, t.y + 0, true) && level.isTileWalkable(t.x + 0, t.y + d.y, true) && !level.isTileWalkable(t.x + d.x, t.y + d.y, true)) {
                     // take diagonal corner into account
                     let cornerPosition = level.getWorldPositionFromTile(t, scope.wallPosition);
                     cornerPosition.x += d.x * level.tileSize * 0.5;

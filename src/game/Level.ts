@@ -124,6 +124,7 @@ export class Level {
 
     // this TS weirdness lets us index by string
     doors: { [index: string]: any };
+    doorTiles: Map<string, Vector2> = new Map<string, Vector2>();
 
     constructor(level: LevelMetaData, toonRamp: Texture) {
         this.tileSize = level.tileSize
@@ -147,6 +148,9 @@ export class Level {
 
             if (v == 's') { // Start
                 this.start.set(currentRow.length - 1, this.levelData.length);
+            }
+            else if (this.doors.get(v) !== undefined) {
+                this.doorTiles.set(this.doors.get(v), new Vector2(currentRow.length - 1, this.levelData.length))
             }
         }
         this.levelData.push(currentRow);
@@ -279,12 +283,50 @@ export class Level {
         this.object.updateMatrixWorld(true);
     }
 
-    isTileWalkable(i: number, j: number) {
-        return i >= 0 && j >= 0 && j < this.levelData.length && i < this.levelData[j].length && this.levelData[j][i] != ' ';
+    isTileWalkable(i: number | Vector2, j?: number, isCamera : boolean = false) : boolean {
+        if (typeof i  === "number") {
+            if (j === undefined)
+                return false;
+            return i >= 0 && j >= 0 && j < this.levelData.length && i < this.levelData[j].length && 
+                (   (!isCamera && this.levelData[j][i] != ' ')
+                    || (isCamera && (this.levelData[j][i] == '#' || this.levelData[j][i] == 's')));
+        }
+        else {
+            return this.isTileWalkable(i.x, i.y, isCamera);
+        }
+    }
+
+    isTileAccessibleV(from: Vector2, to: Vector2, isCamera : boolean = false) : boolean
+    {
+        return this.isTileAccessible(from.x, from.y, to.x, to.y, isCamera);
+    }
+
+    // This function tries to check for straight accessibility: it does not pathfind, it just checks straight & diagonal path
+    isTileAccessible(fromX : number, fromY : number, toX : number, toY : number, isCamera : boolean = false) : boolean
+    {
+        if (!this.isTileWalkable(toX, toY, isCamera))
+            return false;
+        if (fromX == toX && fromY == toY)
+            return true;
+        let signX = Math.sign(toX - fromX);
+        let signY = Math.sign(toY - fromY);
+        if (signX == 0 || signY == 0)
+            return this.isTileAccessible(fromX + signX, fromY + signY, toX, toY, isCamera);
+        else {
+            return this.isTileAccessible(fromX + signX, fromY, toX, toY, isCamera)
+                || this.isTileAccessible(fromX, fromY + signY, toX, toY,isCamera);
+        }
     }
 
     isCharDoor(c: string): boolean {
         return !!this.doors.get(c)
+    }
+
+    getDoorTile(d: string) : Vector2 {
+        let t = this.doorTiles.get(d);
+        if (t !== undefined)
+            return t;
+        else return this.start;
     }
 
     getCharAtTilePosition(i: number, j: number): string {
@@ -315,7 +357,7 @@ export class Level {
         CARDINAL.forEach(v => {
             let tileX = tile.x + v.x;
             let tileY = tile.y + v.y;
-            if (!this.isTileWalkable(tileX, tileY)) {
+            if (!this.isTileAccessible(tile.x, tile.y, tileX, tileY)) {
                 let tileCenterX = tileX * this.tileSize;
                 let tileCenterZ = tileY * this.tileSize;
                 if (v.x > 0 && p.x + r > tileCenterX - halfTileSize) {
@@ -343,7 +385,7 @@ export class Level {
         DIAGONAL.forEach(v => {
             let tileX = tile.x + v.x;
             let tileY = tile.y + v.y;
-            if (!this.isTileWalkable(tileX, tileY)) {
+            if (!this.isTileAccessible(tile.x, tile.y, tileX, tileY)) {
                 let closestCornerX = tileX * this.tileSize - v.x * halfTileSize;
                 let closestCornerZ = tileY * this.tileSize - v.y * halfTileSize;
 
