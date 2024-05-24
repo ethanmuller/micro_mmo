@@ -27,7 +27,7 @@ const ohio: LevelMetaData = {
     name: 'ohio',
     tileSize: 3,
     wallHeight: 3,
-    doors: new Map([['l', 'lab']]),
+    doors: new Map([['l', 'lab'], ['t', 'taiwan']]),
     ascii: `
 l                 
 #s#################
@@ -35,7 +35,7 @@ l
                   #
                   #
                   #
-                  #
+               t  #
             #######
             #######
             #######
@@ -66,7 +66,7 @@ const lab: LevelMetaData = {
 ####  #  #          
 ##### ####          
 ######      
-#######      
+###### t     
 ########     
 ########o     
 #######s   
@@ -76,7 +76,7 @@ const lab: LevelMetaData = {
 ########    #          
        ######       
     `,
-    doors: new Map([['o', 'ohio']]),
+    doors: new Map([['o', 'ohio'], ['t', 'taiwan']]),
     sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr'),
     wallImage: "https://mush.network/files/textures/etc/plywood.png",
     floorImage: "https://mush.network/files/textures/etc/concrete.png",
@@ -121,6 +121,7 @@ export class Level {
     columns = 0;
     tileSize: number;
     wallHeight: number;
+    mouseholeWidth: number;
 
     // this TS weirdness lets us index by string
     doors: { [index: string]: any };
@@ -196,7 +197,8 @@ export class Level {
         // Create a geometry for the wall
         const wallGeometry = new BoxGeometry(this.tileSize, this.wallHeight, this.tileSize, 1, 1, 1);
 
-        const holeGeometry = new MouseholeGeometry(this.tileSize, this.wallHeight, 5 * 0.4, 7 * 0.3);
+        this.mouseholeWidth = 2;
+        const holeGeometry = new MouseholeGeometry(this.tileSize, this.wallHeight, this.mouseholeWidth, 7 * 0.3);
 
 
         // Create a mesh for the wall using the materials array
@@ -288,8 +290,7 @@ export class Level {
             if (j === undefined)
                 return false;
             return i >= 0 && j >= 0 && j < this.levelData.length && i < this.levelData[j].length && 
-                (   (!isCamera && this.levelData[j][i] != ' ')
-                    || (isCamera && (this.levelData[j][i] == '#' || this.levelData[j][i] == 's')));
+                (this.levelData[j][i] != ' ' && (!isCamera || !this.isCharDoor(this.levelData[j][i])));
         }
         else {
             return this.isTileWalkable(i.x, i.y, isCamera);
@@ -316,6 +317,10 @@ export class Level {
             return this.isTileAccessible(fromX + signX, fromY, toX, toY, isCamera)
                 || this.isTileAccessible(fromX, fromY + signY, toX, toY,isCamera);
         }
+    }
+
+    isTileDoor(x: number, y: number) {
+        return this.isCharDoor(this.getCharAtTilePosition(x,y));
     }
 
     isCharDoor(c: string): boolean {
@@ -345,7 +350,13 @@ export class Level {
 
     collisionV2 = new Vector2();
     collisionV22 = new Vector2();
-    collideCircle(p: Vector3, r: number): boolean {   // PRECONDITION: r < this.tileSize
+    collideCircle(p: Vector3, r: number): boolean
+    {   // PRECONDITION: r < this.tileSize * 0.5, r < this.mouseholeWidth * 0.5
+        if (r >= this.tileSize * 0.5 || r >= this.mouseholeWidth * 0.5)
+        {
+            console.warn(`trying to collide a circle with a radius, r = ${r}, that is too big! results of collision uncertain!, ensure that r < ${this.tileSize * 0.5}, r < ${this.mouseholeWidth * 0.5}`);
+        }
+
         let tile = this.getTileFromWorldPosition(p, this.collisionV2);
 
         if (!this.isTileWalkable(tile.x, tile.y)) {
@@ -354,6 +365,10 @@ export class Level {
 
         let halfTileSize = this.tileSize * 0.5;
         let collided = false;
+
+        let r2 = r * r;
+        let deltaPos = this.collisionV22;
+
         CARDINAL.forEach(v => {
             let tileX = tile.x + v.x;
             let tileY = tile.y + v.y;
@@ -375,13 +390,69 @@ export class Level {
                 else if (v.y < 0 && p.z - r < tileCenterZ + halfTileSize) {
                     p.z = tileCenterZ + halfTileSize + r;
                     collided = true;
-                    //console.log(`collided with tile (${tileX}, ${tileY})`);
+                }
+            }
+            else if (this.isTileDoor(tileX, tileY))
+            {
+                let currentTileCenterX = tile.x * this.tileSize;
+                let currentTileCenterZ = tile.y * this.tileSize;
+                let deltaCenterX = p.x - currentTileCenterX;
+                let deltaCenterZ = p.z - currentTileCenterZ;
+                let currentTileCornerDirectionX = Math.sign(deltaCenterX);
+                let currentTileCornerDirectionZ = Math.sign(deltaCenterZ);
+
+                let closestCornerX = 0;
+                let closestCornerZ = 0;
+                let checkCorner = false;
+                const halfHole = this.mouseholeWidth * 0.5;
+                if (v.x != 0 && v.x == currentTileCornerDirectionX) {
+                    if (Math.abs(deltaCenterZ) >= halfHole) {
+                        if (v.x > 0 && p.x + r > currentTileCenterX + halfTileSize) {
+                            p.x = currentTileCenterX + halfTileSize - r;
+                            collided = true;
+                        }
+                        else if (v.x < 0 && p.x - r < currentTileCenterX - halfTileSize) {
+                            p.x = currentTileCenterX - halfTileSize + r;
+                            collided = true;
+                        }
+                    }
+                    else {
+                        closestCornerX = tileX * this.tileSize - v.x * halfTileSize;
+                        closestCornerZ = tileY * this.tileSize + currentTileCornerDirectionZ * halfHole;
+                        checkCorner = true;
+                    }
+                }
+                else if (v.y != 0 && v.y == currentTileCornerDirectionZ) {
+                    if (Math.abs(deltaCenterX) >= halfHole) {
+                        if (v.y > 0 && p.z + r > currentTileCenterZ + halfTileSize) {
+                            p.z = currentTileCenterZ + halfTileSize - r;
+                            collided = true;
+                        }
+                        else if (v.y < 0 && p.z - r < currentTileCenterZ - halfTileSize) {
+                            p.z = currentTileCenterZ - halfTileSize + r;
+                            collided = true;
+                        }
+                    }
+                    else {
+                        closestCornerZ = tileY * this.tileSize - v.y * halfTileSize;
+                        closestCornerX = tileX * this.tileSize + currentTileCornerDirectionX * halfHole;
+                        checkCorner = true;
+                    }
+                }
+
+                if (checkCorner) {
+                    deltaPos.set(p.x - closestCornerX, p.z - closestCornerZ);
+                    if (deltaPos.lengthSq() < r2) {
+                        collided = true;
+
+                        deltaPos.normalize().multiplyScalar(r);
+                        p.x = closestCornerX + deltaPos.x;
+                        p.z = closestCornerZ + deltaPos.y;
+                    }
                 }
             }
         });
 
-        let r2 = r * r;
-        let deltaPos = this.collisionV22;
         DIAGONAL.forEach(v => {
             let tileX = tile.x + v.x;
             let tileY = tile.y + v.y;
