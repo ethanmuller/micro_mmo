@@ -103,6 +103,9 @@ export class Mouse {
     backLeftFootId = 3;
 
     leaving = false
+    entering = false
+    enteringDoorChar = ''
+    onDoorEnterCallback : ((d: string) => void) | undefined;
 
     private var = { // just random vectors and quaternions for use during update operations
         q1: new Quaternion(),
@@ -111,6 +114,7 @@ export class Mouse {
         v2: new Vector3(),
         v3: new Vector3(),
         v4: new Vector3(),
+        v2_1: new Vector2(),
     }
 
     private smoothing = {
@@ -126,7 +130,6 @@ export class Mouse {
         this.debugSphere = new Mesh(new SphereGeometry(this.radius, 12, 12), new MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.3 }));
         this.debugSphere.position.y += this.radius;
         this.debugSphere.visible = false;
-
 
         this.material = new MeshToonMaterial({ color: skin.furColor, gradientMap: toonRamp });
         this.noseMaterial = new MeshBasicMaterial({ color: skin.noseColor ? skin.noseColor : skin.skinColor });
@@ -338,13 +341,27 @@ export class Mouse {
 
     update(time: Time, level: Level, input?: InputManager, camera?: Object3D, otherMice?: Map<string, Mouse>) {
         // putting this in update feels wrong, but if this only happens in the constructor, setting will not be updated unless page refreshes, so maybe it does belong here? I dunno.
-        const settings = useSettingsStore()
-
-        if (this.leaving) return
+        const settings = useSettingsStore()        
 
         let positionBefore = this.previousFramePosition.copy(this.object.position);
 
         if (input && camera) { // Local players
+            if (this.leaving) {
+                // TODO animate movement into door
+    
+                {
+                    this.leaving = false;
+    
+                    if (this.onDoorEnterCallback !== undefined)
+                        this.onDoorEnterCallback(this.enteringDoorChar);
+                    return;
+                }
+            }
+            if (this.entering) {
+                // TODO animate movement out of door
+                this.entering = false;
+            }
+
             if (input.fingerDown) {
                 let cameraQuaterinion = camera.getWorldQuaternion(this.var.q1);
                 this.velocity.set(0, 0, 0);
@@ -385,13 +402,16 @@ export class Mouse {
                 this.debugSphere.visible = !this.debugSphere.visible;
             }
 
-            const tileCoords = level.getTileFromWorldPosition(this.object.position, new Vector2())
-            const t = level.getCharAtTilePosition(tileCoords.x, tileCoords.y)
-            if (level.isCharDoor(t)) {
-              this.leaving = true
-              const u = new URL(window.location.toString())
-              u.searchParams.set('level', level.doors.get(t))
-              window.location.href = u.toString()
+            if (input && !this.leaving && !this.entering) {
+                const tileCoords = level.getTileFromWorldPosition(this.object.position, this.var.v2_1)
+                const d = level.getCharAtTilePosition(tileCoords.x, tileCoords.y)
+                if (level.isCharDoor(d)) {
+                    if (this.enteringDoorChar != d) {
+                        this.leaving = true
+                        this.enteringDoorChar = d
+                    }
+                }
+                else this.enteringDoorChar = ''
             }
         }
 
@@ -700,6 +720,11 @@ export class Mouse {
         this.smoothing.lerping = true;
         this.velocity.copy(data.velocity);
         //console.log(`timeSinceItWasSent (seconds): ${timeSinceItWasSent}`);
+    }
+
+    animateOutOfDoor(d : string) {
+        this.enteringDoorChar = d;
+        this.entering = true;
     }
 
     dispose() {

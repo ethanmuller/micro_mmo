@@ -123,8 +123,7 @@ export class Level {
     wallHeight: number;
     mouseholeWidth: number;
 
-    // this TS weirdness lets us index by string
-    doors: { [index: string]: any };
+    doors: Map<string, string>;
     doorTiles: Map<string, Vector2> = new Map<string, Vector2>();
 
     constructor(level: LevelMetaData, toonRamp: Texture) {
@@ -150,8 +149,10 @@ export class Level {
             if (v == 's') { // Start
                 this.start.set(currentRow.length - 1, this.levelData.length);
             }
-            else if (this.doors.get(v) !== undefined) {
-                this.doorTiles.set(this.doors.get(v), new Vector2(currentRow.length - 1, this.levelData.length))
+            else {
+                let d = this.doors.get(v);
+                if (d !== undefined)
+                    this.doorTiles.set(d, new Vector2(currentRow.length - 1, this.levelData.length))
             }
         }
         this.levelData.push(currentRow);
@@ -325,6 +326,23 @@ export class Level {
 
     isCharDoor(c: string): boolean {
         return !!this.doors.get(c)
+    }
+
+    getDoorChar(fullName: string) {
+        let d = '';
+        for (let [k,v] of this.doors) {
+            if (v == fullName) {
+                d = k;
+            }
+        }
+        return d;
+    }
+
+    getDoorName(d: string) : string { // this function exists just to get rid of undefined from .get(d)
+        let t = this.doors.get(d);
+        if (t !== undefined)
+            return t;
+        else return "";
     }
 
     getDoorTile(d: string) : Vector2 {

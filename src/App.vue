@@ -8,7 +8,7 @@ import { InputManager } from './game/InputManager';
 import { FreeCamera } from './game/FreeCamera';
 import { Player } from './server/MultiplayerTypes'
 import { DEFAULT_LEVEL, Level, LevelMetaData, levels } from './game/Level';
-import { useSettingsStore, cameraModes } from "./stores/settings";
+import { useSettingsStore, cameraModes, sessionStore } from "./stores/settings";
 import { useCrumbStore } from "./stores/crumb";
 import { useLogStore } from "./stores/logs";
 
@@ -59,7 +59,8 @@ scene.background = new THREE.Color(0xddddee)
 
 const urlParams = new URLSearchParams(window.location.search);
 const requestedLevelString = urlParams.get('level')
-const requestedLevel: LevelMetaData = levels[requestedLevelString || DEFAULT_LEVEL]
+const levelName = requestedLevelString || DEFAULT_LEVEL;
+const requestedLevel: LevelMetaData = levels[levelName]
 
 new RGBELoader()
 	.load(requestedLevel.sky.toString(), function (texture) {
@@ -94,8 +95,35 @@ const skinList: Array<MouseSkin> = [
 	{ skinColor: 0xcc8888, eyeColor: 0x000000, furColor: 0x646464 }, // classic gray
 ]
 const seed = getRandomInt(skinList.length - 1)
+let loadingNewLevel = false;
 const player = new Mouse(scene, toonRamp, skinList[seed]);
-level.getWorldPositionFromTile(level.start, player.object.position);
+player.onDoorEnterCallback = (d : string) => {
+	const u = new URL(window.location.toString())
+	let newLevelName = level.getDoorName(d);
+	u.searchParams.set('level', newLevelName)
+	window.location.href = u.toString();
+	loadingNewLevel = true;
+	console.log(`loading level ${newLevelName}`);
+}
+
+{	// Level entry and animation
+	const sessionInfo = sessionStore();
+	let foundEntryPoint = false;
+	if (sessionInfo.previousRoom != "") {
+		if (level.getDoorChar(sessionInfo.previousRoom) != '') {
+			console.log(`coming from level ${sessionInfo.previousRoom}`);
+			foundEntryPoint = true;
+			let dt = level.getDoorTile(sessionInfo.previousRoom);
+			level.getWorldPositionFromTile(dt, player.object.position);
+
+			player.animateOutOfDoor(level.getDoorChar(sessionInfo.previousRoom));
+		}
+	}
+	if (!foundEntryPoint)
+		level.getWorldPositionFromTile(level.start, player.object.position);
+
+	sessionInfo.previousRoom = levelName;
+}
 
 const cameraMovement = new CameraMovement(camera, player, level);
 const freeCamera = new FreeCamera(camera);
@@ -215,7 +243,8 @@ function mainLoop() {
 
 	input.update();
 	//
-	requestAnimationFrame(mainLoop);
+	if (!loadingNewLevel)
+		requestAnimationFrame(mainLoop);
 }
 
 onMounted(() => {

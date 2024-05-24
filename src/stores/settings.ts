@@ -23,3 +23,20 @@ export const useSettingsStore = defineStore('settings', {
   },
   persist: true,
 })
+
+interface Session {
+  previousRoom: string,
+}
+
+export const sessionStore = defineStore('session', {
+  state: (): Session => {
+    return {
+      previousRoom: "",
+    }
+  },
+  getters: {
+  },
+  actions: {
+  },
+  persist: true,
+})
