@@ -18,6 +18,7 @@ import QrcodeVue from 'qrcode.vue'
 import { EffectComposer, RenderPass, RGBELoader, ShaderPass } from 'three/examples/jsm/Addons.js';
 import { CameraMovement } from './game/CameraMovement';
 import { CircleTransitionShader } from './game/shaders/CircleTransitionShader';
+import * as TWEEN from '@tweenjs/tween.js';
 
 
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
@@ -97,19 +98,23 @@ const skinList: Array<MouseSkin> = [
 const seed = getRandomInt(skinList.length - 1)
 let loadingNewLevel = false;
 const player = new Mouse(scene, toonRamp, skinList[seed]);
+let circleFadeTween : TWEEN.Tween<{value: number}>;
 player.onDoorEnterCallback = (d : string) => {
-	const u = new URL(window.location.toString())
-	let newLevelName = level.getDoorName(d);
-	u.searchParams.set('level', newLevelName)
-	window.location.href = u.toString();
-	loadingNewLevel = true;
-	console.log(`loading level ${newLevelName}`);
+	circleFade.uniforms.fadeOut.value = 0;
+	circleFadeTween = new TWEEN.Tween(circleFade.uniforms.fadeOut).to({value: 1}, 1000).onComplete(() => {
+		const u = new URL(window.location.toString())
+		let newLevelName = level.getDoorName(d);
+		u.searchParams.set('level', newLevelName)
+		window.location.href = u.toString();
+		loadingNewLevel = true;
+		console.log(`loading level ${newLevelName}...`);
+	}).start()
 }
 
 {	// Level entry and animation
 	const sessionInfo = sessionStore();
 	let foundEntryPoint = false;
-	if (sessionInfo.previousRoom != "") {
+	if (sessionInfo.previousRoom != null && sessionInfo.previousRoom != "") {
 		if (level.getDoorChar(sessionInfo.previousRoom) != '') {
 			console.log(`coming from level ${sessionInfo.previousRoom}`);
 			foundEntryPoint = true;
@@ -117,6 +122,8 @@ player.onDoorEnterCallback = (d : string) => {
 			level.getWorldPositionFromTile(dt, player.object.position);
 
 			player.animateOutOfDoor(level.getDoorChar(sessionInfo.previousRoom));
+			circleFade.uniforms.fadeOut.value = 1;
+			circleFadeTween = new TWEEN.Tween(circleFade.uniforms.fadeOut).to({value: 0}, 1000).start();
 		}
 	}
 	if (!foundEntryPoint)
@@ -166,8 +173,10 @@ let axesHelper = new THREE.AxesHelper();
 //scene.add(axesHelper);
 
 var gameTime = <Time>({
+	deltaTimeMs : 0,
 	deltaTime: 0,
 	time: 0,
+	timeMs: 0,
 	serverTime: 0
 });
 
@@ -179,16 +188,18 @@ function getRandomInt(max: number) {
 }
 
 let axesHelperV2 = new THREE.Vector2();
-function mainLoop() {
-	var now = new Date().getTime();
-	gameTime.deltaTime = (now - lastTickTime) / 1000;
-	gameTime.deltaTime = Math.min(1 / 12, gameTime.deltaTime); // Prevent big time jumps
+function mainLoop(reportedTime : number) {
+	let now = new Date().getTime();
+	gameTime.deltaTimeMs = Math.min(90, now - lastTickTime);// Prevent big time jumps
+	gameTime.timeMs += gameTime.deltaTimeMs;
+	gameTime.deltaTime = gameTime.deltaTimeMs / 1000;
 	gameTime.time += gameTime.deltaTime;
 	//gameTime.serverTime += gameTime.deltaTime; Maybe unessesary?
 	gameTime.serverTime = mp.serverTimeMs() / 1000;
 	lastTickTime = now;
 
 	// update
+	TWEEN.update(reportedTime);
 
 	playerIdToPlayerObj.forEach((plObj: Mouse) => {
 		plObj.update(gameTime, level);

@@ -33,7 +33,6 @@ const CircleTransitionShader = {
 		uniform float fadeOut;
 		uniform float aspectRatio;
 		uniform float halfHeightRelativeRadius;
-		uniform float colorOpacity;
 
         uniform vec3 color;
         uniform sampler2D tDiffuse;
@@ -47,7 +46,7 @@ const CircleTransitionShader = {
 
             if (length(normalizedUv)/halfHeightRelativeRadius < (1.0 - fadeOut))
                 gl_FragColor = texel;
-            else gl_FragColor = vec4(color, colorOpacity);
+            else gl_FragColor = vec4(color, 1);
 		}`
 
 };

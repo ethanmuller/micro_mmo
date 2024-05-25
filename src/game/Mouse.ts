@@ -6,6 +6,7 @@ import { Utils } from "./Utils";
 import { Level } from "./Level";
 import { useSettingsStore } from "../stores/settings";
 import { TailGeometry } from "./extensions/TailGeometry";
+import { CameraMovement } from "./CameraMovement";
 
 export type SerializedPlayerData = {
     position: Vector3,
@@ -102,9 +103,10 @@ export class Mouse {
     backRightFootId = 2;
     backLeftFootId = 3;
 
-    leaving = false
-    entering = false
+    leavingLevel = false
+    enteringLevel = false
     enteringDoorChar = ''
+    enteringDoorTile = new Vector2();
     onDoorEnterCallback : ((d: string) => void) | undefined;
 
     private var = { // just random vectors and quaternions for use during update operations
@@ -341,78 +343,12 @@ export class Mouse {
 
     update(time: Time, level: Level, input?: InputManager, camera?: Object3D, otherMice?: Map<string, Mouse>) {
         // putting this in update feels wrong, but if this only happens in the constructor, setting will not be updated unless page refreshes, so maybe it does belong here? I dunno.
-        const settings = useSettingsStore()        
+              
 
         let positionBefore = this.previousFramePosition.copy(this.object.position);
 
         if (input && camera) { // Local players
-            if (this.leaving) {
-                // TODO animate movement into door
-    
-                {
-                    this.leaving = false;
-    
-                    if (this.onDoorEnterCallback !== undefined)
-                        this.onDoorEnterCallback(this.enteringDoorChar);
-                    return;
-                }
-            }
-            if (this.entering) {
-                // TODO animate movement out of door
-                this.entering = false;
-            }
-
-            if (input.fingerDown) {
-                let cameraQuaterinion = camera.getWorldQuaternion(this.var.q1);
-                this.velocity.set(0, 0, 0);
-                let relativeRight = this.var.v2.set(1, 0, 0);
-                relativeRight.applyQuaternion(cameraQuaterinion)
-                relativeRight.y = 0
-                relativeRight.normalize()
-                let trackballRight = relativeRight;
-                trackballRight.multiplyScalar(input.trackball.velocity.x)
-                if (settings.invertControls)
-                    trackballRight.multiplyScalar(-1);
-                this.velocity.add(trackballRight)
-
-                let relativeForward = this.var.v2.set(0, 0, -1);
-                relativeForward.applyQuaternion(cameraQuaterinion)
-                relativeForward.y = 0
-                relativeForward.normalize()
-                let trackballForward = relativeForward
-                trackballForward.multiplyScalar(-input.trackball.velocity.y)
-                if (settings.invertControls)
-                    trackballForward.multiplyScalar(-1);
-                this.velocity.add(trackballForward)
-
-                this.velocity.clampLength(0, this.maxSpeed)
-
-                // animation
-                this.face.quaternion.setFromAxisAngle(Constants.up, 0);
-                this.wantedFaceAngle = 0;
-            }
-            else {
-                this.velocity.multiplyScalar(this.drag)
-                //   console.log(this.velocity.length())
-                // this.velocity.lerp(Constants.zero, 1 - this.drag); // TODO make drag dependant on current velocity magnitude, maybe increase drag at slow speeds
-            }
-
-
-            if (input.debugButton.pressedThisFrame) {
-                this.debugSphere.visible = !this.debugSphere.visible;
-            }
-
-            if (input && !this.leaving && !this.entering) {
-                const tileCoords = level.getTileFromWorldPosition(this.object.position, this.var.v2_1)
-                const d = level.getCharAtTilePosition(tileCoords.x, tileCoords.y)
-                if (level.isCharDoor(d)) {
-                    if (this.enteringDoorChar != d) {
-                        this.leaving = true
-                        this.enteringDoorChar = d
-                    }
-                }
-                else this.enteringDoorChar = ''
-            }
+            this.updateLocalWithInput(time, level, input, camera);
         }
 
         if (!input && this.smoothing.lerping) { // Other players and interpolating
@@ -572,6 +508,79 @@ export class Mouse {
         }
     }
 
+    private updateLocalWithInput(time: Time, level: Level, input: InputManager, camera: Object3D)
+    {
+        const settings = useSettingsStore()  
+        if (this.leavingLevel) {
+            // TODO animate movement into door
+
+            {
+                let doorPos = level.getWorldPositionFromTile(this.enteringDoorTile, this.var.v1);
+                Utils.MoveTowards(this.object.position, doorPos, time.deltaTime * this.maxSpeed * 0.1);
+                return;
+            }
+        }
+        if (this.enteringLevel) {
+            // TODO animate movement out of door
+            this.enteringLevel = false;
+        }
+
+        if (input.fingerDown) {
+            let cameraQuaterinion = camera.getWorldQuaternion(this.var.q1);
+            this.velocity.set(0, 0, 0);
+            let relativeRight = this.var.v2.set(1, 0, 0);
+            relativeRight.applyQuaternion(cameraQuaterinion)
+            relativeRight.y = 0
+            relativeRight.normalize()
+            let trackballRight = relativeRight;
+            trackballRight.multiplyScalar(input.trackball.velocity.x)
+            if (settings.invertControls)
+                trackballRight.multiplyScalar(-1);
+            this.velocity.add(trackballRight)
+
+            let relativeForward = this.var.v2.set(0, 0, -1);
+            relativeForward.applyQuaternion(cameraQuaterinion)
+            relativeForward.y = 0
+            relativeForward.normalize()
+            let trackballForward = relativeForward
+            trackballForward.multiplyScalar(-input.trackball.velocity.y)
+            if (settings.invertControls)
+                trackballForward.multiplyScalar(-1);
+            this.velocity.add(trackballForward)
+
+            this.velocity.clampLength(0, this.maxSpeed)
+
+            // animation
+            this.face.quaternion.setFromAxisAngle(Constants.up, 0);
+            this.wantedFaceAngle = 0;
+        }
+        else {
+            this.velocity.multiplyScalar(this.drag)
+            //   console.log(this.velocity.length())
+            // this.velocity.lerp(Constants.zero, 1 - this.drag); // TODO make drag dependant on current velocity magnitude, maybe increase drag at slow speeds
+        }
+
+
+        if (input.debugButton.pressedThisFrame) {
+            this.debugSphere.visible = !this.debugSphere.visible;
+        }
+
+        if (!this.leavingLevel && !this.enteringLevel) {
+            const tileCoords = level.getTileFromWorldPosition(this.object.position, this.var.v2_1)
+            const d = level.getCharAtTilePosition(tileCoords.x, tileCoords.y)
+            if (level.isCharDoor(d)) {
+                if (this.enteringDoorChar != d) {
+                    this.leavingLevel = true
+                    this.enteringDoorChar = d
+                    this.enteringDoorTile.copy(tileCoords);
+                    if (this.onDoorEnterCallback !== undefined)
+                        this.onDoorEnterCallback(this.enteringDoorChar);
+                }
+            }
+            else this.enteringDoorChar = ''
+        }
+    }
+
     // frame after frame vars of function below
     private tailDeltaDirection = new Vector3();
     private tailQuat = new Quaternion();
@@ -724,7 +733,7 @@ export class Mouse {
 
     animateOutOfDoor(d : string) {
         this.enteringDoorChar = d;
-        this.entering = true;
+        this.enteringLevel = true;
     }
 
     dispose() {
