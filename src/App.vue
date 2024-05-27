@@ -50,11 +50,6 @@ const circleFade = new ShaderPass(CircleTransitionShader);
 composer.addPass(circleFade);
 circleFade.uniforms.fadeOut.value = 0.0;
 
-THREE.ColorManagement.enabled = true
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
-renderer.outputColorSpace = THREE.SRGBColorSpace
-
 
 scene.background = new THREE.Color(0xddddee)
 
