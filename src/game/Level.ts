@@ -74,15 +74,14 @@ const lab: LevelMetaData = {
 ####  #  #          
 ##### ####          
 ######      
-###### t     
+######       
 ########     
-########o     
-#######@   
+###@####o     
+########   
 ###########
-########  ###
-########### #
-########    #          
-       ######       
+########  ###t
+###########  
+########               
     `,
     doors: new Map([['o', 'ohio'], ['t', 'taiwan']]),
     sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr'),
@@ -102,11 +101,7 @@ const taiwan: LevelMetaData = {
        #       #  
        #       #  
        #       #  
-       #########  
-           #      
-           #      
-           #      
-           @      
+       ####@####  
     `,
     sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr'),
     topImage: "https://mush.network/files/textures/mc/grass.png",
