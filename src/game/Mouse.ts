@@ -6,7 +6,6 @@ import { Utils } from "./Utils";
 import { Level } from "./Level";
 import { useSettingsStore } from "../stores/settings";
 import { TailGeometry } from "./extensions/TailGeometry";
-import { CameraMovement } from "./CameraMovement";
 
 export type SerializedPlayerData = {
     position: Vector3,
