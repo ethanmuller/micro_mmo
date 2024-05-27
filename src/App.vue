@@ -16,7 +16,7 @@ import { useLogStore } from "./stores/logs";
 import toonTexture from "./assets/threeTone_bright.jpg";
 import { NearestFilter } from 'three';
 import QrcodeVue from 'qrcode.vue'
-import { EffectComposer, RenderPass, RGBELoader, ShaderPass } from 'three/examples/jsm/Addons.js';
+import { EffectComposer, RenderPass, RGBELoader, ShaderPass, GammaCorrectionShader } from 'three/examples/jsm/Addons.js';
 import { CameraMovement } from './game/CameraMovement';
 import { CircleTransitionShader } from './game/shaders/CircleTransitionShader';
 import * as TWEEN from '@tweenjs/tween.js';
@@ -44,8 +44,11 @@ const composer = new EffectComposer(renderer);
 composer.setPixelRatio(window.devicePixelRatio);
 composer.setSize(256, 256);
 composer.addPass(new RenderPass(scene, camera));
+const gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);  
+composer.addPass(gammaCorrectionPass);
 const circleFade = new ShaderPass(CircleTransitionShader);
 composer.addPass(circleFade);
+circleFade.uniforms.fadeOut.value = 0.0;
 
 THREE.ColorManagement.enabled = true
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
