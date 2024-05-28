@@ -1,5 +1,6 @@
 import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3, NearestFilter, SRGBColorSpace, } from "three";
 import { MouseholeGeometry } from "./extensions/MouseholeGeometry"
+import { CameraMode } from '../game/CameraMovement'
 
 
 type LowercaseAlpha = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
@@ -14,6 +15,7 @@ export interface LevelMetaData {
     name: LevelName,
     doors: CharToDoor,
     buttons?: CharToButton,
+    cameraType: CameraMode
     tileSize: number,
     wallHeight: number,
     sky: URL,
@@ -23,99 +25,6 @@ export interface LevelMetaData {
     topImage?: string,
 }
 
-export const DEFAULT_LEVEL: LevelName = 'lab'
-
-type LevelName = 'ohio' | 'lab' | 'taiwan'
-
-function dispenseCrumb() {
-  console.log('dispensing crumb')
-}
-
-const ohio: LevelMetaData = {
-    name: 'ohio',
-    tileSize: 3,
-    wallHeight: 3,
-    doors: new Map([['l', 'lab'], ['t', 'taiwan']]),
-    ascii: `
-l                 
-#@#################
-                  #
-                  #
-                  #
-                  #
-               t  #
-            #######
-            #######
-            #######
-            #######
-            #######
-            #######
-            #######
-            #######
-            #######
-            #######
-            #######
-            #######
-    `,
-    sky: new URL('https://mush.network/files/sky/aerodynamics_workshop_1k.hdr'),
-    topImage: "https://mush.network/files/textures/mc/grass.png",
-    wallImage: "https://mush.network/files/textures/mc/grassdirt.png",
-    floorImage: "https://mush.network/files/textures/mc/dirt.png",
-}
-
-const lab: LevelMetaData = {
-    name: 'lab',
-    tileSize: 7,
-    wallHeight: 7,
-    ascii: `
-##########          
-####     #          
-####  #  #          
-####  #  #          
-##### ####          
-######      
-######       
-########     
-###@####o     
-########   
-###########
-########  ###t
-###########  
-########               
-    `,
-    doors: new Map([['o', 'ohio'], ['t', 'taiwan']]),
-    sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr'),
-    wallImage: "https://mush.network/files/textures/etc/plywood.png",
-    floorImage: "https://mush.network/files/textures/etc/concrete.png",
-}
-const taiwan: LevelMetaData = {
-    name: 'taiwan',
-    tileSize: 3,
-    wallHeight: 3,
-    doors: new Map([
-      ['o', 'ohio'],
-      ['l', 'lab'],
-    ]),
-    ascii: `
-       o       l  
-       #       #  
-       #       #  
-       #       #  
-       ####@####  
-    `,
-    sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr'),
-    topImage: "https://mush.network/files/textures/mc/grass.png",
-    wallImage: "https://mush.network/files/textures/mc/grassdirt.png",
-    floorImage: "https://mush.network/files/textures/mc/dirt.png",
-}
-
-export const levels: { [index: string]: any } = { ohio, lab, taiwan }
-
-const CARDINAL = [new Vector2(0, 1), new Vector2(1, 0), new Vector2(0, -1), new Vector2(-1, 0)];
-const DIAGONAL = [new Vector2(1, 1), new Vector2(1, -1), new Vector2(-1, -1), new Vector2(-1, 1)];
-
-export { CARDINAL, DIAGONAL };
-
 export class Level {
     object: Object3D = new Object3D();
     start: Vector2 = new Vector2();
@@ -123,6 +32,7 @@ export class Level {
     rows = 0;
     columns = 0;
     tileSize: number;
+    cameraType: CameraMode;
     wallHeight: number;
     mouseholeWidth: number;
 
@@ -132,6 +42,7 @@ export class Level {
     constructor(level: LevelMetaData, toonRamp: Texture) {
         this.tileSize = level.tileSize
         this.wallHeight = level.wallHeight
+        this.cameraType = level.cameraType
 
         this.doors = level.doors
 
@@ -505,3 +416,99 @@ export class Level {
         return v;
     }
 }
+export const DEFAULT_LEVEL: LevelName = 'lab'
+
+type LevelName = 'ohio' | 'lab' | 'the_cheddaverse'
+
+const ohio: LevelMetaData = {
+    name: 'ohio',
+    cameraType: 'iso',
+    tileSize: 3,
+    wallHeight: 3,
+    doors: new Map([['l', 'lab'], ['t', 'the_cheddaverse']]),
+    ascii: `
+  l               
+  @######            
+  #######            
+  ##   ##            
+  ##   ##            
+  ##   ##            
+  ##   ##            
+  ##   ##            
+  ## ####            
+  ## # ##            
+  ## # ##            
+  ## # ##            
+  ## # ##            
+  ## # ##            
+  ## # ##            
+  ## # ##            
+  ## # ##            
+  ##   ##            
+  ## t ##            
+  #######         
+  #######         
+                   
+                   
+    `,
+    sky: new URL('https://mush.network/files/sky/furry_clouds_1k.hdr'),
+    topImage: "https://mush.network/files/textures/mc/grass.png",
+    wallImage: "https://mush.network/files/textures/mc/grassdirt.png",
+    floorImage: "https://mush.network/files/textures/mc/dirt.png",
+}
+
+const lab: LevelMetaData = {
+    name: 'lab',
+    cameraType: 'mazecam',
+    tileSize: 7,
+    wallHeight: 7,
+    ascii: `
+##########          
+####     #          
+####  #  #          
+####  #  #          
+##### ####          
+######      
+######       
+########     
+###@####      
+########      t
+###########   #
+########  #####
+###########  
+########               
+ o
+    `,
+    doors: new Map([['o', 'ohio'], ['t', 'the_cheddaverse']]),
+    sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr'),
+    wallImage: "https://mush.network/files/textures/etc/plywood.png",
+    floorImage: "https://mush.network/files/textures/etc/concrete.png",
+}
+const the_cheddaverse: LevelMetaData = {
+    name: 'the_cheddaverse',
+    cameraType: 'mazecam',
+    tileSize: 64,
+    wallHeight: 64,
+    doors: new Map([
+      ['o', 'ohio'],
+      ['l', 'lab'],
+    ]),
+    ascii: `
+     o    
+     ##@         
+       # l       
+       ###       
+    `,
+    sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr'),
+    topImage: "https://mush.network/files/textures/win95/wall.png",
+    wallImage: "https://mush.network/files/textures/win95/wall.png",
+    floorImage: "https://mush.network/files/textures/win95/floor.png",
+}
+
+export const levels: { [index: string]: any } = { ohio, lab, the_cheddaverse }
+
+const CARDINAL = [new Vector2(0, 1), new Vector2(1, 0), new Vector2(0, -1), new Vector2(-1, 0)];
+const DIAGONAL = [new Vector2(1, 1), new Vector2(1, -1), new Vector2(-1, -1), new Vector2(-1, 1)];
+
+export { CARDINAL, DIAGONAL };
+

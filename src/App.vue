@@ -18,7 +18,7 @@ import toonTexture from "./assets/threeTone_bright.jpg";
 import { NearestFilter } from 'three';
 import QrcodeVue from 'qrcode.vue'
 import { EffectComposer, RenderPass, RGBELoader, ShaderPass, GammaCorrectionShader } from 'three/examples/jsm/Addons.js';
-import { CameraMovement } from './game/CameraMovement';
+import { CameraMovement } from './game/CameraMovement.ts';
 import { CircleTransitionShader } from './game/shaders/CircleTransitionShader';
 import * as TWEEN from '@tweenjs/tween.js';
 
@@ -103,7 +103,7 @@ const player = new Mouse(scene, toonRamp, skinList[seedStore.seed || 0]);
 let circleFadeTween : TWEEN.Tween<{value: number}>;
 player.onDoorEnterCallback = (d : string) => {
 	circleFade.uniforms.fadeOut.value = 0;
-	circleFadeTween = new TWEEN.Tween(circleFade.uniforms.fadeOut).to({value: 1}, 1000).onComplete(() => {
+	circleFadeTween = new TWEEN.Tween(circleFade.uniforms.fadeOut).to({value: 1}, 300).onComplete(() => {
 		const u = new URL(window.location.toString())
 		let newLevelName = level.getDoorName(d);
 		u.searchParams.set('level', newLevelName)
@@ -113,26 +113,26 @@ player.onDoorEnterCallback = (d : string) => {
 	}).start()
 }
 
-{	// Level entry and animation
-	const sessionInfo = useSessionStore();
-	let foundEntryPoint = false;
-	if (sessionInfo.previousRoom != null && sessionInfo.previousRoom != "") {
-		if (level.getDoorChar(sessionInfo.previousRoom) != '') {
-			console.log(`coming from level ${sessionInfo.previousRoom}`);
-			foundEntryPoint = true;
-			let dt = level.getDoorTile(sessionInfo.previousRoom);
-			level.getWorldPositionFromTile(dt, player.object.position);
+const sessionInfo = useSessionStore();
+let foundEntryPoint = false;
+if (sessionInfo.previousRoom != null && sessionInfo.previousRoom != "") {
+  if (level.getDoorChar(sessionInfo.previousRoom) != '') {
+    console.log(`coming from level ${sessionInfo.previousRoom}`);
+    foundEntryPoint = true;
+    let dt = level.getDoorTile(sessionInfo.previousRoom);
+    level.getWorldPositionFromTile(dt, player.object.position);
 
-			player.animateOutOfDoor(level.getDoorChar(sessionInfo.previousRoom));
-			circleFade.uniforms.fadeOut.value = 1;
-			circleFadeTween = new TWEEN.Tween(circleFade.uniforms.fadeOut).to({value: 0}, 1000).start();
-		}
-	}
-	if (!foundEntryPoint)
-		level.getWorldPositionFromTile(level.start, player.object.position);
-
-	sessionInfo.previousRoom = levelName;
+    player.animateOutOfDoor(level.getDoorChar(sessionInfo.previousRoom));
+    circleFade.uniforms.fadeOut.value = 1;
+    circleFadeTween = new TWEEN.Tween(circleFade.uniforms.fadeOut).to({value: 0}, 2000).start();
+  }
 }
+
+if (!foundEntryPoint)
+  level.getWorldPositionFromTile(level.start, player.object.position);
+
+sessionInfo.previousRoom = levelName;
+sessionInfo.cameraMode = requestedLevel.cameraType
 
 const crumbs = useCrumbStore()
 
@@ -376,16 +376,6 @@ function settingsToggle() {
 					<input type="checkbox" v-model="settings.showLogs" />
 					show logs
 				</label>
-				<div>
-					<div>camera mode: <strong>{{ settings.cameraMode }}</strong></div>
-					<div v-for="mode in cameraModes">
-						<label>
-							<input :value="mode" type="radio"
-								v-model="settings.cameraMode" />
-							{{ mode }}
-						</label>
-					</div>
-				</div>
 
 			</div>
 			<button class="settings__toggle" @click="settingsToggle">⚙️ settings</button>

@@ -3,7 +3,10 @@ import { Time } from "./Time";
 import { CARDINAL, DIAGONAL, Level } from "./Level";
 import { Mouse } from "./Mouse";
 import { Utils } from "./Utils";
-import { useSettingsStore } from "../stores/settings";
+import { useSessionStore } from "../stores/session";
+
+export const cameraModes = ['iso', 'topdown', 'wholemap', 'mazecam', 'nothing', 'security_cam_1'] as const;
+export type CameraMode = typeof cameraModes[number];
 
 export class CameraMovement {
     camera: PerspectiveCamera;
@@ -67,30 +70,30 @@ export class CameraMovement {
     walkingIntoCameraCount = 0;
 
     update(time: Time, player: Mouse, level: Level) {
-        const settings = useSettingsStore()
+        const session = useSessionStore()
 
-        if (settings.cameraMode === 'iso') {
-            this.camera.fov = 17 * window.innerHeight/window.innerWidth
+        if (session.cameraMode === 'iso') {
+            this.camera.fov = 6 * window.innerHeight/window.innerWidth
             this.camera.position.copy(player.object.position);
             this.camera.position.add(new Vector3(90, 90, 90))
             this.camera.lookAt(player.object.position);
             this.camera.updateProjectionMatrix();
         }
-        if (settings.cameraMode === 'topdown') {
+        if (session.cameraMode === 'topdown') {
           this.camera.fov = 17 * window.innerHeight/window.innerWidth
           this.camera.position.copy(player.object.position);
           this.camera.position.add(new Vector3(0, 90, 0))
           this.camera.lookAt(player.object.position);
           this.camera.updateProjectionMatrix();
         }
-        if (settings.cameraMode === 'wholemap') {
+        if (session.cameraMode === 'wholemap') {
           this.camera.fov = 80
           this.camera.position.copy(player.object.position);
           this.camera.position.add(new Vector3(0, 90, 0))
           this.camera.lookAt(player.object.position);
           this.camera.updateProjectionMatrix();
         }
-        if (settings.cameraMode === 'security_cam_1') {
+        if (session.cameraMode === 'security_cam_1') {
           this.camera.fov = 17 * window.innerHeight/window.innerWidth
           // this.camera.position.copy(player.object.position);
           // this.camera.position.add(new Vector3(0, 90, 0))
@@ -98,7 +101,7 @@ export class CameraMovement {
           this.camera.lookAt(player.object.position);
           this.camera.updateProjectionMatrix();
         }
-        if (settings.cameraMode === 'mazecam') {
+        if (session.cameraMode === 'mazecam') {
             this.camera.fov = Math.max(70, 70 * window.innerHeight/window.innerWidth)
             level.getTileFromWorldPosition(player.object.position, this.currentPlayerTile);
 

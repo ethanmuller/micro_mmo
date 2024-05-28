@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
-
-export const cameraModes = ['iso', 'topdown', 'wholemap', 'mazecam', 'nothing'] as const;
-export type CameraMode = typeof cameraModes[number];
+import { CameraMode } from '../game/CameraMovement'
 
 interface Settings {
   showLogs: boolean,
