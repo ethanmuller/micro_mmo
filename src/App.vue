@@ -8,7 +8,8 @@ import { InputManager } from './game/InputManager';
 import { FreeCamera } from './game/FreeCamera';
 import { Player } from './server/MultiplayerTypes'
 import { DEFAULT_LEVEL, Level, LevelMetaData, levels } from './game/Level';
-import { useSettingsStore, cameraModes, sessionStore } from "./stores/settings";
+import { useSessionStore } from "./stores/session.ts";
+import { useSettingsStore } from "./stores/settings.ts";
 import { useCrumbStore } from "./stores/crumb.ts";
 import { useSeedStore } from "./stores/seed.ts";
 import { useLogStore } from "./stores/logs";
@@ -113,7 +114,7 @@ player.onDoorEnterCallback = (d : string) => {
 }
 
 {	// Level entry and animation
-	const sessionInfo = sessionStore();
+	const sessionInfo = useSessionStore();
 	let foundEntryPoint = false;
 	if (sessionInfo.previousRoom != null && sessionInfo.previousRoom != "") {
 		if (level.getDoorChar(sessionInfo.previousRoom) != '') {
