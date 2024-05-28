@@ -377,6 +377,11 @@ function settingsToggle() {
 					show logs
 				</label>
 
+				<label>
+					<input type="checkbox" v-model="settings.enableSound" />
+					enable sounds
+				</label>
+
 			</div>
 			<button class="settings__toggle" @click="settingsToggle">⚙️ settings</button>
 		</div>

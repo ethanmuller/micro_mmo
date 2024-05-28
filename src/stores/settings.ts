@@ -4,6 +4,7 @@ import { CameraMode } from '../game/CameraMovement'
 interface Settings {
   showLogs: boolean,
   invertControls: boolean,
+  enableSound: boolean,
   cameraMode: CameraMode
 }
 
@@ -13,6 +14,7 @@ export const useSettingsStore = defineStore('settings', {
       showLogs: true,
       invertControls: false,
       cameraMode: 'topdown',
+      enableSound: false,
     }
   },
   getters: {

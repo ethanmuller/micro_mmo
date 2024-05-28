@@ -487,8 +487,8 @@ const lab: LevelMetaData = {
 const the_cheddaverse: LevelMetaData = {
     name: 'the_cheddaverse',
     cameraType: 'mazecam',
-    tileSize: 64,
-    wallHeight: 64,
+    tileSize: 24,
+    wallHeight: 24,
     doors: new Map([
       ['o', 'ohio'],
       ['l', 'lab'],
