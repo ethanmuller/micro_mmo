@@ -278,7 +278,7 @@ function mainLoop(reportedTime : number) {
 		camera.updateProjectionMatrix();
 	}
 	else {
-		cameraMovement.update(gameTime, player, level);
+		cameraMovement.update(player, level);
 	}
 
 	// draw

@@ -2,6 +2,7 @@ import { Vector2 } from 'three';
 import Hammer from 'hammerjs'
 
 
+
 class ButtonInput {
     pressed: boolean = false;
     pressedThisFrame: boolean = false;
@@ -90,15 +91,9 @@ export class InputManager {
             this.trackball.lastMove = e.timeStamp
             if (e.isFinal) {
                 this.fingerDown = false
-                const event = new Event("flick");
-                event.velocity=velocity
-                document.dispatchEvent(event)
             }
         })
         mc.on('press', () => {
-            const event = new Event("press");
-            event.oldVelocity = this.trackball.velocity.clone()
-            document.dispatchEvent(event)
             this.trackball.velocity.set(0, 0);
             this.fingerDown = true
         })

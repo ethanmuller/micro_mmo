@@ -1,7 +1,13 @@
 import { defineStore } from 'pinia'
 
+
+
+interface Messages {
+  messages: string[]
+}
+
 export const useLogStore = defineStore('logs', {
-  state: () => {
+  state: (): Messages => {
     return {
       messages: [],
     }

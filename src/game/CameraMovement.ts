@@ -69,7 +69,7 @@ export class CameraMovement {
     lastFramePlayerPosition: Vector3 = new Vector3();
     walkingIntoCameraCount = 0;
 
-    update(time: Time, player: Mouse, level: Level) {
+    update(player: Mouse, level: Level) {
         const session = useSessionStore()
 
         if (session.cameraMode === 'iso') {
