@@ -7,4 +7,5 @@ import { qrcode } from 'vite-plugin-qrcode'
 export default defineConfig({
   plugins: [vue(), qrcode()],
   assetsInclude: ["**/*.txt"],
+  base: '',
 })
