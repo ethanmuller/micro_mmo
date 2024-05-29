@@ -16,7 +16,12 @@ export class MultiplayerClient {
     const logs = useLogStore()
     console.log('setting up multiplayer client...')
     
-    this.connection = socket.io(window.location.hostname+`:3000`, { query: { skin, requestedLevel } });
+    if (import.meta.env.PROD) {
+      this.connection = socket.io('https://mouse.homes', { query: { skin, requestedLevel } });
+    } else {
+      this.connection = socket.io(window.location.hostname + ':3000', { query: { skin, requestedLevel } });
+    }
+
     this.connection.on('connect', () => {
       console.log('connected to multiplayer server')
       logs.add(`ENTERED ROOM: ${requestedLevel}`)
