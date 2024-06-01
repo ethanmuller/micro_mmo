@@ -1,4 +1,5 @@
 import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3, NearestFilter, SRGBColorSpace, } from "three";
+import { Mouse, } from './game/Mouse';
 import { MouseholeGeometry } from "./extensions/MouseholeGeometry"
 import { CameraMode } from '../game/CameraMovement'
 
@@ -11,6 +12,8 @@ type UppercaseAlpha = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' 
 type ButtonChar = UppercaseAlpha
 type CharToButton = Map<ButtonChar, Function>
 
+// levels are defined by authoring a LevelMetaData
+// whereas the Level class is used to load and represent a level at runtime
 export interface LevelMetaData {
     name: LevelName,
     doors: CharToDoor,
@@ -200,6 +203,30 @@ export class Level {
         this.object.updateMatrixWorld(true);
     }
 
+    public renderMinimap(player: Mouse) {
+      let result = ''
+
+      const playerTile = new Vector2()
+      this.getTileFromWorldPosition(player.object.position, playerTile)
+
+      for (let row = 0; row < this.rows; row++) {
+        for (let column = 0; column < this.columns; column++) {
+          let char = this.getCharAtTilePosition(column, row)
+          char = char.replace(/@/g, '.')
+          char = char.replace(/#/g, '.')
+          // todo: if a player is on this tile, draw as an @
+          // todo: if a mouse is on this tile, draw as an &
+          if (playerTile.x === column && playerTile.y === row) {
+            char = '@'
+          }
+          result += char
+        }
+        result += '\n'
+      }
+
+      return result
+    }
+
     isTileWalkable(i: number | Vector2, j?: number, isCamera : boolean = false) : boolean {
         if (typeof i  === "number") {
             if (j === undefined)
@@ -275,9 +302,18 @@ export class Level {
         return out;
     }
 
+    getCharFromWorldPosition(p: Vector3): string {
+        // given a position, return the level's character living at the tile the position lands on
+        // this bypasses the need for an output vector
+        const x = Math.floor((p.x + 0.5 * this.tileSize) / this.tileSize)
+        const y = Math.floor((p.z + 0.5 * this.tileSize) / this.tileSize);
+        return this.getCharAtTilePosition(x,y);
+    }
+
+
     getTileFromWorldPosition(p: Vector3, out: Vector2): Vector2 {
         out.set(Math.floor((p.x + 0.5 * this.tileSize) / this.tileSize), Math.floor((p.z + 0.5 * this.tileSize) / this.tileSize));
-        return out;
+        return out
     }
 
     collisionV2 = new Vector2();
@@ -427,30 +463,27 @@ const ohio: LevelMetaData = {
     wallHeight: 3,
     doors: new Map([['l', 'lab'], ['t', 'the_cheddaverse']]),
     ascii: `
-  l               
-  @######            
-  #######            
-  ##   ##            
-  ##   ##            
-  ##   ##            
-  ##   ##            
-  ##   ##            
-  ## ####            
-  ## # ##            
-  ## # ##            
-  ## # ##            
-  ## # ##            
-  ## # ##            
-  ## # ##            
-  ## # ##            
-  ## # ##            
-  ##   ##            
-  ## t ##            
-  #######         
-  #######         
-                   
-                   
-    `,
+l
+@######
+#######
+##   ##
+##   ##
+##   ##
+##   ##
+##   ##
+## ####
+## # ##
+## # ##
+## # ##
+## # ##
+## # ##
+## # ##
+## # ##
+## # ##
+##   ##
+## t ##
+#######
+#######`,
     sky: new URL('https://mush.network/files/sky/furry_clouds_1k.hdr'),
     topImage: "https://mush.network/files/textures/mc/grass.png",
     wallImage: "https://mush.network/files/textures/mc/grassdirt.png",
@@ -463,22 +496,21 @@ const lab: LevelMetaData = {
     tileSize: 7,
     wallHeight: 7,
     ascii: `
-##########          
-####     #          
-####  #  #          
-####  #  #          
-##### ####          
-######      
-######       
-########     
-###@####      
+##########
+####     #
+####  #  #
+####  #  #
+##### ####
+######
+######
+########
+###@#### 
 ########      t
 ###########   #
 ########  #####
-###########  
-########               
- o
-    `,
+########### 
+########
+ o`,
     doors: new Map([['o', 'ohio'], ['t', 'the_cheddaverse']]),
     sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr'),
     wallImage: "https://mush.network/files/textures/etc/plywood.png",

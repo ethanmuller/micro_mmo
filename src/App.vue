@@ -27,6 +27,8 @@ const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
 
 
+const minimapText = ref<string>();
+
 const gamecanvas = ref<HTMLDivElement>();
 const trackballEl = ref<HTMLDivElement>();
 const host = ref<string>();
@@ -57,10 +59,10 @@ scene.background = new THREE.Color(0xddddee)
 const urlParams = new URLSearchParams(window.location.search);
 const requestedLevelString = urlParams.get('level')
 const levelName = requestedLevelString || DEFAULT_LEVEL;
-const requestedLevel: LevelMetaData = levels[levelName]
+const requestedLevelMetadata: LevelMetaData = levels[levelName]
 
 new RGBELoader()
-	.load(requestedLevel.sky.toString(), function (texture) {
+	.load(requestedLevelMetadata.sky.toString(), function (texture) {
 
     // trying to make the colors look less overexposed, but this doesn't seem to work
     texture.colorSpace = THREE.LinearSRGBColorSpace
@@ -79,7 +81,7 @@ const toonRamp = imgLoader.load(toonTexture, (texture) => {
 	texture.magFilter = NearestFilter;
 });
 
-let level = new Level(requestedLevel, toonRamp);
+let level = new Level(requestedLevelMetadata, toonRamp);
 scene.add(level.object);
 
 const skinList: Array<MouseSkin> = [
@@ -132,7 +134,7 @@ if (!foundEntryPoint)
   level.getWorldPositionFromTile(level.start, player.object.position);
 
 sessionInfo.previousRoom = levelName;
-sessionInfo.cameraMode = requestedLevel.cameraType
+sessionInfo.cameraMode = requestedLevelMetadata.cameraType
 
 const crumbs = useCrumbStore()
 
@@ -181,7 +183,7 @@ if (crumbs.lastSeen) {
 const cameraMovement = new CameraMovement(camera, player, level);
 const freeCamera = new FreeCamera(camera);
 
-const mp = new MultiplayerClient(seedStore.seed || 0, requestedLevel.name || DEFAULT_LEVEL)
+const mp = new MultiplayerClient(seedStore.seed || 0, requestedLevelMetadata.name || DEFAULT_LEVEL)
 let playerIdToPlayerObj: Map<string, Mouse> = new Map<string, Mouse>();
 
 mp.onPlayerConnected((newPlayer: Player) => {
@@ -243,11 +245,16 @@ function mainLoop(reportedTime : number) {
 	// update
 	TWEEN.update(reportedTime);
 
+  //let mouseTiles: [number, number]
+  //const reusableTile = new THREE.Vector2()
+
 	playerIdToPlayerObj.forEach((plObj: Mouse) => {
 		plObj.update(gameTime, level);
 	})
 
 	player.update(gameTime, level, input, camera, playerIdToPlayerObj);
+
+  minimapText.value = level.renderMinimap(player)
 
 	// Camera updates
 	let axesTile = level.getTileFromWorldPosition(player.object.position, axesHelperV2);
@@ -358,6 +365,7 @@ function settingsToggle() {
 					mp.playersOnline.value }}
 			</div>
 		</div>
+    <div class="minimap" v-if="settings.showMinimap">{{ minimapText }}</div>
 		<div class="logs" v-if="settings.showLogs">
 			<span v-for="message in logs.messages.slice(0, 6).reverse()">{{ message }}</span>
 		</div>
@@ -375,6 +383,11 @@ function settingsToggle() {
 				<label>
 					<input type="checkbox" v-model="settings.showLogs" />
 					show logs
+				</label>
+
+				<label>
+					<input type="checkbox" v-model="settings.showMinimap" />
+					show minimap
 				</label>
 
 				<label>
@@ -509,5 +522,19 @@ function settingsToggle() {
 	border: none;
 	border-radius: 0 0 1rem 1rem;
 	margin-right: 0.5rem;
+}
+
+.minimap {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  color: white;
+  white-space: pre;
+  text-align: left;
+  line-height: 1;
+  font-family: monospace;
+  pointer-events: none;
+  padding-right: 1em;
+  padding-bottom: 1em;
 }
 </style>
