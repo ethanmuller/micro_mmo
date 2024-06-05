@@ -3,9 +3,11 @@ import { Time } from "./Time";
 import { InputManager } from "./InputManager";
 import { Constants } from "./constants";
 import { Utils } from "./Utils";
+import { ChatBubble } from "./ChatBubble";
 import { Level } from "./Level";
 import { useSettingsStore } from "../stores/settings";
 import { TailGeometry } from "./extensions/TailGeometry";
+import { CSS2DRenderer, CSS2DObject, } from 'three/addons/renderers/CSS2DRenderer.js';
 
 export type SerializedPlayerData = {
     position: Vector3,
@@ -43,6 +45,10 @@ export class Mouse {
     eyeMaterial: Material;
     debugSphere: Mesh;
 
+    //chatBubble: ChatBubble;
+    textDOMRenderer: CSS2DRenderer;
+    textObject: CSS2DObject;
+
     // movement
     velocity: Vector3 = new Vector3();
     radius: number = 0.8;
@@ -67,6 +73,10 @@ export class Mouse {
     frontLegStepReachSquared: number = 0.7 * 0.7;
     backLegStepReachSquared: number = 0.5 * 0.5;
 
+    // text
+    div: HTMLElement;
+    label: CSS2DObject;
+
     // composite body
     headPivot: Object3D;
     butt: Mesh;
@@ -87,7 +97,7 @@ export class Mouse {
     maxTailThickness: number = 0.1;
     tailStartSlope = 0.35;
     tailSegmentLength: number = 0; // variable
-    tailLength = 4;
+    tailLength = 3.5;
     tailSegments = 5;
     maxTailTwist = Math.PI * 0.4;
 
@@ -128,6 +138,15 @@ export class Mouse {
     private frameDisplacementDirection: Vector3 = new Vector3();
 
     constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin) {
+        this.div = document.createElement('div')
+        this.div.textContent = 'mouse'
+        this.label = new CSS2DObject(this.div)
+        scene.add(this.label)
+        this.label.position.set(0,0,0)
+
+
+        //this.chatBubble = new ChatBubble(scene, Math.random().toString())
+
         this.debugSphere = new Mesh(new SphereGeometry(this.radius, 12, 12), new MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.3 }));
         this.debugSphere.position.y += this.radius;
         this.debugSphere.visible = false;
@@ -342,6 +361,8 @@ export class Mouse {
 
     update(time: Time, level: Level, input?: InputManager, camera?: Object3D, otherMice?: Map<string, Mouse>) {
         // putting this in update feels wrong, but if this only happens in the constructor, setting will not be updated unless page refreshes, so maybe it does belong here? I dunno.
+
+      // this.chatBubble.moveTo(this.object.position)
               
 
         let positionBefore = this.previousFramePosition.copy(this.object.position);
@@ -505,6 +526,8 @@ export class Mouse {
             zMovementRotation.multiply(xMovementRotation);
             this.debugSphere.quaternion.premultiply(zMovementRotation);
         }
+
+        this.label.position.set(this.object.position.x,this.object.position.y + 2.5,this.object.position.z)
     }
 
     private updateLocalWithInput(time: Time, level: Level, input: InputManager, camera: Object3D)
@@ -745,6 +768,10 @@ export class Mouse {
             }
         })
         this.scene.remove(this.tail);
+        this.div.remove()
+
+        // this.chatBubble.dispose()
+
         // TODO dispose of all the geometries of the object (or even better: reuse the geometries between different players)
     }
 }

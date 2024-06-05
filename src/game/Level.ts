@@ -214,6 +214,7 @@ export class Level {
           let char = this.getCharAtTilePosition(column, row)
           char = char.replace(/@/g, '.')
           char = char.replace(/#/g, '.')
+          char = char.replace(/[a-z]/g, 'o')
           // todo: if a player is on this tile, draw as an @
           // todo: if a mouse is on this tile, draw as an &
           if (playerTile.x === column && playerTile.y === row) {
@@ -502,14 +503,15 @@ const lab: LevelMetaData = {
 ####  #  #
 ##### ####
 ######
-######
-########
-###@#### 
-########      t
+###########
+########  #
+## #####  ###
+###@# ##  # # t
 ###########   #
-########  #####
+#### ###  #####
 ########### 
-########
+######## #
+         #
  o`,
     doors: new Map([['o', 'ohio'], ['t', 'the_cheddaverse']]),
     sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr'),
@@ -526,10 +528,15 @@ const the_cheddaverse: LevelMetaData = {
       ['l', 'lab'],
     ]),
     ascii: `
-     o    
-     ##@         
-       # l       
-       ###       
+                 
+                 
+     #  #        
+   #########     
+   #       #     
+   # o     ##
+   ####@   #      
+       # l #      
+       #####      
     `,
     sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr'),
     topImage: "https://mush.network/files/textures/win95/wall.png",

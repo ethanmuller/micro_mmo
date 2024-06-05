@@ -1,13 +1,14 @@
 import { defineStore } from 'pinia'
 interface CrumbPouch {
-    crumbs: number,
+    collectedCrumbs: number,
+    availableCrumbs?: [number, number],
     lastSeen: Date,
 }
 export const useCrumbStore = defineStore('crumbs', {
   state: (): CrumbPouch => {
     const now = new Date()
     return {
-      crumbs: 0,
+      collectedCrumbs: 0,
       lastSeen: now,
     }
   },
