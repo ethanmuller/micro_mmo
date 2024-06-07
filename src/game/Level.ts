@@ -1,5 +1,5 @@
 import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3, NearestFilter, SRGBColorSpace, } from "three";
-import { Mouse, } from './game/Mouse';
+import { Mouse } from './Mouse';
 import { MouseholeGeometry } from "./extensions/MouseholeGeometry"
 import { CameraMode } from '../game/CameraMovement'
 
@@ -511,8 +511,8 @@ const lab: LevelMetaData = {
 #### ###  #####
 ########### 
 ######## #
-         #
- o`,
+ o       #
+  `,
     doors: new Map([['o', 'ohio'], ['t', 'the_cheddaverse']]),
     sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr'),
     wallImage: "https://mush.network/files/textures/etc/plywood.png",
