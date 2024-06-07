@@ -367,10 +367,14 @@ function updateChat(e: Event) {
 
 function handleKey(e: KeyboardEvent) {
   if (e.key === 'Enter') {
-    playerChatInput.value = ''
-    player.div.textContent = ''
-    mp.chat('')
-    return 0
+    if (playerChatInput.value === '') {
+      chatBoxOpen.value = false
+    } else {
+      playerChatInput.value = ''
+      player.div.textContent = ''
+      mp.chat('')
+      return 0
+    }
   }
 }
 
