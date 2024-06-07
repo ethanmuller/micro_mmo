@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import * as THREE from 'three';
 import { Mouse, MouseSkin, SerializedPlayerData } from './game/Mouse';
 import { Time } from './game/Time';
@@ -29,7 +29,9 @@ const gamecanvas = ref<HTMLDivElement>();
 const chat_renderer = ref<HTMLDivElement>();
 const trackballEl = ref<HTMLDivElement>();
 const host = ref<string>();
+const playerChatInput = ref<string>();
 const settingsPanelOpen = ref<boolean>(false);
+const chatBoxOpen = ref<boolean>(false);
 const qrCodeBigger = ref<boolean>(false);
 const settings = useSettingsStore()
 const logs = useLogStore()
@@ -112,6 +114,10 @@ player.onDoorEnterCallback = (d : string) => {
 		console.log(`loading level ${newLevelName}...`);
 	}).start()
 }
+
+// watch(playerChatInput, function(_, newMessage) {
+//   player.div.textContent = newMessage || ''
+// })
 
 const sessionInfo = useSessionStore();
 let foundEntryPoint = false;
@@ -209,6 +215,13 @@ mp.onRemotePlayerDisconnected((id) => {
 		pO.dispose();
 	}
 	playerIdToPlayerObj.delete(id);
+});
+
+mp.onChatFromPlayer((message: string, id: string) => {
+	let thatPlayer = playerIdToPlayerObj.get(id);
+  if (thatPlayer && thatPlayer.div) {
+    thatPlayer.div.textContent = message
+  }
 });
 
 const sun = new THREE.DirectionalLight();
@@ -372,6 +385,12 @@ function settingsToggle() {
 	settingsPanelOpen.value = !settingsPanelOpen.value
 }
 
+function updateChat(e: Event) {
+  const message = (e.target as HTMLInputElement).value
+  player.div.textContent = message
+  mp.chat(message)
+}
+
 </script>
 
 <template>
@@ -379,33 +398,29 @@ function settingsToggle() {
 		<div ref="gamecanvas" id="gamecanvas"></div>
 		<canvas id="auxcanvas"></canvas>
 		<div ref="trackballEl" id="trackball"></div>
-		<div class="nametag">
-			<qrcode-vue :value="host" @click="qrCodeBigger = !qrCodeBigger" class="qr"
-				:size="qrCodeBigger ? 150 : 50"></qrcode-vue>
-			<div class="nametag__text">
-				<span class="longstring">{{ mp.localPlayerDisplayString.value }}</span><br />{{
-					mp.playersOnline.value }}
-			</div>
-		</div>
-    <div class="minimap" v-if="settings.showMinimap">{{ minimapText }}</div>
+    <div class="bottom-A" v-show="!chatBoxOpen">
+      <button class="app-icon" v-if="settings.enableChat" @click="chatBoxOpen = true">
+        <div>💬</div>
+      </button>
+      <div class="nametag">
+        <qrcode-vue :value="host" @click="qrCodeBigger = !qrCodeBigger" class="qr"
+          :size="qrCodeBigger ? 150 : 50"></qrcode-vue>
+        <div class="nametag__text">
+          <span class="longstring">{{ mp.localPlayerDisplayString.value }}</span><br />{{
+          mp.playersOnline.value }}
+        </div>
+      </div>
+    </div>
+    <div class="minimap" v-if="settings.showMinimap && !chatBoxOpen">{{ minimapText }}</div>
+    <div class="chat-box" v-show="chatBoxOpen">
+      <button arial-label="close chat" class="chat-box__close-button" @click="chatBoxOpen = false">&times;</button>
+      <input class="chat-input" type="text" v-model="playerChatInput" @input="updateChat" />
+    </div>
 		<div class="logs" v-if="settings.showLogs">
 			<span v-for="message in logs.messages.slice(0, 6).reverse()">{{ message }}</span>
 		</div>
 		<div class="settings">
 			<div class="settings__panel" v-if="settingsPanelOpen">
-				<div>
-					<label>
-						<input type="checkbox" v-model="settings.invertControls" />
-						invert controls
-					</label>
-					<span class="settings__hint">{{ settings.invertControls ? `You control the
-						level` : `You
-						control the mouse`}}</span>
-				</div>
-				<label>
-					<input type="checkbox" v-model="settings.showLogs" />
-					show logs
-				</label>
 
 				<label>
 					<input type="checkbox" v-model="settings.showMinimap" />
@@ -417,6 +432,20 @@ function settingsToggle() {
 					enable chat
 				</label>
 
+				<label>
+					<input type="checkbox" v-model="settings.showLogs" />
+					show logs
+				</label>
+
+				<div>
+					<label>
+						<input type="checkbox" v-model="settings.invertControls" />
+						invert controls
+					</label>
+					<span class="settings__hint">{{ settings.invertControls ? `You control the
+						level` : `You
+						control the mouse`}}</span>
+				</div>
 			</div>
 			<button class="settings__toggle" @click="settingsToggle">⚙️ settings</button>
 		</div>
@@ -483,17 +512,38 @@ function settingsToggle() {
 	height: 100dvh;
 }
 
+.bottom-A {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+}
+
 .nametag {
 	display: flex;
 	text-align: left;
 	padding: 0em;
 	color: black;
-	position: fixed;
-	bottom: 0;
-	left: 0;
 	background: #ffffcc;
 	border: 0.75em #ffffcc solid;
 	white-space: pre;
+}
+
+.app-icon {
+  background: #14c131;
+  border-radius: 6px;
+  width: 4rem;
+  height: 4rem;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 2rem;
+  user-select: none;
+  border: none;
 }
 
 .qr {
@@ -559,5 +609,36 @@ function settingsToggle() {
   pointer-events: none;
   padding-right: 1em;
   padding-bottom: 1em;
+}
+
+.chat-box {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+  background: white;
+  z-index: 999; /* todo: don't do this */
+}
+
+.chat-box__close-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.3rem 1rem;
+  font-size: 2rem;
+  background: none;
+  border: none;
+}
+
+.chat-input {
+  background: #2f90f7;
+  border: none;
+  border-radius: 4rem;
+  padding: 0.5rem 1rem;
+  color: white;
+  outline: none;
+  width: 13rem;
 }
 </style>

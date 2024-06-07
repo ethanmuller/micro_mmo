@@ -45,10 +45,6 @@ export class Mouse {
     eyeMaterial: Material;
     debugSphere: Mesh;
 
-    //chatBubble: ChatBubble;
-    textDOMRenderer: CSS2DRenderer;
-    textObject: CSS2DObject;
-
     // movement
     velocity: Vector3 = new Vector3();
     radius: number = 0.8;
@@ -139,7 +135,7 @@ export class Mouse {
 
     constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin) {
         this.div = document.createElement('div')
-        this.div.textContent = 'mouse'
+        this.div.textContent = ''
         this.label = new CSS2DObject(this.div)
         scene.add(this.label)
         this.label.position.set(0,0,0)

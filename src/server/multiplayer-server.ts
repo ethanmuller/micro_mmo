@@ -44,6 +44,10 @@ io.on('connection', async (socket) => {
   socket.on('playerSentFrameData', (data : any, sentTime : number) => {
     socket.broadcast.to(level).emit('serverSentPlayerFrameData', Date.now(), socket.id, data, sentTime);
   });
+
+  socket.on('playerChat', (message: string) => {
+    socket.broadcast.to(level).emit('chatFromPlayer', message, socket.id);
+  });
 });
 
 server.listen(3000, () => {
