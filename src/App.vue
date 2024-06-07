@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import * as THREE from 'three';
 import { Mouse, MouseSkin, SerializedPlayerData } from './game/Mouse';
 import { Time } from './game/Time';
 import { MultiplayerClient } from './game/MultiplayerClient';
 import { InputManager } from './game/InputManager';
-import { FreeCamera } from './game/FreeCamera';
 import { Player } from './server/MultiplayerTypes'
 import { DEFAULT_LEVEL, Level, LevelMetaData, levels } from './game/Level';
 import { useSessionStore } from "./stores/session.ts";
@@ -185,7 +184,6 @@ if (crumbs.lastSeen) {
 }
 
 const cameraMovement = new CameraMovement(camera, player, level);
-const freeCamera = new FreeCamera(camera);
 
 const mp = new MultiplayerClient(seedStore.seed || 0, requestedLevelMetadata.name || DEFAULT_LEVEL)
 let playerIdToPlayerObj: Map<string, Mouse> = new Map<string, Mouse>();
@@ -279,31 +277,7 @@ function mainLoop(reportedTime : number) {
 
 
 
-	if (input.flyCameraButton.pressedThisFrame) {
-		freeCamera.enabled = !freeCamera.enabled;
-		console.log(`Free camera ${freeCamera.enabled ? "enabled" : "disabled"}`);
-
-		if (!freeCamera.enabled) {
-			// camera.removeFromParent();
-			// cameraPivot.add(camera);
-			// camera.position.copy(cameraWantedDisplacement);
-			// camera.lookAt(player.object.position);
-			// camera.updateProjectionMatrix();
-		}
-		else {
-			// camera.removeFromParent();
-			// scene.add(camera);
-		}
-	}
-
-	if (freeCamera.enabled) {
-		freeCamera.update(gameTime, input);
-		camera.updateMatrix();
-		camera.updateProjectionMatrix();
-	}
-	else {
-		cameraMovement.update(player, level);
-	}
+  cameraMovement.update(player, level);
 
 	// draw
 	//circleFade.uniforms.fadeOut.value = (Math.sin(gameTime.time) + 1) / 2;
