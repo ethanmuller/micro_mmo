@@ -365,6 +365,15 @@ function updateChat(e: Event) {
   mp.chat(message)
 }
 
+function handleKey(e: KeyboardEvent) {
+  if (e.key === 'Enter') {
+    playerChatInput.value = ''
+    player.div.textContent = ''
+    mp.chat('')
+    return 0
+  }
+}
+
 </script>
 
 <template>
@@ -388,7 +397,7 @@ function updateChat(e: Event) {
     <div class="minimap" v-if="settings.showMinimap && !chatBoxOpen">{{ minimapText }}</div>
     <div class="chat-box" v-show="chatBoxOpen">
       <button arial-label="close chat" class="chat-box__close-button" @click="chatBoxOpen = false">&times;</button>
-      <input class="chat-input" type="text" v-model="playerChatInput" @input="updateChat" />
+      <input class="chat-input" type="text" v-model="playerChatInput" @input="updateChat" @keydown="handleKey" />
     </div>
 		<div class="logs" v-if="settings.showLogs">
 			<span v-for="message in logs.messages.slice(0, 6).reverse()">{{ message }}</span>
