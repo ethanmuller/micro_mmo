@@ -27,6 +27,7 @@ const minimapText = ref<string>();
 const gamecanvas = ref<HTMLDivElement>();
 const chat_renderer = ref<HTMLDivElement>();
 const trackballEl = ref<HTMLDivElement>();
+const chat_input = ref<HTMLInputElement>();
 const host = ref<string>();
 const playerChatInput = ref<string>();
 const settingsPanelOpen = ref<boolean>(false);
@@ -378,6 +379,13 @@ function handleKey(e: KeyboardEvent) {
   }
 }
 
+function openChatBox() {
+  chatBoxOpen.value = true
+  window.setTimeout(() => {
+    chat_input.value?.focus()
+  }, 10)
+}
+
 </script>
 
 <template>
@@ -386,7 +394,7 @@ function handleKey(e: KeyboardEvent) {
 		<canvas id="auxcanvas"></canvas>
 		<div ref="trackballEl" id="trackball"></div>
     <div class="bottom-A" v-show="!chatBoxOpen">
-      <button class="app-icon" v-if="settings.enableChat" @click="chatBoxOpen = true">
+      <button class="app-icon" v-if="settings.enableChat" @click="openChatBox">
         <div>💬</div>
       </button>
       <div class="nametag">
@@ -401,7 +409,7 @@ function handleKey(e: KeyboardEvent) {
     <div class="minimap" v-if="settings.showMinimap && !chatBoxOpen">{{ minimapText }}</div>
     <div class="chat-box" v-show="chatBoxOpen">
       <button arial-label="close chat" class="chat-box__close-button" @click="chatBoxOpen = false">&times;</button>
-      <input class="chat-input" type="text" v-model="playerChatInput" @input="updateChat" @keydown="handleKey" />
+      <input ref="chat_input" class="chat-input" type="text" v-model="playerChatInput" @input="updateChat" @keydown="handleKey" />
     </div>
 		<div class="logs" v-if="settings.showLogs">
 			<span v-for="message in logs.messages.slice(0, 6).reverse()">{{ message }}</span>
