@@ -6,6 +6,7 @@ interface Settings {
   showMinimap: boolean,
   invertControls: boolean,
   enableSound: boolean,
+  enableChat: boolean,
   cameraMode: CameraMode
 }
 
@@ -17,6 +18,7 @@ export const useSettingsStore = defineStore('settings', {
       invertControls: false,
       cameraMode: 'topdown',
       enableSound: false,
+      enableChat: false,
     }
   },
   getters: {

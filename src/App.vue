@@ -13,27 +13,23 @@ import { useSettingsStore } from "./stores/settings.ts";
 import { useCrumbStore } from "./stores/crumb.ts";
 import { useSeedStore } from "./stores/seed.ts";
 import { useLogStore } from "./stores/logs";
-
 import toonTexture from "./assets/threeTone_bright.jpg";
 import { NearestFilter } from 'three';
 import QrcodeVue from 'qrcode.vue'
-import { EffectComposer, RenderPass, RGBELoader, ShaderPass, GammaCorrectionShader, CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/Addons.js';
+import { EffectComposer, RenderPass, RGBELoader, ShaderPass, GammaCorrectionShader, CSS2DRenderer, } from 'three/examples/jsm/Addons.js';
 import { CameraMovement } from './game/CameraMovement.ts';
 import { CircleTransitionShader } from './game/shaders/CircleTransitionShader';
 import * as TWEEN from '@tweenjs/tween.js';
 
-
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
 
-
 const minimapText = ref<string>();
-
 const gamecanvas = ref<HTMLDivElement>();
+const chat_renderer = ref<HTMLDivElement>();
 const trackballEl = ref<HTMLDivElement>();
 const host = ref<string>();
 const settingsPanelOpen = ref<boolean>(false);
-
 const qrCodeBigger = ref<boolean>(false);
 const settings = useSettingsStore()
 const logs = useLogStore()
@@ -60,6 +56,8 @@ const urlParams = new URLSearchParams(window.location.search);
 const requestedLevelString = urlParams.get('level')
 const levelName = requestedLevelString || DEFAULT_LEVEL;
 const requestedLevelMetadata: LevelMetaData = levels[levelName]
+
+let textRenderer: CSS2DRenderer
 
 new RGBELoader()
 	.load(requestedLevelMetadata.sky.toString(), function (texture) {
@@ -231,18 +229,6 @@ var gameTime = <Time>({
 let lastTickTime = new Date().getTime();
 let input: InputManager
 
-const textRenderer = new CSS2DRenderer()
-
-textRenderer.setSize(window.innerWidth, window.innerHeight)
-textRenderer.domElement.style.position = 'absolute';
-textRenderer.domElement.style.top = '0px';
-textRenderer.domElement.style.left = '0px';
-textRenderer.domElement.style.zIndex = '1';
-textRenderer.domElement.style.color = 'white';
-textRenderer.domElement.style.textShadow = '0 0 10px black';
-textRenderer.domElement.style.pointerEvents = 'none';
-textRenderer.domElement.textContent = ''
-document.getElementById('app')?.appendChild( textRenderer.domElement );
 
 let axesHelperV2 = new THREE.Vector2();
 
@@ -311,7 +297,10 @@ function mainLoop(reportedTime : number) {
 	
 	circleFade.enabled = circleFade.uniforms.fadeOut.value > 0;
 	composer.render();
-  textRenderer.render(scene, camera)
+
+  if (settings.enableChat) {
+    textRenderer?.render(scene, camera)
+  }
 
 	// send info to the server if it's time
 	if (gameTime.time - lastNetworkUpdate > NETWORK_TIME_BETWEEN_UPDATES) {
@@ -327,6 +316,18 @@ function mainLoop(reportedTime : number) {
 }
 
 onMounted(() => {
+  textRenderer = new CSS2DRenderer({ element: chat_renderer.value })
+  textRenderer.setSize(window.innerWidth, window.innerHeight)
+  textRenderer.domElement.style.position = 'absolute';
+  textRenderer.domElement.style.top = '0px';
+  textRenderer.domElement.style.left = '0px';
+  textRenderer.domElement.style.zIndex = '1';
+  textRenderer.domElement.style.color = 'white';
+  textRenderer.domElement.style.textShadow = '0 0 10px black';
+  textRenderer.domElement.style.pointerEvents = 'none';
+  textRenderer.domElement.textContent = ''
+  document.getElementById('app')?.appendChild( textRenderer.domElement );
+
 	host.value = window.location.toString()
 
 	if (trackballEl.value) {
@@ -362,7 +363,7 @@ function onWindowResize(): void {
 	circleFade.uniforms.aspectRatio.value = ar;
 	circleFade.uniforms.halfHeightRelativeRadius.value = Math.sqrt(width * width + height * height)/height/2;
 
-  textRenderer.setSize(window.innerWidth, window.innerHeight)
+  textRenderer?.setSize(window.innerWidth, window.innerHeight)
 }
 
 addEventListener("resize", onWindowResize, false);
@@ -411,9 +412,15 @@ function settingsToggle() {
 					show minimap
 				</label>
 
+				<label>
+					<input type="checkbox" v-model="settings.enableChat" />
+					enable chat
+				</label>
+
 			</div>
 			<button class="settings__toggle" @click="settingsToggle">⚙️ settings</button>
 		</div>
+    <div ref="chat_renderer" v-show="settings.enableChat"></div>
 	</div>
 </template>
 
