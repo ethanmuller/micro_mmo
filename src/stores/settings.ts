@@ -13,7 +13,7 @@ interface Settings {
 export const useSettingsStore = defineStore('settings', {
   state: (): Settings => {
     return {
-      showLogs: true,
+      showLogs: false,
       showMinimap: false,
       invertControls: false,
       cameraMode: 'topdown',
