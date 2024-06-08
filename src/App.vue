@@ -540,6 +540,7 @@ function openChatBox() {
   justify-content: center;
   align-items: center;
   margin-bottom: 0.5rem;
+  margin-left: 0.5rem;
   font-size: 2rem;
   user-select: none;
   border: none;
