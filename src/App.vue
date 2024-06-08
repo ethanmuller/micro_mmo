@@ -517,7 +517,7 @@ function openChatBox() {
 	left: 0;
   display: flex;
   flex-direction: column;
-  align-items: end;
+  align-items: start;
 }
 
 .nametag {
