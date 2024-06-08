@@ -493,9 +493,9 @@ l
 
 const lab: LevelMetaData = {
     name: 'lab',
-    cameraType: 'mazecam',
-    tileSize: 7,
-    wallHeight: 7,
+    cameraType: 'topdown',
+    tileSize: 5,
+    wallHeight: 3,
     ascii: `
 ##########
 ####     #

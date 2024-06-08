@@ -135,6 +135,7 @@ export class Mouse {
 
     constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin) {
         this.div = document.createElement('div')
+        this.div.classList.add('doop')
         this.div.textContent = ''
         this.label = new CSS2DObject(this.div)
         scene.add(this.label)
@@ -764,6 +765,7 @@ export class Mouse {
             }
         })
         this.scene.remove(this.tail);
+        this.scene.remove(this.label)
         this.div.remove()
 
         // this.chatBubble.dispose()

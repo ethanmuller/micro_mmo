@@ -73,16 +73,17 @@ export class CameraMovement {
         const session = useSessionStore()
 
         if (session.cameraMode === 'iso') {
-            this.camera.fov = 6 * window.innerHeight/window.innerWidth
+            this.camera.fov = 10
             this.camera.position.copy(player.object.position);
             this.camera.position.add(new Vector3(90, 90, 90))
             this.camera.lookAt(player.object.position);
             this.camera.updateProjectionMatrix();
         }
         if (session.cameraMode === 'topdown') {
-          this.camera.fov = 17 * window.innerHeight/window.innerWidth
+          this.camera.fov = 30
           this.camera.position.copy(player.object.position);
-          this.camera.position.add(new Vector3(0, 90, 0))
+          this.camera.position.y += 30
+          this.camera.position.z += 40
           this.camera.lookAt(player.object.position);
           this.camera.updateProjectionMatrix();
         }
@@ -102,7 +103,7 @@ export class CameraMovement {
           this.camera.updateProjectionMatrix();
         }
         if (session.cameraMode === 'mazecam') {
-            this.camera.fov = Math.max(70, 70 * window.innerHeight/window.innerWidth)
+            this.camera.fov = 90
             level.getTileFromWorldPosition(player.object.position, this.currentPlayerTile);
 
             if (this.currentPlayerTile.x != this.previousPlayerTile.x || this.currentPlayerTile.y != this.previousPlayerTile.y) {

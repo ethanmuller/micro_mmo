@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import * as THREE from 'three';
 import { Mouse, MouseSkin, SerializedPlayerData } from './game/Mouse';
 import { Time } from './game/Time';
@@ -381,8 +381,12 @@ function handleKey(e: KeyboardEvent) {
 
 function openChatBox() {
   chatBoxOpen.value = true
-  window.setTimeout(() => {
+  
+  nextTick(() => {
     chat_input.value?.focus()
+  })
+
+  window.setTimeout(() => {
   }, 10)
 }
 
@@ -584,6 +588,7 @@ function openChatBox() {
 }
 
 .settings__toggle {
+  font-size: 0.75rem;
 	background: white;
 	color: black;
 	padding: 1rem;
@@ -612,7 +617,7 @@ function openChatBox() {
   left: 0;
   width: 100%;
   padding-top: 3rem;
-  padding-bottom: 3rem;
+  padding-bottom: 4rem;
   background: white;
   z-index: 999; /* todo: don't do this */
 }
@@ -628,6 +633,8 @@ function openChatBox() {
 }
 
 .chat-input {
+  appearance: none;
+  font-size: 16px;
   background: #2f90f7;
   border: none;
   border-radius: 4rem;
