@@ -3,11 +3,10 @@ import { Time } from "./Time";
 import { InputManager } from "./InputManager";
 import { Constants } from "./constants";
 import { Utils } from "./Utils";
-import { ChatBubble } from "./ChatBubble";
 import { Level } from "./Level";
 import { useSettingsStore } from "../stores/settings";
 import { TailGeometry } from "./extensions/TailGeometry";
-import { CSS2DRenderer, CSS2DObject, } from 'three/addons/renderers/CSS2DRenderer.js';
+import { CSS2DObject, } from 'three/addons/renderers/CSS2DRenderer.js';
 
 export type SerializedPlayerData = {
     position: Vector3,
@@ -141,8 +140,6 @@ export class Mouse {
         scene.add(this.label)
         this.label.position.set(0,0,0)
 
-
-        //this.chatBubble = new ChatBubble(scene, Math.random().toString())
 
         this.debugSphere = new Mesh(new SphereGeometry(this.radius, 12, 12), new MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.3 }));
         this.debugSphere.position.y += this.radius;
@@ -357,11 +354,6 @@ export class Mouse {
     private previousFramePosition = new Vector3();
 
     update(time: Time, level: Level, input?: InputManager, camera?: Object3D, otherMice?: Map<string, Mouse>) {
-        // putting this in update feels wrong, but if this only happens in the constructor, setting will not be updated unless page refreshes, so maybe it does belong here? I dunno.
-
-      // this.chatBubble.moveTo(this.object.position)
-              
-
         let positionBefore = this.previousFramePosition.copy(this.object.position);
 
         if (input && camera) { // Local players
@@ -768,8 +760,5 @@ export class Mouse {
         this.scene.remove(this.label)
         this.div.remove()
 
-        // this.chatBubble.dispose()
-
-        // TODO dispose of all the geometries of the object (or even better: reuse the geometries between different players)
     }
 }

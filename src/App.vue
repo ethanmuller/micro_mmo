@@ -261,12 +261,11 @@ function mainLoop(reportedTime : number) {
   //const reusableTile = new THREE.Vector2()
 
 	playerIdToPlayerObj.forEach((mouse: Mouse) => {
+    // loop through all players and update them
 		mouse.update(gameTime, level);
-    //mouse.chatBubble.render(scene, camera)
 	})
 
 	player.update(gameTime, level, input, camera, playerIdToPlayerObj);
-    //player.chatBubble.render(scene, camera)
 
   if (settings.showMinimap) {
     minimapText.value = level.renderMinimap(player)
