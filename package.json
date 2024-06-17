@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "multiplayer-server": "node --loader ts-node/esm src/server/multiplayer-server.ts",
-    "dev": "vite --host",
+    "frontend-client": "vite --host",
+    "dev": "concurrently --kill-others \"npm run frontend-client\" \"npm run multiplayer-server\"",
     "build": "vue-tsc --noEmitOnError && vite build",
     "preview": "vite preview"
   },
@@ -30,6 +31,7 @@
     "@types/three": "^0.163.0",
     "@types/tween.js": "^18.6.1",
     "@vitejs/plugin-vue": "^5.0.4",
+    "concurrently": "^8.2.2",
     "nodemon": "^3.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.2.2",
