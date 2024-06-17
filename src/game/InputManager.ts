@@ -43,6 +43,7 @@ export class InputManager {
     pageDown: ButtonInput;
     trackball: TrackballInput;
     fingerDown: Boolean;
+    fingerDownForBrake: Boolean;
     shift: ButtonInput;
     ctrl: ButtonInput;
 
@@ -82,6 +83,7 @@ export class InputManager {
         mc.add(new Hammer.Press({ time: 0 }));
 
         this.fingerDown = false
+        this.fingerDownForBrake = false
         const screenFactor = window.innerHeight * 0.03;
 
         mc.on('pan', (e: HammerInput) => {
@@ -94,11 +96,19 @@ export class InputManager {
             }
         })
         mc.on('press', () => {
+            if (this.trackball.velocity.length() > 0) {
+              this.fingerDownForBrake = true
+            }
+
             this.trackball.velocity.set(0, 0);
             this.fingerDown = true
         })
         mc.on('pressup', () => {
+            if (!this.fingerDownForBrake) {
+              // do context action
+            }
             this.fingerDown = false
+            this.fingerDownForBrake = false
         })
     }
 
