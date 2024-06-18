@@ -8,6 +8,7 @@ import { Level } from "./Level";
 import { useSettingsStore } from "../stores/settings";
 import { TailGeometry } from "./extensions/TailGeometry";
 import { CSS2DObject, } from 'three/addons/renderers/CSS2DRenderer.js';
+import * as Tone from "tone";
 
 export type SerializedPlayerData = {
     position: Vector3,
@@ -32,9 +33,20 @@ export type MouseSkin = {
     footColor?: ColorRepresentation
 }
 
+const chirpNotes = {
+  A1: "c1.wav",
+  B1: "c2.wav",
+  C1: "c3.wav",
+  D1: "c4.wav",
+  E1: "c5.wav",
+  F1: "c6.wav",
+}
+
 export class Mouse {
     public object: Object3D;
     scene: Scene;
+
+    squeakSampler: Tone.Sampler;
 
     // Materials
     material: Material;
@@ -98,6 +110,8 @@ export class Mouse {
     tailSegments = 5;
     maxTailTwist = Math.PI * 0.4;
 
+    chirpIndex: number = 0;
+
 
     feet: Feet[] = [];
     feetTime: number = 0;
@@ -137,6 +151,11 @@ export class Mouse {
     private frameDisplacementDirection: Vector3 = new Vector3();
 
     constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin, localPlayer: boolean) {
+        this.squeakSampler = new Tone.Sampler({
+          urls: chirpNotes,
+          baseUrl: "https://mush.network/files/sfx/chirps-and-squeaks/",
+        }).toDestination()
+
         this.div = document.createElement('div')
         this.div.classList.add('doop')
         this.div.textContent = ''
@@ -337,7 +356,13 @@ export class Mouse {
         // this.scene.add(boneHelper);
     }
 
-    squeak() {
+    squeak(n?: number) {
+      if (!n) {
+        this.chirpIndex += 1
+        this.chirpIndex = this.chirpIndex % (Object.keys(chirpNotes).length)
+      }
+      const note = Object.keys(chirpNotes)[n || this.chirpIndex]
+      this.squeakSampler.triggerAttackRelease(note, "8n")
       this.headSpring.applyForce(0.7)
     }
 

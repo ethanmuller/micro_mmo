@@ -19,6 +19,7 @@ import { EffectComposer, RenderPass, RGBELoader, ShaderPass, GammaCorrectionShad
 import { CameraMovement } from './game/CameraMovement.ts';
 import { CircleTransitionShader } from './game/shaders/CircleTransitionShader';
 import * as TWEEN from '@tweenjs/tween.js';
+import * as Tone from "tone";
 
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
@@ -209,9 +210,10 @@ mp.onRemotePlayerFrameData((id, data) => {
 });
 
 mp.connection.on('squeak', (id: string, n: number) => {
+  console.log(id, n)
 	let playerObj = playerIdToPlayerObj.get(id);
 	if (playerObj) {
-    playerObj.squeak()
+    playerObj.squeak(n)
   }
 })
 
@@ -310,8 +312,9 @@ function mainLoop(reportedTime : number) {
 }
 
 function sendSqueak() {
+  Tone.start()
   player.squeak()
-  mp.connection.emit('squeak', 1)
+  mp.connection.emit('squeak', player.chirpIndex)
 }
 
 onMounted(() => {
