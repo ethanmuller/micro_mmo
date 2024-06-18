@@ -106,6 +106,8 @@ export class InputManager {
         mc.on('pressup', () => {
             if (!this.fingerDownForBrake) {
               // do context action
+              const event = new Event('contextAction')
+              document.dispatchEvent(event)
             }
             this.fingerDown = false
             this.fingerDownForBrake = false

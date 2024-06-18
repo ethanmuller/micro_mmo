@@ -101,7 +101,7 @@ if (!seedStore.seed) {
   seedStore.generateSeed(skinList.length - 1)
 }
 
-const player = new Mouse(scene, toonRamp, skinList[seedStore.seed || 0]);
+const player = new Mouse(scene, toonRamp, skinList[seedStore.seed || 0], true);
 let circleFadeTween : TWEEN.Tween<{value: number}>;
 player.onDoorEnterCallback = (d : string) => {
 	circleFade.uniforms.fadeOut.value = 0;
@@ -195,7 +195,7 @@ mp.onPlayerConnected((newPlayer: Player) => {
 	}
 	else { // Remote players
 		if (!playerIdToPlayerObj.has(newPlayer.id)) {
-			playerIdToPlayerObj.set(newPlayer.id, new Mouse(scene, toonRamp, skinList[newPlayer.skin]));
+			playerIdToPlayerObj.set(newPlayer.id, new Mouse(scene, toonRamp, skinList[newPlayer.skin], false));
 		}
 	}
 });

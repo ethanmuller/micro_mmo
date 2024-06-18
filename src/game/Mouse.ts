@@ -3,6 +3,7 @@ import { Time } from "./Time";
 import { InputManager } from "./InputManager";
 import { Constants } from "./constants";
 import { Utils } from "./Utils";
+import { Spring } from "./Spring"
 import { Level } from "./Level";
 import { useSettingsStore } from "../stores/settings";
 import { TailGeometry } from "./extensions/TailGeometry";
@@ -113,6 +114,8 @@ export class Mouse {
     enteringDoorTile = new Vector2();
     onDoorEnterCallback : ((d: string) => void) | undefined;
 
+    headSpring: Spring;
+
     private var = { // just random vectors and quaternions for use during update operations
         q1: new Quaternion(),
         q2: new Quaternion(),
@@ -132,13 +135,20 @@ export class Mouse {
 
     private frameDisplacementDirection: Vector3 = new Vector3();
 
-    constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin) {
+    constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin, localPlayer: boolean) {
         this.div = document.createElement('div')
         this.div.classList.add('doop')
         this.div.textContent = ''
         this.label = new CSS2DObject(this.div)
         scene.add(this.label)
         this.label.position.set(0,0,0)
+
+        this.headSpring = new Spring(0, 2, 0.7, 0.999)
+
+        if (localPlayer) {
+          document.addEventListener('contextAction', this.squeak.bind(this))
+        }
+
 
 
         this.debugSphere = new Mesh(new SphereGeometry(this.radius, 12, 12), new MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.3 }));
@@ -332,6 +342,10 @@ export class Mouse {
         // this.scene.add(boneHelper);
     }
 
+    squeak() {
+      this.headSpring.applyForce(1)
+    }
+
 
     private createFeet(obj: Object3D, attachment: Object3D, neutralPosition: Vector3): number {
         let f: Feet = {
@@ -355,6 +369,8 @@ export class Mouse {
 
     update(time: Time, level: Level, input?: InputManager, camera?: Object3D, otherMice?: Map<string, Mouse>) {
         let positionBefore = this.previousFramePosition.copy(this.object.position);
+
+        this.headSpring.update()
 
         if (input && camera) { // Local players
             this.updateLocalWithInput(time, level, input, camera);
@@ -431,8 +447,8 @@ export class Mouse {
         //}
 
         // Visually update, animations
-        this.headWobbleTime += time.deltaTime;
-        this.headPivot.position.y = (Math.sin(this.headWobbleTime * this.headWobbleFrequency) * 0.5 + 0.5) * this.headWobbleAmount + this.headWobbleMinHeight;
+        // this.headWobbleTime += time.deltaTime;
+        // this.headPivot.position.y = (Math.sin(this.headWobbleTime * this.headWobbleFrequency) * 0.5 + 0.5) * this.headWobbleAmount + this.headWobbleMinHeight;
 
         let frameDisplacement = positionBefore.sub(this.object.position);
         frameDisplacement.multiplyScalar(-1);
@@ -504,8 +520,11 @@ export class Mouse {
             }
 
             this.currentFaceAngle = Utils.ClampAngleDistance(bodyAngle, this.currentFaceAngle, this.maxFaceRotation)
-            this.face.quaternion.setFromAxisAngle(Constants.up, this.currentFaceAngle);
         }
+
+        this.face.quaternion.setFromAxisAngle(Constants.up, this.currentFaceAngle);
+        this.face.rotateX(this.headSpring.position)
+
 
 
         if (this.debugSphere.visible) {
