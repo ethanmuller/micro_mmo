@@ -7,7 +7,6 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
-  hello: () => void;
   playerSentFrameData: (data : any, sentTime : number) => void;
   playerConnected: (id : string, skinNumber : number) => void;
 }

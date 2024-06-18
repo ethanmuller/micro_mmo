@@ -208,6 +208,13 @@ mp.onRemotePlayerFrameData((id, data) => {
 	}
 });
 
+mp.connection.on('squeak', (id: string, n: number) => {
+	let playerObj = playerIdToPlayerObj.get(id);
+	if (playerObj) {
+    playerObj.squeak()
+  }
+})
+
 mp.onRemotePlayerDisconnected((id) => {
 	let pO = playerIdToPlayerObj.get(id);
 	if (pO) {
@@ -302,6 +309,11 @@ function mainLoop(reportedTime : number) {
 		requestAnimationFrame(mainLoop);
 }
 
+function sendSqueak() {
+  player.squeak()
+  mp.connection.emit('squeak', 1)
+}
+
 onMounted(() => {
   textRenderer = new CSS2DRenderer({ element: chat_renderer.value })
   textRenderer.setSize(window.innerWidth, window.innerHeight)
@@ -314,6 +326,8 @@ onMounted(() => {
   textRenderer.domElement.style.pointerEvents = 'none';
   textRenderer.domElement.textContent = ''
   document.getElementById('app')?.appendChild( textRenderer.domElement );
+
+  document.addEventListener('contextAction', sendSqueak)
 
 	host.value = window.location.toString()
 
@@ -330,6 +344,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	mp.disconnect();
+  document.removeEventListener('contextAction', sendSqueak)
 })
 
 function onWindowResize(): void {

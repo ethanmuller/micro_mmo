@@ -41,6 +41,10 @@ io.on('connection', async (socket) => {
     io.to(level).emit('playerDisconnected', socket.id);
   });
 
+  socket.on('squeak', (n : number) => {
+    socket.broadcast.to(level).emit('squeak', socket.id, n)
+  })
+
   socket.on('playerSentFrameData', (data : any, sentTime : number) => {
     socket.broadcast.to(level).emit('serverSentPlayerFrameData', Date.now(), socket.id, data, sentTime);
   });

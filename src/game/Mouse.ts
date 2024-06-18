@@ -59,6 +59,7 @@ export class Mouse {
     wantedFaceAngle: number = 0;
     currentFaceAngle: number = 0;
     maxFaceRotation: number = Math.PI * 0.25;
+    headRadius: number;
     bodyLength: number;
     buttRadius: number;
     headWobbleTime: number = 0;
@@ -143,13 +144,7 @@ export class Mouse {
         scene.add(this.label)
         this.label.position.set(0,0,0)
 
-        this.headSpring = new Spring(0, 2, 0.7, 0.999)
-
-        if (localPlayer) {
-          document.addEventListener('contextAction', this.squeak.bind(this))
-        }
-
-
+        this.headSpring = new Spring(0, 3, 0.7, 0.999)
 
         this.debugSphere = new Mesh(new SphereGeometry(this.radius, 12, 12), new MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.3 }));
         this.debugSphere.position.y += this.radius;
@@ -163,8 +158,8 @@ export class Mouse {
         this.tailMaterial = new MeshToonMaterial({ color: skin.skinColor, gradientMap: toonRamp });
 
         const buttRadius = this.buttRadius = 0.89;
-        const headRadius = 0.6;
-        this.bodyLength = buttRadius + headRadius - 0.1;
+        this.headRadius = 0.6;
+        this.bodyLength = buttRadius + this.headRadius - 0.1;
         const snoutRadius = 0.47;
 
         const snoutLength = 0.5;
@@ -176,27 +171,27 @@ export class Mouse {
         this.headPivot = new Object3D();
         this.butt = new Mesh(new SphereGeometry(buttRadius, 12, 12), this.material);
         scene.add(this.butt);
-        this.bodyConnector = new Mesh(new CylinderGeometry(buttRadius, headRadius, 1, 12, 1, true), this.material);
+        this.bodyConnector = new Mesh(new CylinderGeometry(buttRadius, this.headRadius, 1, 12, 1, true), this.material);
         this.bodyConnector.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), Math.PI * 0.5);
         this.bodyConnector.position.z = -this.bodyLength * 0.5;
         this.bodyConnector.scale.set(1, this.bodyLength, 1);
         this.butt.add(this.bodyConnector);
-        let radiusDifference = buttRadius - headRadius;
+        let radiusDifference = buttRadius - this.headRadius;
         this.naturalBodyTilt = -Math.asin(radiusDifference / this.bodyLength);
         //this.butt.quaternion.setFromAxisAngle(new Vector3(1,0,0), this.naturalBodyTilt);
 
-        this.head = new Mesh(new SphereGeometry(headRadius, 12, 12), this.material);
+        this.head = new Mesh(new SphereGeometry(this.headRadius, 12, 12), this.material);
         //this.head.position.z = -bodyLength;
         //this.butt.add(this.head);
 
-        this.head.position.y = headRadius;
+        this.head.position.y = this.headRadius;
         this.headPivot.add(this.head);
 
         this.face = new Object3D();
         this.head.add(this.face)
         this.snout = new Mesh(new ConeGeometry(snoutRadius, snoutLength, 12, 12, true), this.material);
         this.snout.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -snoutTilt - Math.PI * 0.5);
-        this.snout.position.z = -headRadius;
+        this.snout.position.z = -this.headRadius;
         this.snout.position.add(snoutPlacement);
         this.face.add(this.snout);
         this.nose = new Mesh(new SphereGeometry(noseRadius, 8, 8), this.noseMaterial);
@@ -278,8 +273,8 @@ export class Mouse {
         let footYPos = footSize * 0.25;
 
         this.feet = [];
-        this.rightFootId = this.createFeet(foot, this.object, new Vector3(headRadius, footYPos, 0.2));
-        this.leftFootId = this.createFeet(foot.clone(), this.object, new Vector3(-headRadius, footYPos, 0.2));
+        this.rightFootId = this.createFeet(foot, this.object, new Vector3(this.headRadius, footYPos, 0.2));
+        this.leftFootId = this.createFeet(foot.clone(), this.object, new Vector3(-this.headRadius, footYPos, 0.2));
         this.backRightFootId = this.createFeet(foot.clone(), this.butt, new Vector3(buttRadius - 0.1, footYPos, 0));
         this.backLeftFootId = this.createFeet(foot.clone(), this.butt, new Vector3(-buttRadius + 0.1, footYPos, 0));
 
@@ -343,7 +338,7 @@ export class Mouse {
     }
 
     squeak() {
-      this.headSpring.applyForce(1)
+      this.headSpring.applyForce(0.7)
     }
 
 
@@ -371,6 +366,7 @@ export class Mouse {
         let positionBefore = this.previousFramePosition.copy(this.object.position);
 
         this.headSpring.update()
+        this.head.position.y = this.headRadius + this.headSpring.position
 
         if (input && camera) { // Local players
             this.updateLocalWithInput(time, level, input, camera);
@@ -447,8 +443,8 @@ export class Mouse {
         //}
 
         // Visually update, animations
-        // this.headWobbleTime += time.deltaTime;
-        // this.headPivot.position.y = (Math.sin(this.headWobbleTime * this.headWobbleFrequency) * 0.5 + 0.5) * this.headWobbleAmount + this.headWobbleMinHeight;
+        this.headWobbleTime += time.deltaTime;
+        this.headPivot.position.y = (Math.sin(this.headWobbleTime * this.headWobbleFrequency) * 0.5 + 0.5) * this.headWobbleAmount + this.headWobbleMinHeight;
 
         let frameDisplacement = positionBefore.sub(this.object.position);
         frameDisplacement.multiplyScalar(-1);

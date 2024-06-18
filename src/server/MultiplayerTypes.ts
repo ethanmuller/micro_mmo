@@ -6,9 +6,11 @@ export interface ServerToClientEvents {
   playerDisconnected: ( id : string ) => void;
   serverSentPlayerFrameData: (time : number, id : string, data : any, sentTime : number) => void;
   chatFromPlayer: (message: string, from: string) => void
+  squeak: (id : string, n : number) => void;
 }
 
 export interface ClientToServerEvents {
+  squeak: (n : number) => void;
   playerSentFrameData: (data : any, sentTime : number) => void;
   playerConnected: (id : string, skinNumber : number) => void;
   playerChat: (message : string) => void
