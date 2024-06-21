@@ -8,17 +8,6 @@ npm run dev
 ```
 
 This will start vite, and will hot-reload changes.
+It will also concurrently run the multiplayer server.
 
-## Multiplayer
-
-The multiplayer server is not started automatically along with vite. To start the multiplayer server:
-
-```
-npm run multiplayer-server
-```
-
-## Recommended Setup
-
-- [VS Code](https://code.visualstudio.com/) + [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (previously Volar) and disable Vetur
-
-- Use [vue-tsc](https://github.com/vuejs/language-tools/tree/master/packages/tsc) for performing the same type checking from the command line, or for generating d.ts files for SFCs.
+Starting this process will print out an IP address that you can use to visit the game client via other devices on the same network as your server. If your phone shares a network with the computer running a server, you can scan the QR code in the terminal to join the game.
