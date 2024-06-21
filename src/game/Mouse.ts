@@ -44,6 +44,8 @@ export class Mouse {
     public object: Object3D;
     scene: Scene;
 
+    isLocalPlayer: Boolean
+
     squeakSampler: Tone.Sampler;
 
     // Materials
@@ -148,7 +150,8 @@ export class Mouse {
 
     private frameDisplacementDirection: Vector3 = new Vector3();
 
-    constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin, localPlayer: boolean) {
+    constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin, isLocalPlayer: boolean) {
+        this.isLocalPlayer = isLocalPlayer
         this.squeakSampler = new Tone.Sampler({
           urls: chirpNotes,
           baseUrl: "https://mush.network/files/sfx/chirps-and-squeaks/",
@@ -391,7 +394,7 @@ export class Mouse {
         this.headSpring.update()
         this.head.position.y = this.headRadius + this.headSpring.position
 
-        if (input && camera) { // Local players
+        if (this.isLocalPlayer && input && camera) { // Local players
             this.updateLocalWithInput(time, level, input, camera);
         }
 
