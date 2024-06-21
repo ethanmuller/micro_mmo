@@ -37,9 +37,7 @@ const chirpNotes = {
   A1: "c1.wav",
   B1: "c2.wav",
   C1: "c3.wav",
-  D1: "c4.wav",
-  E1: "c5.wav",
-  F1: "c6.wav",
+  D1: "c6.wav",
 }
 
 export class Mouse {
@@ -75,8 +73,8 @@ export class Mouse {
     bodyLength: number;
     buttRadius: number;
     headWobbleTime: number = 0;
-    headWobbleFrequency: number = 4;
-    headWobbleAmount: number = 0.2;
+    headWobbleFrequency: number = 2;
+    headWobbleAmount: number = 0.1;
     headWobbleMinHeight: number = 0.2;
     stepHeight: number = 0.45;
     frontLegStepReachSquared: number = 0.7 * 0.7;
@@ -163,7 +161,7 @@ export class Mouse {
         scene.add(this.label)
         this.label.position.set(0,0,0)
 
-        this.headSpring = new Spring(0, 3, 0.7, 0.999)
+        this.headSpring = new Spring(0, 2, 0.1, 1 - Number.EPSILON)
 
         this.debugSphere = new Mesh(new SphereGeometry(this.radius, 12, 12), new MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.3 }));
         this.debugSphere.position.y += this.radius;
@@ -363,7 +361,7 @@ export class Mouse {
       }
       const note = Object.keys(chirpNotes)[n || this.chirpIndex]
       this.squeakSampler.triggerAttackRelease(note, "8n")
-      this.headSpring.applyForce(0.7)
+      this.headSpring.applyForce(0.1)
     }
 
 
