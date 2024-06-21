@@ -459,28 +459,18 @@ type LevelName = 'ohio' | 'lab' | 'the_cheddaverse'
 
 const ohio: LevelMetaData = {
     name: 'ohio',
-    cameraType: 'iso',
+    cameraType: 'topdown',
     tileSize: 3,
     wallHeight: 3,
     doors: new Map([['l', 'lab'], ['t', 'the_cheddaverse']]),
     ascii: `
-l
-@######
+ 
+      l
+######@
 #######
 ##   ##
 ##   ##
 ##   ##
-##   ##
-##   ##
-## ####
-## # ##
-## # ##
-## # ##
-## # ##
-## # ##
-## # ##
-## # ##
-## # ##
 ##   ##
 ## t ##
 #######
@@ -497,21 +487,21 @@ const lab: LevelMetaData = {
     tileSize: 5,
     wallHeight: 3,
     ascii: `
-##########
-####     #
-####  #  #
-####  #  #
-##### ####
-######
-###########
-########  #
-## #####  ###
-###@# ##  # # t
-###########   #
-#### ###  #####
-########### 
-######## #
- o       #
+#######      
+#######      
+#######      
+#######      
+########     
+   ######     
+   ###########
+   ########  #
+   ## #####  #  
+   ###@# ##  #    
+   ########  t    
+   #### ###       
+   ########    
+   ######## 
+   o        
   `,
     doors: new Map([['o', 'ohio'], ['t', 'the_cheddaverse']]),
     sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr'),
@@ -520,7 +510,7 @@ const lab: LevelMetaData = {
 }
 const the_cheddaverse: LevelMetaData = {
     name: 'the_cheddaverse',
-    cameraType: 'mazecam',
+    cameraType: 'topdown',
     tileSize: 24,
     wallHeight: 24,
     doors: new Map([

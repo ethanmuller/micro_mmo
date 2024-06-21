@@ -4,6 +4,7 @@ import { CARDINAL, DIAGONAL, Level } from "./Level";
 import { Mouse } from "./Mouse";
 import { Utils } from "./Utils";
 import { useSessionStore } from "../stores/session";
+import { Spring } from "./Spring"
 
 export const cameraModes = ['iso', 'topdown', 'wholemap', 'mazecam', 'nothing', 'security_cam_1'] as const;
 export type CameraMode = typeof cameraModes[number];
@@ -14,8 +15,12 @@ export class CameraMovement {
     distanceFromWall: number;
     distanceFromPlayer: number;
     lookAtShift: Vector3;
+    camSpringZ: Spring;
+    camSpringY: Spring;
 
     constructor(cam: PerspectiveCamera, player: Mouse, level: Level) {
+        this.camSpringZ = new Spring(0, 2, 0.05, 1 - Number.EPSILON)
+        this.camSpringY = new Spring(0, 2, 0.05, 1 - Number.EPSILON)
         this.camera = cam;
         this.distanceFromFloor = 3.5;
         this.distanceFromWall = 1; // Maximum level.tileSize * 0.5, can be less
@@ -82,10 +87,24 @@ export class CameraMovement {
         if (session.cameraMode === 'topdown') {
           this.camera.fov = 30
           this.camera.position.copy(player.object.position);
-          this.camera.position.y += 60
+          level.getTileFromWorldPosition(player.object.position, this.currentPlayerTile);
+          const wallInTheWay = !level.isTileWalkable(this.currentPlayerTile.x, this.currentPlayerTile.y+1, true)
+          this.camera.position.y += 30
           this.camera.position.z += 40
+          if (wallInTheWay) {
+            this.camSpringZ.restPosition = -20
+            this.camSpringY.restPosition = +30
+          } else {
+            this.camSpringZ.restPosition = 0
+            this.camSpringY.restPosition = 0
+          }
+          this.camera.position.z += this.camSpringZ.position
+          this.camera.position.y += this.camSpringY.position
           this.camera.lookAt(player.object.position);
           this.camera.updateProjectionMatrix();
+
+          this.camSpringZ.update()
+          this.camSpringY.update()
         }
         if (session.cameraMode === 'wholemap') {
           this.camera.fov = 80
