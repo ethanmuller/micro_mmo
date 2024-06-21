@@ -37,7 +37,9 @@ const qrCodeBigger = ref<boolean>(false);
 const settings = useSettingsStore()
 const logs = useLogStore()
 
-logs.add('ESTABLISHING ENCRYPTED CONNECTION...OK')
+let str = 'ESTABLISHING ENCRYPTED CONNECTION...'
+str += window.location.toString().match(/^https/) ? 'OK' : 'ERROR'
+logs.add(str)
 
 const camera = new THREE.PerspectiveCamera(110, 1, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
