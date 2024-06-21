@@ -82,7 +82,7 @@ export class CameraMovement {
         if (session.cameraMode === 'topdown') {
           this.camera.fov = 30
           this.camera.position.copy(player.object.position);
-          this.camera.position.y += 30
+          this.camera.position.y += 60
           this.camera.position.z += 40
           this.camera.lookAt(player.object.position);
           this.camera.updateProjectionMatrix();
