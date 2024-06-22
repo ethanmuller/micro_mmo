@@ -5,6 +5,7 @@ import { Mouse, MouseSkin, SerializedPlayerData } from './game/Mouse';
 import { Time } from './game/Time';
 import { MultiplayerClient } from './game/MultiplayerClient';
 import { InputManager } from './game/InputManager';
+import { Battery } from './game/Battery.ts';
 import { Player } from './server/MultiplayerTypes'
 import { DEFAULT_LEVEL, Level, LevelMetaData, levels } from './game/Level';
 import { useSessionStore } from "./stores/session.ts";
@@ -64,6 +65,8 @@ const requestedLevelMetadata: LevelMetaData = levels[levelName]
 
 let textRenderer: CSS2DRenderer
 
+let closestObj: THREE.Object3D | THREE.Group | null = null;
+
 new RGBELoader()
 	.load(requestedLevelMetadata.sky.toString(), function (texture) {
 
@@ -117,6 +120,60 @@ player.onDoorEnterCallback = (d : string) => {
 		console.log(`loading level ${newLevelName}...`);
 	}).start()
 }
+
+function findClosestObject(player: Mouse, objects: Array<THREE.Object3D>): THREE.Object3D | THREE.Group | null {
+    let closestObject = null;
+    let closestDistance = Infinity;
+
+    objects.forEach((object: THREE.Object3D) => {
+        const distance = player.object.position.distanceTo(object.position);
+        if (distance < closestDistance) {
+            closestDistance = distance;
+            closestObject = object;
+        }
+    });
+
+    return closestObject;
+}
+
+const contextActionableItems: Array<THREE.Object3D> = []
+
+const contextCursor = new THREE.Mesh(
+new THREE.RingGeometry(1.3, 1.4),
+new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+)
+contextCursor.position.set(30, 0.5, 60)
+contextCursor.renderOrder = 1;
+contextCursor.material.depthTest = false;
+const pickupRadius = 3
+scene.add(contextCursor)
+
+const b = new Battery()
+b.rotateX(Math.PI/2)
+const g = new THREE.Group()
+g.position.set(30, 0.5, 60)
+g.rotation.y = (Math.random()*10)
+g.add(b)
+scene.add(g)
+contextActionableItems.push(g)
+
+const b2 = new Battery()
+b2.rotateX(Math.PI/2)
+const g2 = new THREE.Group()
+g2.position.set(32, 0.5, 40)
+g2.rotation.y = (Math.random()*10)
+g2.add(b2)
+scene.add(g2)
+contextActionableItems.push(g2)
+
+const b3 = new Battery()
+b3.rotateX(Math.PI/2)
+const g3 = new THREE.Group()
+g3.position.set(27, 0.5, 32)
+g3.rotation.y = (Math.random()*10)
+g3.add(b3)
+scene.add(g3)
+contextActionableItems.push(g3)
 
 // watch(playerChatInput, function(_, newMessage) {
 //   player.div.textContent = newMessage || ''
@@ -256,6 +313,17 @@ let axesHelperV2 = new THREE.Vector2();
 
 function mainLoop(reportedTime : number) {
 	let now = new Date().getTime();
+
+  closestObj = findClosestObject(player, contextActionableItems)
+
+  if (closestObj && closestObj.position.distanceTo(player.object.position) < pickupRadius) {
+    contextCursor.position.copy(closestObj.position)
+  } else {
+    contextCursor.position.set(-999, 0, -999)
+  }
+
+  contextCursor.lookAt(camera.position)
+
 	gameTime.deltaTimeMs = Math.min(90, now - lastTickTime);// Prevent big time jumps
 	gameTime.timeMs += gameTime.deltaTimeMs;
 	gameTime.deltaTime = gameTime.deltaTimeMs / 1000;
@@ -312,6 +380,10 @@ function mainLoop(reportedTime : number) {
 		requestAnimationFrame(mainLoop);
 }
 
+function contextAction() {
+  sendSqueak()
+}
+
 function sendSqueak() {
   Tone.start()
   player.squeak()
@@ -331,7 +403,7 @@ onMounted(() => {
   textRenderer.domElement.textContent = ''
   document.getElementById('app')?.appendChild( textRenderer.domElement );
 
-  document.addEventListener('contextAction', sendSqueak)
+  document.addEventListener('contextAction', contextAction)
 
 	host.value = window.location.toString()
 
@@ -348,7 +420,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	mp.disconnect();
-  document.removeEventListener('contextAction', sendSqueak)
+  document.removeEventListener('contextAction', contextAction)
 })
 
 function onWindowResize(): void {
