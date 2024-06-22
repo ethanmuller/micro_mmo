@@ -357,14 +357,12 @@ export class Mouse {
         // this.scene.add(boneHelper);
     }
 
-    squeak(n?: number) {
-      if (!n) {
-        this.chirpIndex += 1
-        this.chirpIndex = this.chirpIndex % (Object.keys(chirpNotes).length)
-      }
-      const note = Object.keys(chirpNotes)[n || this.chirpIndex]
+    squeak() {
+      this.chirpIndex += 1
+      this.chirpIndex = this.chirpIndex % (Object.keys(chirpNotes).length)
+      const note = Object.keys(chirpNotes)[this.chirpIndex]
       this.squeakSampler.triggerAttackRelease(note, "8n")
-      this.headSpring.applyForce(0.1)
+      this.headSpring.applyForce(0.2)
     }
 
 

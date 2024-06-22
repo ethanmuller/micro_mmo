@@ -211,11 +211,10 @@ mp.onRemotePlayerFrameData((id, data) => {
 	}
 });
 
-mp.connection.on('squeak', (id: string, n: number) => {
-  console.log(id, n)
+mp.connection.on('squeak', (id: string, _: number) => {
 	let playerObj = playerIdToPlayerObj.get(id);
 	if (playerObj) {
-    playerObj.squeak(n)
+    playerObj.squeak()
   }
 })
 
