@@ -1,3 +1,4 @@
+import { Vector3 } from "three";
 import { LevelName } from "../game/Level";
 
 export interface ServerToClientEvents {
@@ -9,6 +10,7 @@ export interface ServerToClientEvents {
   serverSentPlayerFrameData: (time : number, id : string, data : any, sentTime : number) => void;
   chatFromPlayer: (message: string, from: string) => void
   squeak: (id : string, n : number) => void;
+  itemListUpdate: (list: Array<Item>) => void;
 }
 
 export interface ClientToServerEvents {
@@ -16,6 +18,7 @@ export interface ClientToServerEvents {
   playerSentFrameData: (data : any, sentTime : number) => void;
   playerConnected: (id : string, skinNumber : number) => void;
   playerChat: (message : string) => void
+  itemListUpdate: (list: Array<Item>) => void;
 }
 
 
@@ -28,5 +31,6 @@ export type Player = {
 export type Item = {
   id : string,
   parent?: string,
-  level : LevelName,
+  level : string,
+  location?: Vector3,
 }

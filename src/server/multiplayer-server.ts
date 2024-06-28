@@ -6,6 +6,7 @@ import cors from 'cors'
 import { Player, Item } from './MultiplayerTypes'
 import { generateUUID } from 'three/src/math/MathUtils.js';
 import { Vector3 } from 'three';
+import { LevelName } from '../game/Level';
 
 
 const app = express();
@@ -21,9 +22,10 @@ ServerToClientEvents
 });
 const b1 = {
   id: generateUUID(),
-  level: 'lab',
+  level: 'lab' as LevelName,
   location: new Vector3(30, 0.5, 60)
 }
+itemList.push(b1)
 
 app.get('/', (_req, res) => {
   res.send('you are looking at the websocket server. this is the endpoint the socket.io client should connect to to send and receive messages.');
@@ -37,6 +39,7 @@ io.on('connection', async (socket) => {
   console.log(playerList)
   console.log(`CLIENT CONNECTED.    total sockets: ${playerList.length}`)
   io.emit('serverInfo', Date.now());
+  io.emit('itemListUpdate', itemList);
   io.to(level).emit('playerList', playerList.filter((p) => p.level === level));
   io.to(level).emit('playerConnected', { id: socket.id, skin: skinNumber, level });
 
