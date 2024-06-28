@@ -6,7 +6,7 @@ import { Time } from './game/Time';
 import { MultiplayerClient } from './game/MultiplayerClient';
 import { InputManager } from './game/InputManager';
 import { Battery } from './game/Battery.ts';
-import { Player } from './server/MultiplayerTypes'
+import { Item, Player } from './server/MultiplayerTypes'
 import { DEFAULT_LEVEL, Level, LevelMetaData, levels } from './game/Level';
 import { useSessionStore } from "./stores/session.ts";
 import { useSettingsStore } from "./stores/settings.ts";
@@ -121,11 +121,19 @@ player.onDoorEnterCallback = (d : string) => {
 	}).start()
 }
 
-function findClosestObject(player: Mouse, objects: Array<THREE.Object3D>): THREE.Object3D | THREE.Group | null {
+// this keeps track of this client's Object3D instances for items
+const itemIdToObjMap = new Map<string, THREE.Object3D>()
+
+// this keeps track of the server-side item IDs, so we can tell the server which item we picked up
+const itemObjIdToItemId = new Map<number, string>()
+
+function findClosestObject(player: Mouse, items: Array<Item>): THREE.Object3D | THREE.Group | null {
     let closestObject = null;
     let closestDistance = Infinity;
 
-    objects.forEach((object: THREE.Object3D) => {
+    items.forEach((item: Item) => {
+        const object = itemIdToObjMap.get(item.id)
+        if (!object) return
         const distance = player.object.position.distanceTo(object.position);
         if (distance < closestDistance) {
             closestDistance = distance;
@@ -136,7 +144,7 @@ function findClosestObject(player: Mouse, objects: Array<THREE.Object3D>): THREE
     return closestObject;
 }
 
-const contextActionableItems: Array<THREE.Object3D> = []
+let itemList: Array<Item> = []
 
 const contextCursor = new THREE.Mesh(
 new THREE.RingGeometry(1.3, 1.4),
@@ -148,32 +156,32 @@ contextCursor.material.depthTest = false;
 const pickupRadius = 3
 scene.add(contextCursor)
 
-const b = new Battery()
-b.rotateX(Math.PI/2)
-const g = new THREE.Group()
-g.position.set(30, 0.5, 60)
-// g.rotation.y = (Math.random()*10)
-g.add(b)
-scene.add(g)
-contextActionableItems.push(g)
-
-const b2 = new Battery()
-b2.rotateX(Math.PI/2)
-const g2 = new THREE.Group()
-g2.position.set(32, 0.5, 40)
-// g2.rotation.y = (Math.random()*10)
-g2.add(b2)
-scene.add(g2)
-contextActionableItems.push(g2)
-
-const b3 = new Battery()
-b3.rotateX(Math.PI/2)
-const g3 = new THREE.Group()
-g3.position.set(27, 0.5, 32)
-// g3.rotation.y = (Math.random()*10)
-g3.add(b3)
-scene.add(g3)
-contextActionableItems.push(g3)
+// const b = new Battery()
+// b.rotateX(Math.PI/2)
+// const g = new THREE.Group()
+// g.position.set(30, 0.5, 60)
+// // g.rotation.y = (Math.random()*10)
+// g.add(b)
+// scene.add(g)
+// contextActionableItems.push(g)
+// 
+// const b2 = new Battery()
+// b2.rotateX(Math.PI/2)
+// const g2 = new THREE.Group()
+// g2.position.set(32, 0.5, 40)
+// // g2.rotation.y = (Math.random()*10)
+// g2.add(b2)
+// scene.add(g2)
+// contextActionableItems.push(g2)
+// 
+// const b3 = new Battery()
+// b3.rotateX(Math.PI/2)
+// const g3 = new THREE.Group()
+// g3.position.set(27, 0.5, 32)
+// // g3.rotation.y = (Math.random()*10)
+// g3.add(b3)
+// scene.add(g3)
+// contextActionableItems.push(g3)
 
 // watch(playerChatInput, function(_, newMessage) {
 //   player.div.textContent = newMessage || ''
@@ -249,6 +257,43 @@ const cameraMovement = new CameraMovement(camera, player, level);
 const mp = new MultiplayerClient(seedStore.seed || 0, requestedLevelMetadata.name || DEFAULT_LEVEL)
 let playerIdToPlayerObj: Map<string, Mouse> = new Map<string, Mouse>();
 
+mp.connection.on('itemListInit', (list: Array<Item>) => {
+  itemList = list
+
+  list.forEach((item) => {
+    const itemObj = new Battery()
+    itemObj.scale.set(3, 3, 3)
+    itemObj.rotateX(Math.PI/2)
+    const itemObjGroup = new THREE.Group()
+    itemObjGroup.add(itemObj)
+    scene.add(itemObjGroup)
+
+    itemObjIdToItemId.set(itemObjGroup.id, item.id)
+    itemIdToObjMap.set(item.id, itemObjGroup)
+
+    if (item.parent) {
+      const owner = playerIdToPlayerObj.get(item.parent)
+      owner?.object.add(itemObjGroup)
+    } else if (item.location) {
+      itemObjGroup.position.set(item.location.x, item.location.y, item.location.z)
+    }
+  })
+})
+
+mp.connection.on('itemListUpdate', (list: Array<Item>) => {
+  itemList = list
+  list.forEach((item) => {
+    const obj = itemIdToObjMap.get(item.id)
+    if (!obj) return
+    if (item.parent) {
+      const owner = playerIdToPlayerObj.get(item.parent)
+      owner?.object.add(obj)
+    } else if (item.location) {
+      obj.position.set(item.location.x, item.location.y, item.location.z)
+    }
+  })
+})
+
 mp.onPlayerConnected((newPlayer: Player) => {
 	if (mp.localPlayer.id == newPlayer.id) { // Local Player
 
@@ -314,7 +359,7 @@ let axesHelperV2 = new THREE.Vector2();
 function mainLoop(reportedTime : number) {
 	let now = new Date().getTime();
 
-  closestObj = findClosestObject(player, contextActionableItems)
+  closestObj = findClosestObject(player, itemList)
 
   if (closestObj && closestObj.position.distanceTo(player.object.position) < pickupRadius) {
     contextCursor.position.copy(closestObj.position)
@@ -381,26 +426,27 @@ function mainLoop(reportedTime : number) {
 }
 
 function contextAction() {
-  closestObj = findClosestObject(player, contextActionableItems)
+  closestObj = findClosestObject(player, itemList)
+  console.log(closestObj?.id)
 
   if (closestObj && closestObj.position.distanceTo(player.object.position) < pickupRadius) {
-    pickup(closestObj)
+    const i = itemObjIdToItemId.get(closestObj.id)
+    if (i) {
+      pickup(i)
+    }
   } else {
     sendSqueak()
   }
 }
 
-function pickup(thing: THREE.Object3D) {
-              alert(thing.id)
+function pickup(id : string) {
+  mp.connection.emit('pickupItem',  id)
 }
 
 function sendSqueak() {
   Tone.start()
   player.squeak()
   mp.connection.emit('squeak', player.chirpIndex)
-}
-
-function sendItemListChangeRequest() {
 }
 
 onMounted(() => {
