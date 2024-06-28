@@ -152,7 +152,7 @@ const b = new Battery()
 b.rotateX(Math.PI/2)
 const g = new THREE.Group()
 g.position.set(30, 0.5, 60)
-g.rotation.y = (Math.random()*10)
+// g.rotation.y = (Math.random()*10)
 g.add(b)
 scene.add(g)
 contextActionableItems.push(g)
@@ -161,7 +161,7 @@ const b2 = new Battery()
 b2.rotateX(Math.PI/2)
 const g2 = new THREE.Group()
 g2.position.set(32, 0.5, 40)
-g2.rotation.y = (Math.random()*10)
+// g2.rotation.y = (Math.random()*10)
 g2.add(b2)
 scene.add(g2)
 contextActionableItems.push(g2)
@@ -170,7 +170,7 @@ const b3 = new Battery()
 b3.rotateX(Math.PI/2)
 const g3 = new THREE.Group()
 g3.position.set(27, 0.5, 32)
-g3.rotation.y = (Math.random()*10)
+// g3.rotation.y = (Math.random()*10)
 g3.add(b3)
 scene.add(g3)
 contextActionableItems.push(g3)
@@ -381,13 +381,26 @@ function mainLoop(reportedTime : number) {
 }
 
 function contextAction() {
-  sendSqueak()
+  closestObj = findClosestObject(player, contextActionableItems)
+
+  if (closestObj && closestObj.position.distanceTo(player.object.position) < pickupRadius) {
+    pickup(closestObj)
+  } else {
+    sendSqueak()
+  }
+}
+
+function pickup(thing: THREE.Object3D) {
+              alert(thing.id)
 }
 
 function sendSqueak() {
   Tone.start()
   player.squeak()
   mp.connection.emit('squeak', player.chirpIndex)
+}
+
+function sendItemListChangeRequest() {
 }
 
 onMounted(() => {

@@ -1,3 +1,5 @@
+import { LevelName } from "../game/Level";
+
 export interface ServerToClientEvents {
   sendEverybody: (list : Array<string>) => void;
   serverInfo: (time : number) => void;
@@ -21,4 +23,10 @@ export type Player = {
   id : string,
   skin : number,
   level : string,
+}
+
+export type Item = {
+  id : string,
+  parent?: string,
+  level : LevelName,
 }

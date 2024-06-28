@@ -455,7 +455,7 @@ export class Level {
 }
 export const DEFAULT_LEVEL: LevelName = 'lab'
 
-type LevelName = 'ohio' | 'lab' | 'the_cheddaverse'
+export type LevelName = 'ohio' | 'lab' | 'the_cheddaverse'
 
 const ohio: LevelMetaData = {
     name: 'ohio',

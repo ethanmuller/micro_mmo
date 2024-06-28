@@ -3,19 +3,27 @@ import { createServer } from 'node:http';
 import { Server } from "socket.io";
 import { ServerToClientEvents, ClientToServerEvents, } from './MultiplayerTypes';
 import cors from 'cors'
-import { Player } from './MultiplayerTypes'
+import { Player, Item } from './MultiplayerTypes'
+import { generateUUID } from 'three/src/math/MathUtils.js';
+import { Vector3 } from 'three';
 
 
 const app = express();
 app.use(cors())
 const server = createServer(app);
 const playerList : Player[] = []
+const itemList : Item[] = []
 const io = new Server<
 ClientToServerEvents,
 ServerToClientEvents
 >(server, {
   cors: {}
 });
+const b1 = {
+  id: generateUUID(),
+  level: 'lab',
+  location: new Vector3(30, 0.5, 60)
+}
 
 app.get('/', (_req, res) => {
   res.send('you are looking at the websocket server. this is the endpoint the socket.io client should connect to to send and receive messages.');
