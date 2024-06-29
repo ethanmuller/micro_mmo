@@ -49,7 +49,7 @@ const composer = new EffectComposer(renderer);
 composer.setPixelRatio(window.devicePixelRatio);
 composer.setSize(256, 256);
 composer.addPass(new RenderPass(scene, camera));
-const gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);  
+const gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);
 composer.addPass(gammaCorrectionPass);
 const circleFade = new ShaderPass(CircleTransitionShader);
 composer.addPass(circleFade);
@@ -70,8 +70,8 @@ let closestObj: THREE.Object3D | THREE.Group | null = null;
 new RGBELoader()
 	.load(requestedLevelMetadata.sky.toString(), function (texture) {
 
-    // trying to make the colors look less overexposed, but this doesn't seem to work
-    texture.colorSpace = THREE.LinearSRGBColorSpace
+		// trying to make the colors look less overexposed, but this doesn't seem to work
+		texture.colorSpace = THREE.LinearSRGBColorSpace
 
 		texture.mapping = THREE.EquirectangularReflectionMapping;
 
@@ -101,17 +101,21 @@ const skinList: Array<MouseSkin> = [
 ]
 let loadingNewLevel = false;
 
-const seedStore = useSeedStore()
+const store = useSeedStore()
 
-if (!seedStore.seed) {
-  seedStore.generateSeed(skinList.length - 1)
+if (!store.token) {
+	store.generateToken()
 }
 
-const player = new Mouse(scene, toonRamp, skinList[seedStore.seed || 0], true);
-let circleFadeTween : TWEEN.Tween<{value: number}>;
-player.onDoorEnterCallback = (d : string) => {
+if (!store.seed) {
+	store.generateSeed(skinList.length - 1)
+}
+
+const player = new Mouse(scene, toonRamp, skinList[store.seed || 0], true);
+let circleFadeTween: TWEEN.Tween<{ value: number }>;
+player.onDoorEnterCallback = (d: string) => {
 	circleFade.uniforms.fadeOut.value = 0;
-	circleFadeTween = new TWEEN.Tween(circleFade.uniforms.fadeOut).to({value: 1}, 300).onComplete(() => {
+	circleFadeTween = new TWEEN.Tween(circleFade.uniforms.fadeOut).to({ value: 1 }, 300).onComplete(() => {
 		const u = new URL(window.location.toString())
 		let newLevelName = level.getDoorName(d);
 		u.searchParams.set('level', newLevelName)
@@ -121,34 +125,37 @@ player.onDoorEnterCallback = (d : string) => {
 	}).start()
 }
 
-// this keeps track of this client's Object3D instances for items
-const itemIdToObjMap = new Map<string, THREE.Object3D>()
+// this maps socket IDs to this client's instances of player objects
+let playerIdToPlayerObj: Map<string, Mouse> = new Map<string, Mouse>();
 
-// this keeps track of the server-side item IDs, so we can tell the server which item we picked up
-const itemObjIdToItemId = new Map<number, string>()
+// this maps thingdex IDs to this client's instances of item objects (e.g. the groups containing geometry)
+const thingdexIdToThreeObject = new Map<string, THREE.Object3D>()
+
+// this maps three's object id to the thingdex ID
+const threeObjIdToThingdexId = new Map<number, string>()
 
 function findClosestObject(player: Mouse, items: Array<Item>): THREE.Object3D | THREE.Group | null {
-    let closestObject = null;
-    let closestDistance = Infinity;
+	let closestObject = null;
+	let closestDistance = Infinity;
 
-    items.forEach((item: Item) => {
-        const object = itemIdToObjMap.get(item.id)
-        if (!object) return
-        const distance = player.object.position.distanceTo(object.position);
-        if (distance < closestDistance) {
-            closestDistance = distance;
-            closestObject = object;
-        }
-    });
+	items.forEach((item: Item) => {
+		const object = thingdexIdToThreeObject.get(item.id)
+		if (!object) return
+		const distance = player.object.position.distanceTo(object.position);
+		if (distance < closestDistance) {
+			closestDistance = distance;
+			closestObject = object;
+		}
+	});
 
-    return closestObject;
+	return closestObject;
 }
 
 let itemList: Array<Item> = []
 
 const contextCursor = new THREE.Mesh(
-new THREE.RingGeometry(1.3, 1.4),
-new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+	new THREE.RingGeometry(1.3, 1.4),
+	new THREE.MeshBasicMaterial({ color: 0x00ff00 })
 )
 contextCursor.position.set(30, 0.5, 60)
 contextCursor.renderOrder = 1;
@@ -190,20 +197,20 @@ scene.add(contextCursor)
 const sessionInfo = useSessionStore();
 let foundEntryPoint = false;
 if (sessionInfo.previousRoom != null && sessionInfo.previousRoom != "") {
-  if (level.getDoorChar(sessionInfo.previousRoom) != '') {
-    console.log(`coming from level ${sessionInfo.previousRoom}`);
-    foundEntryPoint = true;
-    let dt = level.getDoorTile(sessionInfo.previousRoom);
-    level.getWorldPositionFromTile(dt, player.object.position);
+	if (level.getDoorChar(sessionInfo.previousRoom) != '') {
+		console.log(`coming from level ${sessionInfo.previousRoom}`);
+		foundEntryPoint = true;
+		let dt = level.getDoorTile(sessionInfo.previousRoom);
+		level.getWorldPositionFromTile(dt, player.object.position);
 
-    player.animateOutOfDoor(level.getDoorChar(sessionInfo.previousRoom));
-    circleFade.uniforms.fadeOut.value = 1;
-    circleFadeTween = new TWEEN.Tween(circleFade.uniforms.fadeOut).to({value: 0}, 2000).start();
-  }
+		player.animateOutOfDoor(level.getDoorChar(sessionInfo.previousRoom));
+		circleFade.uniforms.fadeOut.value = 1;
+		circleFadeTween = new TWEEN.Tween(circleFade.uniforms.fadeOut).to({ value: 0 }, 2000).start();
+	}
 }
 
 if (!foundEntryPoint)
-  level.getWorldPositionFromTile(level.start, player.object.position);
+	level.getWorldPositionFromTile(level.start, player.object.position);
 
 sessionInfo.previousRoom = levelName;
 sessionInfo.cameraMode = requestedLevelMetadata.cameraType
@@ -211,96 +218,86 @@ sessionInfo.cameraMode = requestedLevelMetadata.cameraType
 const crumbs = useCrumbStore()
 
 function welcomeBack() {
-  const lastSeen = new Date(crumbs.lastSeen)
-  const now = new Date()
-  const msSinceLastSeen = now.getTime() - lastSeen.getTime()
-  logs.add(`${secondsMinutesHours(msSinceLastSeen)} since last clock in`)
+	const lastSeen = new Date(crumbs.lastSeen)
+	const now = new Date()
+	const msSinceLastSeen = now.getTime() - lastSeen.getTime()
+	logs.add(`${secondsMinutesHours(msSinceLastSeen)} since last clock in`)
 }
 
 let presenceTimer = window.setInterval(crumbs.see, 1000)
 
 window.addEventListener('blur', () => {
-  window.clearInterval(presenceTimer)
+	window.clearInterval(presenceTimer)
 })
 window.addEventListener('focus', () => {
-  welcomeBack()
-  presenceTimer = window.setInterval(crumbs.see, 1000)
+	welcomeBack()
+	presenceTimer = window.setInterval(crumbs.see, 1000)
 })
 
 function formatDecimalPlaces(num: number) {
-  return (Math.round(num * 100) / 100).toFixed(2);
+	return (Math.round(num * 100) / 100).toFixed(2);
 }
 
 function secondsMinutesHours(ms: number): string {
-  // given a number of milliseconds, return it in terms of seconds, minutes, or hours
-  const seconds = ms/1000
-  const minutes = seconds/60
-  const hours = minutes/60
+	// given a number of milliseconds, return it in terms of seconds, minutes, or hours
+	const seconds = ms / 1000
+	const minutes = seconds / 60
+	const hours = minutes / 60
 
 
-  if (minutes > 60) {
-    return `${formatDecimalPlaces(hours)} hours`
-  } else if (seconds > 60) {
-    return `${formatDecimalPlaces(minutes)} minutes`
-  }
+	if (minutes > 60) {
+		return `${formatDecimalPlaces(hours)} hours`
+	} else if (seconds > 60) {
+		return `${formatDecimalPlaces(minutes)} minutes`
+	}
 
-  return `${seconds} seconds`
+	return `${seconds} seconds`
 }
 
 
 if (crumbs.lastSeen) {
-  welcomeBack()
+	welcomeBack()
 }
 
 const cameraMovement = new CameraMovement(camera, player, level);
 
-const mp = new MultiplayerClient(seedStore.seed || 0, requestedLevelMetadata.name || DEFAULT_LEVEL)
-let playerIdToPlayerObj: Map<string, Mouse> = new Map<string, Mouse>();
+const mp = new MultiplayerClient({ token: store.token }, store.seed || 0, requestedLevelMetadata.name || DEFAULT_LEVEL)
 
 mp.connection.on('itemListInit', (list: Array<Item>) => {
-  itemList = list
+	itemList = list
 
-  list.forEach((item) => {
-    const itemObj = new Battery()
-    itemObj.scale.set(3, 3, 3)
-    itemObj.rotateX(Math.PI/2)
-    const itemObjGroup = new THREE.Group()
-    itemObjGroup.add(itemObj)
-    scene.add(itemObjGroup)
+	list.forEach((item) => {
+		const itemObj = new Battery()
+		itemObj.rotateX(Math.PI / 2)
+		const itemObjGroup = new THREE.Group()
+		itemObjGroup.add(itemObj)
+		scene.add(itemObjGroup)
 
-    itemObjIdToItemId.set(itemObjGroup.id, item.id)
-    itemIdToObjMap.set(item.id, itemObjGroup)
+		threeObjIdToThingdexId.set(itemObjGroup.id, item.id)
+		thingdexIdToThreeObject.set(item.id, itemObjGroup)
 
-    if (item.parent) {
-      const owner = playerIdToPlayerObj.get(item.parent)
-      owner?.object.add(itemObjGroup)
-    } else if (item.location) {
-      itemObjGroup.position.set(item.location.x, item.location.y, item.location.z)
-    }
-  })
+		itemObjGroup.position.set(item.location.x, item.location.y, item.location.z)
+	})
 })
 
 mp.connection.on('itemListUpdate', (list: Array<Item>) => {
-  itemList = list
-  list.forEach((item) => {
-    const obj = itemIdToObjMap.get(item.id)
-    if (!obj) return
-    if (item.parent) {
-      const owner = playerIdToPlayerObj.get(item.parent)
-      owner?.object.add(obj)
-    } else if (item.location) {
-      obj.position.set(item.location.x, item.location.y, item.location.z)
-    }
-  })
+	itemList = list
+	list.forEach((item) => {
+		const obj = thingdexIdToThreeObject.get(item.id)
+		if (!obj) return
+		obj.position.set(item.location.x, item.location.y, item.location.z)
+	})
 })
 
 mp.onPlayerConnected((newPlayer: Player) => {
-	if (mp.localPlayer.id == newPlayer.id) { // Local Player
+	if (mp.localPlayer.member_id == newPlayer.member_id) { // Local Player
 
 	}
 	else { // Remote players
-		if (!playerIdToPlayerObj.has(newPlayer.id)) {
-			playerIdToPlayerObj.set(newPlayer.id, new Mouse(scene, toonRamp, skinList[newPlayer.skin], false));
+		if (!playerIdToPlayerObj.has(newPlayer.member_id)) {
+			playerIdToPlayerObj.set(newPlayer.member_id, new Mouse(scene, toonRamp, skinList[newPlayer.skin], false));
+			console.log(playerIdToPlayerObj)
+			console.log(playerIdToPlayerObj)
 		}
 	}
 });
@@ -316,8 +313,8 @@ mp.onRemotePlayerFrameData((id, data) => {
 mp.connection.on('squeak', (id: string, _: number) => {
 	let playerObj = playerIdToPlayerObj.get(id);
 	if (playerObj) {
-    playerObj.squeak()
-  }
+		playerObj.squeak()
+	}
 })
 
 mp.onRemotePlayerDisconnected((id) => {
@@ -330,9 +327,9 @@ mp.onRemotePlayerDisconnected((id) => {
 
 mp.onChatFromPlayer((message: string, id: string) => {
 	let thatPlayer = playerIdToPlayerObj.get(id);
-  if (thatPlayer && thatPlayer.div) {
-    thatPlayer.div.textContent = message
-  }
+	if (thatPlayer && thatPlayer.div) {
+		thatPlayer.div.textContent = message
+	}
 });
 
 const sun = new THREE.DirectionalLight();
@@ -343,7 +340,7 @@ let axesHelper = new THREE.AxesHelper();
 //scene.add(axesHelper);
 
 var gameTime = <Time>({
-	deltaTimeMs : 0,
+	deltaTimeMs: 0,
 	deltaTime: 0,
 	time: 0,
 	timeMs: 0,
@@ -356,18 +353,52 @@ let input: InputManager
 
 let axesHelperV2 = new THREE.Vector2();
 
-function mainLoop(reportedTime : number) {
+function updateAllItems(itemList: Array<Item>) {
+	itemList.forEach((item) => {
+		const i = thingdexIdToThreeObject.get(item.id)
+		if (!i) return
+
+		// only show items in the same room as client
+		i.visible = item.level === requestedLevelMetadata.name
+
+		if (item.parent) {
+			const otherPlayer = playerIdToPlayerObj.get(item.parent)
+			let obj
+			if (item.parent === store.token) {
+				obj = player.object
+			} else if (otherPlayer) {
+				obj = otherPlayer.object
+			}
+			if (i && obj) {
+				i.position.copy(obj.position)
+				i.rotation.copy(obj.rotation)
+				i.position.y += 2
+			}
+		}
+	})
+}
+
+function mainLoop(reportedTime: number) {
 	let now = new Date().getTime();
 
-  closestObj = findClosestObject(player, itemList)
+	updateAllItems(itemList)
 
-  if (closestObj && closestObj.position.distanceTo(player.object.position) < pickupRadius) {
-    contextCursor.position.copy(closestObj.position)
-  } else {
-    contextCursor.position.set(-999, 0, -999)
-  }
+	const visibleItems = itemList.filter((item) => {
+		const obj = thingdexIdToThreeObject.get(item.id)
+		if (obj && obj.visible) {
+			return obj
+		}
+	})
 
-  contextCursor.lookAt(camera.position)
+	closestObj = findClosestObject(player, visibleItems)
+
+	if (closestObj && closestObj.position.distanceTo(player.object.position) < pickupRadius) {
+		contextCursor.position.copy(closestObj.position)
+	} else {
+		contextCursor.position.set(-999, 0, -999)
+	}
+
+	contextCursor.lookAt(camera.position)
 
 	gameTime.deltaTimeMs = Math.min(90, now - lastTickTime);// Prevent big time jumps
 	gameTime.timeMs += gameTime.deltaTimeMs;
@@ -380,19 +411,19 @@ function mainLoop(reportedTime : number) {
 	// update
 	TWEEN.update(reportedTime);
 
-  //let mouseTiles: [number, number]
-  //const reusableTile = new THREE.Vector2()
+	//let mouseTiles: [number, number]
+	//const reusableTile = new THREE.Vector2()
 
 	playerIdToPlayerObj.forEach((mouse: Mouse) => {
-    // loop through all players and update them
+		// loop through all players and update them
 		mouse.update(gameTime, level);
 	})
 
 	player.update(gameTime, level, input, camera, playerIdToPlayerObj);
 
-  if (settings.showMinimap) {
-    minimapText.value = level.renderMinimap(player)
-  }
+	if (settings.showMinimap) {
+		minimapText.value = level.renderMinimap(player)
+	}
 
 	// Camera updates
 	let axesTile = level.getTileFromWorldPosition(player.object.position, axesHelperV2);
@@ -400,17 +431,17 @@ function mainLoop(reportedTime : number) {
 
 
 
-  cameraMovement.update(player, level);
+	cameraMovement.update(player, level);
 
 	// draw
 	//circleFade.uniforms.fadeOut.value = (Math.sin(gameTime.time) + 1) / 2;
-	
+
 	circleFade.enabled = circleFade.uniforms.fadeOut.value > 0;
 	composer.render();
 
-  if (settings.enableChat) {
-    textRenderer?.render(scene, camera)
-  }
+	if (settings.enableChat) {
+		textRenderer?.render(scene, camera)
+	}
 
 	// send info to the server if it's time
 	if (gameTime.time - lastNetworkUpdate > NETWORK_TIME_BETWEEN_UPDATES) {
@@ -426,43 +457,54 @@ function mainLoop(reportedTime : number) {
 }
 
 function contextAction() {
-  closestObj = findClosestObject(player, itemList)
-  console.log(closestObj?.id)
+	const playerIsHoldingItem = itemList.some((i) => i.parent === store.token)
 
-  if (closestObj && closestObj.position.distanceTo(player.object.position) < pickupRadius) {
-    const i = itemObjIdToItemId.get(closestObj.id)
-    if (i) {
-      pickup(i)
-    }
-  } else {
-    sendSqueak()
-  }
+	if (playerIsHoldingItem) {
+		console.log('dropping item')
+		drop()
+		return
+	}
+
+	closestObj = findClosestObject(player, itemList)
+
+	if (closestObj && closestObj.position.distanceTo(player.object.position) < pickupRadius) {
+		const i = threeObjIdToThingdexId.get(closestObj.id)
+		if (i) {
+			pickup(i)
+		}
+	} else {
+		sendSqueak()
+	}
 }
 
-function pickup(id : string) {
-  mp.connection.emit('pickupItem',  id)
+function pickup(id: string) {
+	mp.connection.emit('pickupItem', id)
+}
+
+function drop() {
+	mp.connection.emit('dropItem', player.object.position, player.object.quaternion)
 }
 
 function sendSqueak() {
-  Tone.start()
-  player.squeak()
-  mp.connection.emit('squeak', player.chirpIndex)
+	Tone.start()
+	player.squeak()
+	mp.connection.emit('squeak', player.chirpIndex)
 }
 
 onMounted(() => {
-  textRenderer = new CSS2DRenderer({ element: chat_renderer.value })
-  textRenderer.setSize(window.innerWidth, window.innerHeight)
-  textRenderer.domElement.style.position = 'absolute';
-  textRenderer.domElement.style.top = '0px';
-  textRenderer.domElement.style.left = '0px';
-  textRenderer.domElement.style.zIndex = '1';
-  textRenderer.domElement.style.color = 'white';
-  textRenderer.domElement.style.textShadow = '0 0 10px black';
-  textRenderer.domElement.style.pointerEvents = 'none';
-  textRenderer.domElement.textContent = ''
-  document.getElementById('app')?.appendChild( textRenderer.domElement );
+	textRenderer = new CSS2DRenderer({ element: chat_renderer.value })
+	textRenderer.setSize(window.innerWidth, window.innerHeight)
+	textRenderer.domElement.style.position = 'absolute';
+	textRenderer.domElement.style.top = '0px';
+	textRenderer.domElement.style.left = '0px';
+	textRenderer.domElement.style.zIndex = '1';
+	textRenderer.domElement.style.color = 'white';
+	textRenderer.domElement.style.textShadow = '0 0 10px black';
+	textRenderer.domElement.style.pointerEvents = 'none';
+	textRenderer.domElement.textContent = ''
+	document.getElementById('app')?.appendChild(textRenderer.domElement);
 
-  document.addEventListener('contextAction', contextAction)
+	document.addEventListener('contextAction', contextAction)
 
 	host.value = window.location.toString()
 
@@ -479,7 +521,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	mp.disconnect();
-  document.removeEventListener('contextAction', contextAction)
+	document.removeEventListener('contextAction', contextAction)
 })
 
 function onWindowResize(): void {
@@ -498,9 +540,9 @@ function onWindowResize(): void {
 	composer.setPixelRatio(window.devicePixelRatio);
 
 	circleFade.uniforms.aspectRatio.value = ar;
-	circleFade.uniforms.halfHeightRelativeRadius.value = Math.sqrt(width * width + height * height)/height/2;
+	circleFade.uniforms.halfHeightRelativeRadius.value = Math.sqrt(width * width + height * height) / height / 2;
 
-  textRenderer?.setSize(window.innerWidth, window.innerHeight)
+	textRenderer?.setSize(window.innerWidth, window.innerHeight)
 }
 
 addEventListener("resize", onWindowResize, false);
@@ -510,33 +552,33 @@ function settingsToggle() {
 }
 
 function updateChat(e: Event) {
-  const message = (e.target as HTMLInputElement).value
-  player.div.textContent = message
-  mp.chat(message)
+	const message = (e.target as HTMLInputElement).value
+	player.div.textContent = message
+	mp.chat(message)
 }
 
 function handleKey(e: KeyboardEvent) {
-  if (e.key === 'Enter') {
-    if (playerChatInput.value === '') {
-      chatBoxOpen.value = false
-    } else {
-      playerChatInput.value = ''
-      player.div.textContent = ''
-      mp.chat('')
-      return 0
-    }
-  }
+	if (e.key === 'Enter') {
+		if (playerChatInput.value === '') {
+			chatBoxOpen.value = false
+		} else {
+			playerChatInput.value = ''
+			player.div.textContent = ''
+			mp.chat('')
+			return 0
+		}
+	}
 }
 
 function openChatBox() {
-  chatBoxOpen.value = true
-  
-  nextTick(() => {
-    chat_input.value?.focus()
-  })
+	chatBoxOpen.value = true
 
-  window.setTimeout(() => {
-  }, 10)
+	nextTick(() => {
+		chat_input.value?.focus()
+	})
+
+	window.setTimeout(() => {
+	}, 10)
 }
 
 </script>
@@ -546,24 +588,26 @@ function openChatBox() {
 		<div ref="gamecanvas" id="gamecanvas"></div>
 		<canvas id="auxcanvas"></canvas>
 		<div ref="trackballEl" id="trackball"></div>
-    <div class="bottom-A" v-show="!chatBoxOpen">
-      <button class="app-icon" v-if="settings.enableChat" @click="openChatBox">
-        <div>💬</div>
-      </button>
-      <div class="nametag">
-        <qrcode-vue :value="host" @click="qrCodeBigger = !qrCodeBigger" class="qr"
-          :size="qrCodeBigger ? 150 : 50"></qrcode-vue>
-        <div class="nametag__text">
-          <span class="longstring">{{ mp.localPlayerDisplayString.value }}</span><br />{{
-          mp.playersOnline.value }}
-        </div>
-      </div>
-    </div>
-    <div class="minimap" v-if="settings.showMinimap && !chatBoxOpen">{{ minimapText }}</div>
-    <div class="chat-box" v-show="chatBoxOpen">
-      <button arial-label="close chat" class="chat-box__close-button" @click="chatBoxOpen = false">&times;</button>
-      <input ref="chat_input" class="chat-input" type="text" v-model="playerChatInput" @input="updateChat" @keydown="handleKey" />
-    </div>
+		<div class="bottom-A" v-show="!chatBoxOpen">
+			<button class="app-icon" v-if="settings.enableChat" @click="openChatBox">
+				<div>💬</div>
+			</button>
+			<div class="nametag">
+				<qrcode-vue :value="host" @click="qrCodeBigger = !qrCodeBigger" class="qr"
+					:size="qrCodeBigger ? 150 : 50"></qrcode-vue>
+				<div class="nametag__text">
+					<span class="longstring">{{ store.token }}</span><br />{{
+						mp.playersOnline.value }}
+				</div>
+			</div>
+		</div>
+		<div class="minimap" v-if="settings.showMinimap && !chatBoxOpen">{{ minimapText }}</div>
+		<div class="chat-box" v-show="chatBoxOpen">
+			<button arial-label="close chat" class="chat-box__close-button"
+				@click="chatBoxOpen = false">&times;</button>
+			<input ref="chat_input" class="chat-input" type="text" v-model="playerChatInput"
+				@input="updateChat" @keydown="handleKey" />
+		</div>
 		<div class="logs" v-if="settings.showLogs">
 			<span v-for="message in logs.messages.slice(0, 6).reverse()">{{ message }}</span>
 		</div>
@@ -597,7 +641,7 @@ function openChatBox() {
 			</div>
 			<button class="settings__toggle" @click="settingsToggle">⚙️ settings</button>
 		</div>
-    <div ref="chat_renderer" v-show="settings.enableChat"></div>
+		<div ref="chat_renderer" v-show="settings.enableChat"></div>
 	</div>
 </template>
 
@@ -664,9 +708,9 @@ function openChatBox() {
 	position: fixed;
 	bottom: 0;
 	left: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: start;
+	display: flex;
+	flex-direction: column;
+	align-items: start;
 }
 
 .nametag {
@@ -680,19 +724,19 @@ function openChatBox() {
 }
 
 .app-icon {
-  background: #14c131;
-  border-radius: 6px;
-  width: 4rem;
-  height: 4rem;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  margin-left: 0.5rem;
-  font-size: 2rem;
-  user-select: none;
-  border: none;
+	background: #14c131;
+	border-radius: 6px;
+	width: 4rem;
+	height: 4rem;
+	color: white;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 0.5rem;
+	margin-left: 0.5rem;
+	font-size: 2rem;
+	user-select: none;
+	border: none;
 }
 
 .qr {
@@ -738,7 +782,7 @@ function openChatBox() {
 }
 
 .settings__toggle {
-  font-size: 0.75rem;
+	font-size: 0.75rem;
 	background: white;
 	color: black;
 	padding: 1rem;
@@ -748,49 +792,50 @@ function openChatBox() {
 }
 
 .minimap {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  color: white;
-  white-space: pre;
-  text-align: left;
-  line-height: 1;
-  font-family: monospace;
-  pointer-events: none;
-  padding-right: 1em;
-  padding-bottom: 1em;
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	color: white;
+	white-space: pre;
+	text-align: left;
+	line-height: 1;
+	font-family: monospace;
+	pointer-events: none;
+	padding-right: 1em;
+	padding-bottom: 1em;
 }
 
 .chat-box {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding-top: 3rem;
-  padding-bottom: 4rem;
-  background: white;
-  z-index: 999; /* todo: don't do this */
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	padding-top: 3rem;
+	padding-bottom: 4rem;
+	background: white;
+	z-index: 999;
+	/* todo: don't do this */
 }
 
 .chat-box__close-button {
-  position: absolute;
-  top: 0;
-  right: 0;
-  padding: 0.3rem 1rem;
-  font-size: 2rem;
-  background: none;
-  border: none;
+	position: absolute;
+	top: 0;
+	right: 0;
+	padding: 0.3rem 1rem;
+	font-size: 2rem;
+	background: none;
+	border: none;
 }
 
 .chat-input {
-  appearance: none;
-  font-size: 16px;
-  background: #2f90f7;
-  border: none;
-  border-radius: 4rem;
-  padding: 0.5rem 1rem;
-  color: white;
-  outline: none;
-  width: 13rem;
+	appearance: none;
+	font-size: 16px;
+	background: #2f90f7;
+	border: none;
+	border-radius: 4rem;
+	padding: 0.5rem 1rem;
+	color: white;
+	outline: none;
+	width: 13rem;
 }
 </style>

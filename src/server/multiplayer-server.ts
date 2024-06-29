@@ -7,30 +7,35 @@ import { Player, Item } from './MultiplayerTypes'
 import { generateUUID } from 'three/src/math/MathUtils.js';
 import { Quaternion, Vector3 } from 'three';
 import { LevelName } from '../game/Level';
+import { Constants } from '../game/constants.ts'
 
 
 const app = express();
 app.use(cors())
 const server = createServer(app);
-const playerList : Player[] = []
-const itemList : Item[] = []
+const playerList: Player[] = []
+const itemList: Item[] = []
 const io = new Server<
-ClientToServerEvents,
-ServerToClientEvents
+  ClientToServerEvents,
+  ServerToClientEvents
 >(server, {
   cors: {}
 });
+const q1 = new Quaternion()
+q1.setFromAxisAngle(Constants.up, Math.PI / 4)
 const b1 = {
   id: generateUUID(),
   level: 'lab' as LevelName,
-  location: new Vector3(30, 0.5, 60)
+  location: new Vector3(30, 0.5, 60),
+  rotation: q1,
 }
 itemList.push(b1)
 
 const b2 = {
   id: generateUUID(),
   level: 'lab' as LevelName,
-  location: new Vector3(30, 0.5, 55)
+  location: new Vector3(30, 0.5, 55),
+  rotation: q1,
 }
 itemList.push(b2)
 
@@ -42,51 +47,56 @@ io.on('connection', async (socket) => {
   const level = socket.handshake.query.requestedLevel?.toString() || 'lab'
   socket.join(level)
   const skinNumber = parseInt(<string>socket.handshake.query.skin || "0", 10)
-  playerList.push({ id: socket.id, skin: skinNumber, level })
+  playerList.push({ member_id: socket.handshake.auth.token, skin: skinNumber, level })
   console.log(playerList)
   console.log(`CLIENT CONNECTED.    total sockets: ${playerList.length}`)
   io.emit('serverInfo', Date.now());
   io.to(socket.id).emit('itemListInit', itemList);
   io.to(level).emit('playerList', playerList.filter((p) => p.level === level));
-  io.to(level).emit('playerConnected', { id: socket.id, skin: skinNumber, level });
+  io.to(level).emit('playerConnected', { member_id: socket.handshake.auth.token, skin: skinNumber, level });
 
   socket.on('disconnect', async () => {
-    const disconnectedPlayerIndex = playerList.findIndex((p) => p.id === socket.id)
+    const disconnectedPlayerIndex = playerList.findIndex((p) => p.member_id === socket.handshake.auth.token)
     playerList.splice(disconnectedPlayerIndex, 1)
     console.log(playerList)
     console.log(`CLIENT DISCONNECTED. total sockets: ${playerList.length}`)
     io.to(level).emit('playerList', playerList.filter((p) => p.level === level))
-    io.to(level).emit('playerDisconnected', socket.id);
+    io.to(level).emit('playerDisconnected', socket.handshake.auth.token);
   });
 
-  socket.on('squeak', (n : number) => {
-    socket.broadcast.to(level).emit('squeak', socket.id, n)
+  socket.on('squeak', (n: number) => {
+    socket.broadcast.to(level).emit('squeak', socket.handshake.auth.token, n)
   })
 
-  socket.on('playerSentFrameData', (data : any, sentTime : number) => {
-    socket.broadcast.to(level).emit('serverSentPlayerFrameData', Date.now(), socket.id, data, sentTime);
+  socket.on('playerSentFrameData', (data: any, sentTime: number) => {
+    socket.broadcast.to(level).emit('serverSentPlayerFrameData', Date.now(), socket.handshake.auth.token, data, sentTime);
   });
 
   socket.on('pickupItem', (id: string) => {
     const item = itemList.find((i) => i.id === id)
-    if (item) {
-      delete item.location
-      item.parent = socket.id
-      console.log('item list:', itemList)
-      io.emit('itemListUpdate', itemList);
-    }
+    if (!item) return
+    item.parent = socket.handshake.auth.token
+    console.log('item list:', itemList)
+    io.emit('itemListUpdate', itemList);
   });
 
-  socket.on('dropItem', (id: string, position: Vector3, rotation: Quaternion) => {
-    console.log(id, position, rotation)
+  socket.on('dropItem', (position: Vector3, rotation: Quaternion) => {
+    const i = itemList.find((i) => i.parent && i.parent === socket.handshake.auth.token)
+    if (!i) return
+    console.log('dropping item')
+    delete i.parent
+    i.location = position
+    i.rotation = rotation
+    console.log('item list:', itemList)
+    io.emit('itemListUpdate', itemList);
   });
 
 
   socket.on('playerChat', (message: string) => {
-    socket.broadcast.to(level).emit('chatFromPlayer', message, socket.id);
+    socket.broadcast.to(level).emit('chatFromPlayer', message, socket.handshake.auth.token);
   });
 });
 
 server.listen(3000, () => {
-  console.log('server running at http://localhost:3000');
+  console.log('multiplayer server running at http://localhost:3000');
 });

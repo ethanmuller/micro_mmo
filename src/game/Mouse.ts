@@ -34,10 +34,10 @@ export type MouseSkin = {
 }
 
 const chirpNotes = {
-  A1: "c1.wav",
-  B1: "c2.wav",
-  C1: "c3.wav",
-  D1: "c6.wav",
+    A1: "c1.wav",
+    B1: "c2.wav",
+    C1: "c3.wav",
+    D1: "c6.wav",
 }
 
 export class Mouse {
@@ -127,7 +127,7 @@ export class Mouse {
     enteringLevel = false
     enteringDoorChar = ''
     enteringDoorTile = new Vector2();
-    onDoorEnterCallback : ((d: string) => void) | undefined;
+    onDoorEnterCallback: ((d: string) => void) | undefined;
 
     headSpring: Spring;
 
@@ -153,8 +153,8 @@ export class Mouse {
     constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin, isLocalPlayer: boolean) {
         this.isLocalPlayer = isLocalPlayer
         this.squeakSampler = new Tone.Sampler({
-          urls: chirpNotes,
-          baseUrl: "https://mush.network/files/sfx/chirps-and-squeaks/",
+            urls: chirpNotes,
+            baseUrl: "https://mush.network/files/sfx/chirps-and-squeaks/",
         }).toDestination()
 
         this.div = document.createElement('div')
@@ -162,7 +162,7 @@ export class Mouse {
         this.div.textContent = ''
         this.label = new CSS2DObject(this.div)
         scene.add(this.label)
-        this.label.position.set(0,0,0)
+        this.label.position.set(0, 0, 0)
 
         this.headSpring = new Spring(0, 2, 0.1, 1 - Number.EPSILON)
 
@@ -358,11 +358,11 @@ export class Mouse {
     }
 
     squeak() {
-      this.chirpIndex += 1
-      this.chirpIndex = this.chirpIndex % (Object.keys(chirpNotes).length)
-      const note = Object.keys(chirpNotes)[this.chirpIndex]
-      this.squeakSampler.triggerAttackRelease(note, "8n")
-      this.headSpring.applyForce(0.2)
+        this.chirpIndex += 1
+        this.chirpIndex = this.chirpIndex % (Object.keys(chirpNotes).length)
+        const note = Object.keys(chirpNotes)[this.chirpIndex]
+        this.squeakSampler.triggerAttackRelease(note, "8n")
+        this.headSpring.applyForce(0.3)
     }
 
 
@@ -555,12 +555,11 @@ export class Mouse {
             this.debugSphere.quaternion.premultiply(zMovementRotation);
         }
 
-        this.label.position.set(this.object.position.x,this.object.position.y + 2.5,this.object.position.z)
+        this.label.position.set(this.object.position.x, this.object.position.y + 2.5, this.object.position.z)
     }
 
-    private updateLocalWithInput(time: Time, level: Level, input: InputManager, camera: Object3D)
-    {
-        const settings = useSettingsStore()  
+    private updateLocalWithInput(time: Time, level: Level, input: InputManager, camera: Object3D) {
+        const settings = useSettingsStore()
         if (this.leavingLevel) {
             // TODO animate movement into door
 
@@ -781,7 +780,7 @@ export class Mouse {
         //console.log(`timeSinceItWasSent (seconds): ${timeSinceItWasSent}`);
     }
 
-    animateOutOfDoor(d : string) {
+    animateOutOfDoor(d: string) {
         this.enteringDoorChar = d;
         this.enteringLevel = true;
     }

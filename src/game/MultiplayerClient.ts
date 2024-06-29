@@ -3,23 +3,29 @@ import { ref } from 'vue'
 import { ServerToClientEvents, ClientToServerEvents, Player, } from '../server/MultiplayerTypes';
 import { useLogStore } from "../stores/logs";
 
+type Auth = {
+  token: string | undefined
+}
+
 export class MultiplayerClient {
 
   connection: socket.Socket<ServerToClientEvents, ClientToServerEvents>;
   playersOnline = ref("");
   localPlayerDisplayString = ref("");
-  localPlayer : Player = {id: "", skin: -1, level: ''};
+  localPlayer: Player = { member_id: "", skin: -1, level: '' };
   playerList: Player[] = [];
-  serverTimeOffset : number = 0;
+  serverTimeOffset: number = 0;
+  auth: Auth;
 
-  constructor(skin : number, requestedLevel : string) {
+  constructor(auth: Auth, skin: number, requestedLevel: string) {
+    this.auth = auth
     const logs = useLogStore()
     console.log('setting up multiplayer client...')
-    
+
     if (import.meta.env.PROD) {
-      this.connection = socket.io('https://mouse.homes', { query: { skin, requestedLevel } });
+      this.connection = socket.io('https://mouse.homes', { auth, query: { skin, requestedLevel } });
     } else {
-      this.connection = socket.io(window.location.hostname + ':3000', { query: { skin, requestedLevel } });
+      this.connection = socket.io(window.location.hostname + ':3000', { auth, query: { skin, requestedLevel } });
     }
 
     this.connection.on('connect', () => {
@@ -32,7 +38,7 @@ export class MultiplayerClient {
     })
 
     this.connection.on('playerList', (playerList) => {
-      this.playersOnline.value = `ASSOCIATES: ${playerList.length-1}`;
+      this.playersOnline.value = `ASSOCIATES: ${playerList.length - 1}`;
       this.playerList = playerList;
     })
 
@@ -41,14 +47,15 @@ export class MultiplayerClient {
     })
 
     this.connection.on('playerConnected', newPlayer => {
-      logs.add(`HELLO.....${newPlayer.id.slice(0,9)}`);
-      if (newPlayer.id == this.connection.id) {
+      logs.add(`HELLO.....${newPlayer.member_id.slice(0, 9)}`);
+      const isLocalPlayer = newPlayer.member_id == this.auth.token
+      if (isLocalPlayer) {
         this.localPlayer = newPlayer;
-        this.localPlayerDisplayString.value = `ID: ${newPlayer.id}`;
+        this.localPlayerDisplayString.value = `ID: ${newPlayer.member_id}`;
 
         // Check players list and instantiate necessary information of other players
         this.playerList.forEach(player => {
-          if (player.id != this.localPlayer.id)
+          if (player.member_id != this.localPlayer.member_id)
             this.processNewRemotePlayer(player);
         });
       }
@@ -64,18 +71,18 @@ export class MultiplayerClient {
     })
   }
 
-  processNewRemotePlayer(player : Player) {
+  processNewRemotePlayer(player: Player) {
     this.onRemotePlayerConnectedCallbacks.forEach(cb => cb(player));
   }
 
-  private onRemotePlayerConnectedCallbacks : ((player : Player) => void)[] = [];
+  private onRemotePlayerConnectedCallbacks: ((player: Player) => void)[] = [];
 
-  onPlayerConnected(cb : (player : Player) => void) {
+  onPlayerConnected(cb: (player: Player) => void) {
     this.onRemotePlayerConnectedCallbacks.push(cb);
   }
 
-  private onRemotePlayerDisconnectedCallbacks : ((id: string) => void)[] = [];
-  onRemotePlayerDisconnected(cb : (id: string) => void) {
+  private onRemotePlayerDisconnectedCallbacks: ((id: string) => void)[] = [];
+  onRemotePlayerDisconnected(cb: (id: string) => void) {
     this.onRemotePlayerDisconnectedCallbacks.push(cb);
   }
 
@@ -84,12 +91,12 @@ export class MultiplayerClient {
     this.connection.emit('playerSentFrameData', data, Date.now());
   }
 
-  private onRemotePlayerFrameDataCallbacks : ((id: string, data: any, sentTime: number) => void)[] = [];
+  private onRemotePlayerFrameDataCallbacks: ((id: string, data: any, sentTime: number) => void)[] = [];
   onRemotePlayerFrameData(cb: (id: string, data: any, sentTime: number) => void) {
     this.onRemotePlayerFrameDataCallbacks.push(cb);
   }
 
-  private onChatFromPlayerCallbacks : ((message: string, id: string) => void)[] = [];
+  private onChatFromPlayerCallbacks: ((message: string, id: string) => void)[] = [];
   onChatFromPlayer(cb: (message: string, id: string) => void) {
     this.onChatFromPlayerCallbacks.push(cb);
   }
@@ -107,7 +114,7 @@ export class MultiplayerClient {
     this.connection.emit('playerChat', message)
   }
 
-  private computeServerTimeOffset(serverMessageTime : number) {
+  private computeServerTimeOffset(serverMessageTime: number) {
     let clientTimeMs = Date.now();
     let clientTime = new Date(clientTimeMs);
     let serverTime = new Date(serverMessageTime);
