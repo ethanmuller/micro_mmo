@@ -19,8 +19,8 @@ export class CameraMovement {
     camSpringY: Spring;
 
     constructor(cam: PerspectiveCamera, player: Mouse, level: Level) {
-        this.camSpringZ = new Spring(0, 2, 0.05, 1 - Number.EPSILON)
-        this.camSpringY = new Spring(0, 2, 0.05, 1 - Number.EPSILON)
+        this.camSpringZ = new Spring(0, 8, 0.02, 1 - Number.EPSILON)
+        this.camSpringY = new Spring(0, 8, 0.02, 1 - Number.EPSILON)
         this.camera = cam;
         this.distanceFromFloor = 3.5;
         this.distanceFromWall = 1; // Maximum level.tileSize * 0.5, can be less
@@ -85,41 +85,51 @@ export class CameraMovement {
             this.camera.updateProjectionMatrix();
         }
         if (session.cameraMode === 'topdown') {
-          this.camera.fov = 30
-          this.camera.position.copy(player.object.position);
-          level.getTileFromWorldPosition(player.object.position, this.currentPlayerTile);
-          const wallInTheWay = !level.isTileWalkable(this.currentPlayerTile.x, this.currentPlayerTile.y+1, true)
-          this.camera.position.y += 30
-          this.camera.position.z += 40
-          if (wallInTheWay) {
-            this.camSpringZ.restPosition = -20
-            this.camSpringY.restPosition = +30
-          } else {
+            this.camera.fov = 30
+            this.camera.position.copy(player.object.position);
+            level.getTileFromWorldPosition(player.object.position, this.currentPlayerTile);
+            const wallIn1 = !level.isTileWalkable(this.currentPlayerTile.x, this.currentPlayerTile.y + 1, true)
+            const wallIn2 = !level.isTileWalkable(this.currentPlayerTile.x, this.currentPlayerTile.y + 2, true)
+            this.camera.position.y += 30
+            this.camera.position.z += 40
+
             this.camSpringZ.restPosition = 0
             this.camSpringY.restPosition = 0
-          }
-          this.camera.position.z += this.camSpringZ.position
-          this.camera.position.y += this.camSpringY.position
-          this.camera.lookAt(player.object.position);
-          this.camera.updateProjectionMatrix();
+            if (wallIn2) {
+                this.camSpringY.restPosition = +15
+                this.camSpringZ.restPosition -= 20
+            }
+            if (wallIn1) {
+                this.camSpringZ.springiness = 0.04
+                this.camSpringY.springiness = 0.04
+                this.camSpringY.restPosition = +30
+                this.camSpringZ.restPosition = -38
+            } else {
+                this.camSpringZ.springiness = 0.02
+                this.camSpringY.springiness = 0.02
+            }
+            this.camera.position.z += this.camSpringZ.position
+            this.camera.position.y += this.camSpringY.position
+            this.camera.lookAt(player.object.position);
+            this.camera.updateProjectionMatrix();
 
-          this.camSpringZ.update()
-          this.camSpringY.update()
+            this.camSpringZ.update()
+            this.camSpringY.update()
         }
         if (session.cameraMode === 'wholemap') {
-          this.camera.fov = 80
-          this.camera.position.copy(player.object.position);
-          this.camera.position.add(new Vector3(0, 90, 0))
-          this.camera.lookAt(player.object.position);
-          this.camera.updateProjectionMatrix();
+            this.camera.fov = 80
+            this.camera.position.copy(player.object.position);
+            this.camera.position.add(new Vector3(0, 90, 0))
+            this.camera.lookAt(player.object.position);
+            this.camera.updateProjectionMatrix();
         }
         if (session.cameraMode === 'security_cam_1') {
-          this.camera.fov = 17 * window.innerHeight/window.innerWidth
-          // this.camera.position.copy(player.object.position);
-          // this.camera.position.add(new Vector3(0, 90, 0))
-          this.camera.position.set(60, 40, -80)
-          this.camera.lookAt(player.object.position);
-          this.camera.updateProjectionMatrix();
+            this.camera.fov = 17 * window.innerHeight / window.innerWidth
+            // this.camera.position.copy(player.object.position);
+            // this.camera.position.add(new Vector3(0, 90, 0))
+            this.camera.position.set(60, 40, -80)
+            this.camera.lookAt(player.object.position);
+            this.camera.updateProjectionMatrix();
         }
         if (session.cameraMode === 'mazecam') {
             this.camera.fov = 90

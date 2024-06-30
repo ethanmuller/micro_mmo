@@ -204,35 +204,35 @@ export class Level {
     }
 
     public renderMinimap(player: Mouse) {
-      let result = ''
+        let result = ''
 
-      const playerTile = new Vector2()
-      this.getTileFromWorldPosition(player.object.position, playerTile)
+        const playerTile = new Vector2()
+        this.getTileFromWorldPosition(player.object.position, playerTile)
 
-      for (let row = 0; row < this.rows; row++) {
-        for (let column = 0; column < this.columns; column++) {
-          let char = this.getCharAtTilePosition(column, row)
-          char = char.replace(/@/g, '.')
-          char = char.replace(/#/g, '.')
-          char = char.replace(/[a-z]/g, 'o')
-          // todo: if a player is on this tile, draw as an @
-          // todo: if a mouse is on this tile, draw as an &
-          if (playerTile.x === column && playerTile.y === row) {
-            char = '@'
-          }
-          result += char
+        for (let row = 0; row < this.rows; row++) {
+            for (let column = 0; column < this.columns; column++) {
+                let char = this.getCharAtTilePosition(column, row)
+                char = char.replace(/@/g, '.')
+                char = char.replace(/#/g, '.')
+                char = char.replace(/[a-z]/g, 'o')
+                // todo: if a player is on this tile, draw as an @
+                // todo: if a mouse is on this tile, draw as an &
+                if (playerTile.x === column && playerTile.y === row) {
+                    char = '@'
+                }
+                result += char
+            }
+            result += '\n'
         }
-        result += '\n'
-      }
 
-      return result
+        return result
     }
 
-    isTileWalkable(i: number | Vector2, j?: number, isCamera : boolean = false) : boolean {
-        if (typeof i  === "number") {
+    isTileWalkable(i: number | Vector2, j?: number, isCamera: boolean = false): boolean {
+        if (typeof i === "number") {
             if (j === undefined)
                 return false;
-            return i >= 0 && j >= 0 && j < this.levelData.length && i < this.levelData[j].length && 
+            return i >= 0 && j >= 0 && j < this.levelData.length && i < this.levelData[j].length &&
                 (this.levelData[j][i] != ' ' && (!isCamera || !this.isCharDoor(this.levelData[j][i])));
         }
         else {
@@ -240,14 +240,12 @@ export class Level {
         }
     }
 
-    isTileAccessibleV(from: Vector2, to: Vector2, isCamera : boolean = false) : boolean
-    {
+    isTileAccessibleV(from: Vector2, to: Vector2, isCamera: boolean = false): boolean {
         return this.isTileAccessible(from.x, from.y, to.x, to.y, isCamera);
     }
 
     // This function tries to check for straight accessibility: it does not pathfind, it just checks straight & diagonal path
-    isTileAccessible(fromX : number, fromY : number, toX : number, toY : number, isCamera : boolean = false) : boolean
-    {
+    isTileAccessible(fromX: number, fromY: number, toX: number, toY: number, isCamera: boolean = false): boolean {
         if (!this.isTileWalkable(toX, toY, isCamera))
             return false;
         if (fromX == toX && fromY == toY)
@@ -258,12 +256,12 @@ export class Level {
             return this.isTileAccessible(fromX + signX, fromY + signY, toX, toY, isCamera);
         else {
             return this.isTileAccessible(fromX + signX, fromY, toX, toY, isCamera)
-                || this.isTileAccessible(fromX, fromY + signY, toX, toY,isCamera);
+                || this.isTileAccessible(fromX, fromY + signY, toX, toY, isCamera);
         }
     }
 
     isTileDoor(x: number, y: number) {
-        return this.isCharDoor(this.getCharAtTilePosition(x,y));
+        return this.isCharDoor(this.getCharAtTilePosition(x, y));
     }
 
     isCharDoor(c: string): boolean {
@@ -272,7 +270,7 @@ export class Level {
 
     getDoorChar(fullName: string) {
         let d = '';
-        for (let [k,v] of this.doors) {
+        for (let [k, v] of this.doors) {
             if (v == fullName) {
                 d = k;
             }
@@ -280,14 +278,14 @@ export class Level {
         return d;
     }
 
-    getDoorName(d: string) : string { // this function exists just to get rid of undefined from .get(d)
+    getDoorName(d: string): string { // this function exists just to get rid of undefined from .get(d)
         let t = this.doors.get(d);
         if (t !== undefined)
             return t;
         else return "";
     }
 
-    getDoorTile(d: string) : Vector2 {
+    getDoorTile(d: string): Vector2 {
         let t = this.doorTiles.get(d);
         if (t !== undefined)
             return t;
@@ -308,7 +306,7 @@ export class Level {
         // this bypasses the need for an output vector
         const x = Math.floor((p.x + 0.5 * this.tileSize) / this.tileSize)
         const y = Math.floor((p.z + 0.5 * this.tileSize) / this.tileSize);
-        return this.getCharAtTilePosition(x,y);
+        return this.getCharAtTilePosition(x, y);
     }
 
 
@@ -319,10 +317,8 @@ export class Level {
 
     collisionV2 = new Vector2();
     collisionV22 = new Vector2();
-    collideCircle(p: Vector3, r: number): boolean
-    {   // PRECONDITION: r < this.tileSize * 0.5, r < this.mouseholeWidth * 0.5
-        if (r >= this.tileSize * 0.5 || r >= this.mouseholeWidth * 0.5)
-        {
+    collideCircle(p: Vector3, r: number): boolean {   // PRECONDITION: r < this.tileSize * 0.5, r < this.mouseholeWidth * 0.5
+        if (r >= this.tileSize * 0.5 || r >= this.mouseholeWidth * 0.5) {
             console.warn(`trying to collide a circle with a radius, r = ${r}, that is too big! results of collision uncertain!, ensure that r < ${this.tileSize * 0.5}, r < ${this.mouseholeWidth * 0.5}`);
         }
 
@@ -361,8 +357,7 @@ export class Level {
                     collided = true;
                 }
             }
-            else if (this.isTileDoor(tileX, tileY))
-            {
+            else if (this.isTileDoor(tileX, tileY)) {
                 let currentTileCenterX = tile.x * this.tileSize;
                 let currentTileCenterZ = tile.y * this.tileSize;
                 let deltaCenterX = p.x - currentTileCenterX;
@@ -493,17 +488,17 @@ const lab: LevelMetaData = {
 #######      
 ########     
    ######     
-   ###########
-   ########  #
-   ## #####  #  
-   ###@# ##  #    
-   ########  t    
+   ########   
+   ########   
+   ## #####     
+   ###@# ##       
+   ########       
    #### ###       
    ########    
    ######## 
    o        
   `,
-    doors: new Map([['o', 'ohio'], ['t', 'the_cheddaverse']]),
+    doors: new Map([['o', 'ohio'],]),
     sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr'),
     wallImage: "https://mush.network/files/textures/etc/plywood.png",
     floorImage: "https://mush.network/files/textures/etc/concrete.png",
@@ -514,8 +509,7 @@ const the_cheddaverse: LevelMetaData = {
     tileSize: 24,
     wallHeight: 24,
     doors: new Map([
-      ['o', 'ohio'],
-      ['l', 'lab'],
+        ['o', 'ohio'],
     ]),
     ascii: `
                  
@@ -523,9 +517,9 @@ const the_cheddaverse: LevelMetaData = {
      #  #        
    #########     
    #       #     
-   # o     ##
+   #       ##
    ####@   #      
-       # l #      
+     o #   #      
        #####      
     `,
     sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr'),

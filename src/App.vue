@@ -114,6 +114,11 @@ if (!store.seed) {
 const player = new Mouse(scene, toonRamp, skinList[store.seed || 0], true);
 let circleFadeTween: TWEEN.Tween<{ value: number }>;
 player.onDoorEnterCallback = (d: string) => {
+	const playerIsHoldingItem = itemList.some((i) => i.parent === store.token)
+
+	if (playerIsHoldingItem) {
+		drop()
+	}
 	circleFade.uniforms.fadeOut.value = 0;
 	circleFadeTween = new TWEEN.Tween(circleFade.uniforms.fadeOut).to({ value: 1 }, 300).onComplete(() => {
 		const u = new URL(window.location.toString())
@@ -263,6 +268,31 @@ const cameraMovement = new CameraMovement(camera, player, level);
 
 const mp = new MultiplayerClient({ token: store.token }, store.seed || 0, requestedLevelMetadata.name || DEFAULT_LEVEL)
 
+const sfxPickup = new Tone.Player('https://mush.network/files/sfx/sfx-pickup.wav', () => {
+	console.log('loaded pickup sound')
+	mp.connection.on('sfxPickup', () => {
+		sfxPickup.stop()
+		sfxPickup.start()
+	})
+}).toDestination()
+
+const sfxPutdown = new Tone.Player('https://mush.network/files/sfx/sfx-putdown.wav', () => {
+	console.log('loaded sfxPutdown sound')
+	mp.connection.on('sfxPutdown', () => {
+		sfxPutdown.stop()
+		sfxPutdown.start()
+	})
+}).toDestination()
+
+// const sfx = new Tone.Players({
+// 	pickup: 'http://mush.network/files/sfx/sfx-pickup.wav',
+// 	putdown: 'http://mush.network/files/sfx/sfx-putdown.wav',
+// }, () => {
+// 		mp.connection.on('sfxPickup', () => {
+// 			sfx.get('pickup')
+// 		})
+// 	}).toMaster()
+//
 mp.connection.on('itemListInit', (list: Array<Item>) => {
 	itemList = list
 
@@ -271,6 +301,7 @@ mp.connection.on('itemListInit', (list: Array<Item>) => {
 		itemObj.rotateX(Math.PI / 2)
 		const itemObjGroup = new THREE.Group()
 		itemObjGroup.add(itemObj)
+		itemObjGroup.rotation.y = Math.PI * 0.25
 		scene.add(itemObjGroup)
 
 		threeObjIdToThingdexId.set(itemObjGroup.id, item.id)
@@ -371,7 +402,8 @@ function updateAllItems(itemList: Array<Item>) {
 			}
 			if (i && obj) {
 				i.position.copy(obj.position)
-				i.rotation.copy(obj.rotation)
+				const r = Math.PI * 0.25
+				i.rotation.set(0, r, 0)
 				i.position.y += 2
 			}
 		}
@@ -468,7 +500,6 @@ function contextAction() {
 	const playerIsHoldingItem = itemList.some((i) => i.parent === store.token)
 
 	if (playerIsHoldingItem) {
-		console.log('dropping item')
 		drop()
 		return
 	}
@@ -490,7 +521,11 @@ function pickup(id: string) {
 }
 
 function drop() {
-	mp.connection.emit('dropItem', player.object.position, player.object.quaternion)
+	const pos = new THREE.Vector3()
+	pos.copy(player.object.position)
+	pos.y = 0.5
+
+	mp.connection.emit('dropItem', pos, player.object.quaternion)
 }
 
 function sendSqueak() {

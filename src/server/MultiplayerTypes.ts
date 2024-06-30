@@ -12,6 +12,8 @@ export interface ServerToClientEvents {
   squeak: (id: string, n: number) => void;
   itemListInit: (list: Array<Item>) => void;
   itemListUpdate: (list: Array<Item>) => void;
+  sfxPickup: () => void;
+  sfxPutdown: () => void;
 }
 
 export interface ClientToServerEvents {
