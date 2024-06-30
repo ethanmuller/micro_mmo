@@ -96,8 +96,8 @@ export class InputManager {
             }
         })
         mc.on('press', () => {
-            if (this.trackball.velocity.length() > 0) {
-              this.fingerDownForBrake = true
+            if (this.trackball.velocity.length() > 0.1) {
+                this.fingerDownForBrake = true
             }
 
             this.trackball.velocity.set(0, 0);
@@ -105,9 +105,9 @@ export class InputManager {
         })
         mc.on('pressup', () => {
             if (!this.fingerDownForBrake) {
-              // do context action
-              const event = new Event('contextAction')
-              document.dispatchEvent(event)
+                // do context action
+                const event = new Event('contextAction')
+                document.dispatchEvent(event)
             }
             this.fingerDown = false
             this.fingerDownForBrake = false
