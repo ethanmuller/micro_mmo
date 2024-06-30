@@ -47,6 +47,7 @@ export class Mouse {
     isLocalPlayer: Boolean
 
     squeakSampler: Tone.Sampler;
+    sfxChit: Tone.Player;
 
     // Materials
     material: Material;
@@ -151,6 +152,10 @@ export class Mouse {
     private frameDisplacementDirection: Vector3 = new Vector3();
 
     constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin, isLocalPlayer: boolean) {
+        this.sfxChit = new Tone.Player('https://mush.network/files/sfx/mouse-step-b.wav').toDestination()
+        this.sfxChit.volume.value = 0
+        this.sfxChit.volume.value += 10
+
         this.isLocalPlayer = isLocalPlayer
         this.squeakSampler = new Tone.Sampler({
             urls: chirpNotes,
@@ -365,6 +370,18 @@ export class Mouse {
           this.squeakSampler.triggerAttackRelease(note, "8n")
         }
         this.headSpring.applyForce(0.3)
+    }
+
+    chit() {
+        const settings = useSettingsStore()
+        if (settings.enableSound) {
+          console.log('dit')
+          this.sfxChit.stop()
+          const r = (Math.random() - 0.5) 
+          this.sfxChit.playbackRate = 1.0 + r
+          this.sfxChit.start()
+        }
+        this.headSpring.applyForce(0.2)
     }
 
 

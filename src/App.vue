@@ -269,7 +269,6 @@ const cameraMovement = new CameraMovement(camera, player, level);
 const mp = new MultiplayerClient({ token: store.token }, store.seed || 0, requestedLevelMetadata.name || DEFAULT_LEVEL)
 
 const sfxPickup = new Tone.Player('https://mush.network/files/sfx/sfx-pickup.wav', () => {
-	console.log('loaded pickup sound')
 	mp.connection.on('sfxPickup', () => {
 		sfxPickup.stop()
 		sfxPickup.start()
@@ -277,7 +276,6 @@ const sfxPickup = new Tone.Player('https://mush.network/files/sfx/sfx-pickup.wav
 }).toDestination()
 
 const sfxPutdown = new Tone.Player('https://mush.network/files/sfx/sfx-putdown.wav', () => {
-	console.log('loaded sfxPutdown sound')
 	mp.connection.on('sfxPutdown', () => {
 		sfxPutdown.stop()
 		sfxPutdown.start()
@@ -359,6 +357,9 @@ mp.onRemotePlayerDisconnected((id) => {
 mp.onChatFromPlayer((message: string, id: string) => {
 	let thatPlayer = playerIdToPlayerObj.get(id);
 	if (thatPlayer && thatPlayer.div) {
+    if (message !== '') {
+      thatPlayer.chit()
+    }
 		thatPlayer.div.textContent = message
 	}
 });
@@ -546,7 +547,9 @@ function drop() {
 }
 
 function sendSqueak() {
-	Tone.start()
+  if (settings.enableSound) {
+    Tone.start()
+  }
 	player.squeak()
 	mp.connection.emit('squeak', player.chirpIndex)
 }
@@ -583,6 +586,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
 	mp.disconnect();
 	document.removeEventListener('contextAction', contextAction)
+  textRenderer?.domElement.remove()
 })
 
 function onWindowResize(): void {
@@ -615,6 +619,9 @@ function settingsToggle() {
 function updateChat(e: Event) {
 	const message = (e.target as HTMLInputElement).value
 	player.div.textContent = message
+  if (message != '') {
+    player.chit()
+  }
 	mp.chat(message)
 	//sendSqueak()
 }
