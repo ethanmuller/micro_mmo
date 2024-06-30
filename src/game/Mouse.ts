@@ -74,7 +74,7 @@ export class Mouse {
     headRadius: number;
     bodyLength: number;
     buttRadius: number;
-    headWobbleTime: number = 0;
+    headWobbleTime: number = 3;
     headWobbleFrequency: number = 2;
     headWobbleAmount: number = 0.1;
     headWobbleMinHeight: number = 0.2;
@@ -164,7 +164,7 @@ export class Mouse {
         scene.add(this.label)
         this.label.position.set(0, 0, 0)
 
-        this.headSpring = new Spring(0, 2, 0.1, 1 - Number.EPSILON)
+        this.headSpring = new Spring(0, 4, 0.2, 0.999999)
 
         this.debugSphere = new Mesh(new SphereGeometry(this.radius, 12, 12), new MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.3 }));
         this.debugSphere.position.y += this.radius;
@@ -390,7 +390,12 @@ export class Mouse {
         let positionBefore = this.previousFramePosition.copy(this.object.position);
 
         this.headSpring.update()
-        this.head.position.y = this.headRadius + this.headSpring.position
+        this.head.position.y = this.headRadius + this.headSpring.position * 2.0
+
+        const headScale = 1 + this.headSpring.position * 0.2
+        const buttScale = 1 - this.headSpring.position * 0.5
+        this.object.scale.set(headScale, headScale, headScale)
+        this.butt.scale.set(buttScale, buttScale, buttScale)
 
         if (this.isLocalPlayer && input && camera) { // Local players
             this.updateLocalWithInput(time, level, input, camera);

@@ -153,15 +153,15 @@ function findClosestObject(player: Mouse, items: Array<Item>): THREE.Object3D | 
 
 let itemList: Array<Item> = []
 
-const contextCursor = new THREE.Mesh(
+const pickupCursor = new THREE.Mesh(
 	new THREE.RingGeometry(1.3, 1.4),
 	new THREE.MeshBasicMaterial({ color: 0x00ff00 })
 )
-contextCursor.position.set(30, 0.5, 60)
-contextCursor.renderOrder = 1;
-contextCursor.material.depthTest = false;
+pickupCursor.position.set(30, 0.5, 60)
+pickupCursor.renderOrder = 1;
+pickupCursor.material.depthTest = false;
 const pickupRadius = 3
-scene.add(contextCursor)
+scene.add(pickupCursor)
 
 // const b = new Battery()
 // b.rotateX(Math.PI/2)
@@ -377,6 +377,20 @@ function updateAllItems(itemList: Array<Item>) {
 		}
 	})
 }
+function updatePickupCursor() {
+	if (closestObj && closestObj.position.distanceTo(player.object.position) < pickupRadius) {
+		pickupCursor.position.copy(closestObj.position)
+	} else {
+		pickupCursor.position.set(-999, 0, -999)
+	}
+
+	const playerIsHoldingItem = itemList.some((i) => i.parent === store.token)
+	if (playerIsHoldingItem) {
+		pickupCursor.position.set(-999, 0, -999)
+	}
+
+	pickupCursor.lookAt(camera.position)
+}
 
 function mainLoop(reportedTime: number) {
 	let now = new Date().getTime();
@@ -392,13 +406,7 @@ function mainLoop(reportedTime: number) {
 
 	closestObj = findClosestObject(player, visibleItems)
 
-	if (closestObj && closestObj.position.distanceTo(player.object.position) < pickupRadius) {
-		contextCursor.position.copy(closestObj.position)
-	} else {
-		contextCursor.position.set(-999, 0, -999)
-	}
-
-	contextCursor.lookAt(camera.position)
+	updatePickupCursor()
 
 	gameTime.deltaTimeMs = Math.min(90, now - lastTickTime);// Prevent big time jumps
 	gameTime.timeMs += gameTime.deltaTimeMs;
