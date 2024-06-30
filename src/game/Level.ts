@@ -41,8 +41,10 @@ export class Level {
 
     doors: Map<string, string>;
     doorTiles: Map<string, Vector2> = new Map<string, Vector2>();
+    tempTile: Vector2;
 
     constructor(level: LevelMetaData, toonRamp: Texture) {
+        this.tempTile = new Vector2()
         this.tileSize = level.tileSize
         this.wallHeight = level.wallHeight
         this.cameraType = level.cameraType
@@ -203,7 +205,7 @@ export class Level {
         this.object.updateMatrixWorld(true);
     }
 
-    public renderMinimap(player: Mouse) {
+    public renderMinimap(player: Mouse, playerMap: Map<string, Mouse>) {
         let result = ''
 
         const playerTile = new Vector2()
@@ -215,8 +217,16 @@ export class Level {
                 char = char.replace(/@/g, '.')
                 char = char.replace(/#/g, '.')
                 char = char.replace(/[a-z]/g, 'o')
-                // todo: if a player is on this tile, draw as an @
-                // todo: if a mouse is on this tile, draw as an &
+
+                // if another player is on this tile, draw as an &
+                playerMap?.forEach((v) => {
+                    this.getTileFromWorldPosition(v.object.position, this.tempTile)
+                    if (this.tempTile.x === column && this.tempTile.y === row) {
+                        char = '&'
+                    }
+                })
+
+                // if I am on on this tile, draw as an @
                 if (playerTile.x === column && playerTile.y === row) {
                     char = '@'
                 }

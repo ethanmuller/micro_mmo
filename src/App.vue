@@ -111,7 +111,7 @@ if (!store.seed) {
 	store.generateSeed(skinList.length - 1)
 }
 
-const player = new Mouse(scene, toonRamp, skinList[store.seed || 0], true);
+const player = new Mouse(scene, toonRamp, skinList[0], true);
 let circleFadeTween: TWEEN.Tween<{ value: number }>;
 player.onDoorEnterCallback = (d: string) => {
 	const playerIsHoldingItem = itemList.some((i) => i.parent === store.token)
@@ -326,7 +326,7 @@ mp.onPlayerConnected((newPlayer: Player) => {
 	}
 	else { // Remote players
 		if (!playerIdToPlayerObj.has(newPlayer.member_id)) {
-			playerIdToPlayerObj.set(newPlayer.member_id, new Mouse(scene, toonRamp, skinList[newPlayer.skin], false));
+			playerIdToPlayerObj.set(newPlayer.member_id, new Mouse(scene, toonRamp, skinList[0], false));
 			console.log(playerIdToPlayerObj)
 			console.log(playerIdToPlayerObj)
 		}
@@ -462,7 +462,7 @@ function mainLoop(reportedTime: number) {
 	player.update(gameTime, level, input, camera, playerIdToPlayerObj);
 
 	if (settings.showMinimap) {
-		minimapText.value = level.renderMinimap(player)
+		minimapText.value = level.renderMinimap(player, playerIdToPlayerObj)
 	}
 
 	// Camera updates
@@ -497,6 +497,7 @@ function mainLoop(reportedTime: number) {
 }
 
 function contextAction() {
+
 	const playerIsHoldingItem = itemList.some((i) => i.parent === store.token)
 
 	if (playerIsHoldingItem) {

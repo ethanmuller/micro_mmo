@@ -1,6 +1,6 @@
 import { Vector2 } from 'three';
 import Hammer from 'hammerjs'
-import { useLogStore } from "../stores/logs";
+import * as Tone from "tone";
 
 class ButtonInput {
     pressed: boolean = false;
@@ -51,8 +51,6 @@ export class InputManager {
     flyCameraButton: ButtonInput;
 
     constructor(trackballElement: HTMLElement) {
-        const logs = useLogStore()
-
         reference = this;
 
         window.addEventListener('keydown', this.onkeydown);
@@ -95,8 +93,7 @@ export class InputManager {
             }
         })
         mc.on('press', () => {
-            logs.add(this.trackball.velocity.length().toString())
-
+            Tone.start()
             this.trackball.velocity.set(0, 0);
             this.fingerDown = true
         })
