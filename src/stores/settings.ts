@@ -17,7 +17,7 @@ export const useSettingsStore = defineStore('settings', {
       showMinimap: true,
       invertControls: false,
       cameraMode: 'topdown',
-      enableSound: false,
+      enableSound: true,
       enableChat: true,
     }
   },

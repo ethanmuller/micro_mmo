@@ -1,0 +1,1 @@
+TODO: reduce lag: optimistic pickup and putdown: modify local data with parenting + sfx + whatever the end state is after player receives the data about themselves picking up an item: is this rollback vs. delay?

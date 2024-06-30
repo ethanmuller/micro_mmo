@@ -357,10 +357,13 @@ export class Mouse {
     }
 
     squeak() {
+        const settings = useSettingsStore()
         this.chirpIndex += 1
         this.chirpIndex = this.chirpIndex % (Object.keys(chirpNotes).length)
-        const note = Object.keys(chirpNotes)[this.chirpIndex]
-        this.squeakSampler.triggerAttackRelease(note, "8n")
+        if (settings.enableSound) {
+          const note = Object.keys(chirpNotes)[this.chirpIndex]
+          this.squeakSampler.triggerAttackRelease(note, "8n")
+        }
         this.headSpring.applyForce(0.3)
     }
 

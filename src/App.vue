@@ -526,8 +526,10 @@ function contextAction() {
 }
 
 function pickup(id: string) {
-	sfxPickup.stop()
-	sfxPickup.start()
+  if (settings.enableSound) {
+    sfxPickup.stop()
+    sfxPickup.start()
+  }
 	mp.connection.emit('pickupItem', id)
 }
 
@@ -536,8 +538,10 @@ function drop() {
 	pos.copy(player.object.position)
 	pos.y = 0.5
 
-	sfxPutdown.stop()
-	sfxPutdown.start()
+  if (settings.enableSound) {
+    sfxPutdown.stop()
+    sfxPutdown.start()
+  }
 	mp.connection.emit('dropItem', pos, player.butt.rotation)
 }
 
@@ -612,7 +616,7 @@ function updateChat(e: Event) {
 	const message = (e.target as HTMLInputElement).value
 	player.div.textContent = message
 	mp.chat(message)
-	sendSqueak()
+	//sendSqueak()
 }
 
 function handleKey(e: KeyboardEvent) {
@@ -671,6 +675,11 @@ function openChatBox() {
 		</div>
 		<div class="settings">
 			<div class="settings__panel" v-if="settingsPanelOpen">
+
+				<label>
+					<input type="checkbox" v-model="settings.enableSound" />
+					enable sounds
+				</label>
 
 				<label>
 					<input type="checkbox" v-model="settings.showMinimap" />
