@@ -1,7 +1,6 @@
 import { Vector2 } from 'three';
 import Hammer from 'hammerjs'
-
-
+import { useLogStore } from "../stores/logs";
 
 class ButtonInput {
     pressed: boolean = false;
@@ -43,7 +42,6 @@ export class InputManager {
     pageDown: ButtonInput;
     trackball: TrackballInput;
     fingerDown: Boolean;
-    fingerDownForBrake: Boolean;
     shift: ButtonInput;
     ctrl: ButtonInput;
 
@@ -53,6 +51,8 @@ export class InputManager {
     flyCameraButton: ButtonInput;
 
     constructor(trackballElement: HTMLElement) {
+        const logs = useLogStore()
+
         reference = this;
 
         window.addEventListener('keydown', this.onkeydown);
@@ -83,34 +83,28 @@ export class InputManager {
         mc.add(new Hammer.Press({ time: 0 }));
 
         this.fingerDown = false
-        this.fingerDownForBrake = false
         const screenFactor = window.innerHeight * 0.03;
 
         mc.on('pan', (e: HammerInput) => {
             const velocity = new Vector2(e.velocityX, e.velocityY).multiplyScalar(screenFactor)
             // velocity.clampLength(10, Infinity)
-            this.trackball.velocity.copy(velocity)
+            this.trackball.velocity.copy(velocity).multiplyScalar(1.5)
             this.trackball.lastMove = e.timeStamp
             if (e.isFinal) {
                 this.fingerDown = false
             }
         })
         mc.on('press', () => {
-            if (this.trackball.velocity.length() > 0.1) {
-                this.fingerDownForBrake = true
-            }
+            logs.add(this.trackball.velocity.length().toString())
 
             this.trackball.velocity.set(0, 0);
             this.fingerDown = true
         })
         mc.on('pressup', () => {
-            if (!this.fingerDownForBrake) {
-                // do context action
-                const event = new Event('contextAction')
-                document.dispatchEvent(event)
-            }
+            // do context action
+            const event = new Event('contextAction')
+            document.dispatchEvent(event)
             this.fingerDown = false
-            this.fingerDownForBrake = false
         })
     }
 

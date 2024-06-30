@@ -165,7 +165,7 @@ const pickupCursor = new THREE.Mesh(
 pickupCursor.position.set(30, 0.5, 60)
 pickupCursor.renderOrder = 1;
 pickupCursor.material.depthTest = false;
-const pickupRadius = 3
+const pickupRadius = 6
 scene.add(pickupCursor)
 
 // const b = new Battery()
@@ -504,7 +504,8 @@ function contextAction() {
 		return
 	}
 
-	closestObj = findClosestObject(player, itemList)
+	const itemsInRoom = itemList.filter((item) => item.level === requestedLevelMetadata.name)
+	closestObj = findClosestObject(player, itemsInRoom)
 
 	if (closestObj && closestObj.position.distanceTo(player.object.position) < pickupRadius) {
 		const i = threeObjIdToThingdexId.get(closestObj.id)
