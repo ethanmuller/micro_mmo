@@ -174,7 +174,7 @@ io.on('connection', async (socket) => {
     item.parent = socket.handshake.auth.token
     console.log('item picked up:', item)
     io.emit('itemListUpdate', itemList);
-    io.to(level).emit('sfxPickup');
+    socket.broadcast.to(level).emit('sfxPickup');
   });
 
   socket.on('dropItem', (position: Vector3, rotation: Quaternion) => {
@@ -186,7 +186,7 @@ io.on('connection', async (socket) => {
     i.rotation = rotation
     console.log('item dropped:', i)
     io.emit('itemListUpdate', itemList);
-    io.emit('sfxPutdown');
+    socket.broadcast.to(level).emit('sfxPutdown');
   });
 
 

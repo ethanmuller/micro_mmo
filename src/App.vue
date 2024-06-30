@@ -517,6 +517,8 @@ function contextAction() {
 }
 
 function pickup(id: string) {
+	sfxPickup.stop()
+	sfxPickup.start()
 	mp.connection.emit('pickupItem', id)
 }
 
@@ -525,6 +527,8 @@ function drop() {
 	pos.copy(player.object.position)
 	pos.y = 0.5
 
+	sfxPutdown.stop()
+	sfxPutdown.start()
 	mp.connection.emit('dropItem', pos, player.object.quaternion)
 }
 
