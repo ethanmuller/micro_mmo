@@ -2,6 +2,7 @@ import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, 
 import { Mouse } from './Mouse';
 import { MouseholeGeometry } from "./extensions/MouseholeGeometry"
 import { CameraMode } from '../game/CameraMovement'
+import { Item } from "../server/MultiplayerTypes";
 
 
 type LowercaseAlpha = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
@@ -205,7 +206,7 @@ export class Level {
         this.object.updateMatrixWorld(true);
     }
 
-    public renderMinimap(player: Mouse, playerMap: Map<string, Mouse>) {
+    public renderMinimap(player: Mouse, playerMap: Map<string, Mouse>, itemList: Array<Item>) {
         let result = ''
 
         const playerTile = new Vector2()
@@ -217,6 +218,16 @@ export class Level {
                 char = char.replace(/@/g, '.')
                 char = char.replace(/#/g, '.')
                 char = char.replace(/[a-z]/g, 'o')
+
+                // if an item is on this tile, draw as a =
+                if (char !== 'o') {
+                    itemList.forEach((item) => {
+                        this.getTileFromWorldPosition(item.location, this.tempTile)
+                        if (!item.parent && this.tempTile.x === column && this.tempTile.y === row) {
+                            char = '='
+                        }
+                    })
+                }
 
                 // if another player is on this tile, draw as an &
                 playerMap?.forEach((v) => {

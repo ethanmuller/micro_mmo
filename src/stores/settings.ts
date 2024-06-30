@@ -14,11 +14,11 @@ export const useSettingsStore = defineStore('settings', {
   state: (): Settings => {
     return {
       showLogs: false,
-      showMinimap: false,
+      showMinimap: true,
       invertControls: false,
       cameraMode: 'topdown',
       enableSound: false,
-      enableChat: false,
+      enableChat: true,
     }
   },
   getters: {

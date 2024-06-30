@@ -5,9 +5,8 @@ import { ServerToClientEvents, ClientToServerEvents, } from './MultiplayerTypes'
 import cors from 'cors'
 import { Player, Item } from './MultiplayerTypes'
 import { generateUUID } from 'three/src/math/MathUtils.js';
-import { Quaternion, Vector3 } from 'three';
+import { Euler, Vector3 } from 'three';
 import { LevelName } from '../game/Level';
-import { Constants } from '../game/constants.ts'
 
 
 const app = express();
@@ -21,8 +20,7 @@ const io = new Server<
 >(server, {
   cors: {}
 });
-const q1 = new Quaternion()
-q1.setFromAxisAngle(Constants.up, Math.PI / 4)
+const q1 = new Euler()
 const b1 = {
   id: generateUUID(),
   level: 'lab' as LevelName,
@@ -177,7 +175,7 @@ io.on('connection', async (socket) => {
     socket.broadcast.to(level).emit('sfxPickup');
   });
 
-  socket.on('dropItem', (position: Vector3, rotation: Quaternion) => {
+  socket.on('dropItem', (position: Vector3, rotation: Euler) => {
     const i = itemList.find((i) => i.parent && i.parent === socket.handshake.auth.token)
     if (!i) return
     console.log('dropping item')

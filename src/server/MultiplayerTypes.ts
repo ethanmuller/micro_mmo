@@ -1,4 +1,4 @@
-import { Quaternion, Vector3 } from "three";
+import { Euler, Vector3 } from "three";
 import { LevelName } from "../game/Level";
 
 export interface ServerToClientEvents {
@@ -22,7 +22,7 @@ export interface ClientToServerEvents {
   playerConnected: (id: string, skinNumber: number) => void;
   playerChat: (message: string) => void;
   pickupItem: (id: string) => void;
-  dropItem: (location: Vector3, rotation: Quaternion) => void;
+  dropItem: (location: Vector3, rotation: Euler) => void;
 }
 
 
@@ -37,5 +37,5 @@ export type Item = {
   parent?: string,
   level: LevelName,
   location: Vector3,
-  rotation: Quaternion,
+  rotation: Euler,
 }

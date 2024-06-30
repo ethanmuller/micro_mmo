@@ -393,19 +393,24 @@ function updateAllItems(itemList: Array<Item>) {
 		i.visible = item.level === requestedLevelMetadata.name
 
 		if (item.parent) {
+			let p
 			const otherPlayer = playerIdToPlayerObj.get(item.parent)
-			let obj
 			if (item.parent === store.token) {
-				obj = player.object
+				p = player
+				i.rotation.copy(player.butt.rotation)
+				i.rotation.y += Math.PI
 			} else if (otherPlayer) {
-				obj = otherPlayer.object
+				p = otherPlayer
+				i.rotation.copy(otherPlayer.butt.rotation)
+				i.rotation.y += Math.PI
 			}
-			if (i && obj) {
-				i.position.copy(obj.position)
-				const r = Math.PI * 0.25
-				i.rotation.set(0, r, 0)
-				i.position.y += 2
+			if (i && p) {
+				i.position.copy(p.butt.position)
+				i.position.y += 1.125
 			}
+		} else {
+			i.rotation.copy(item.rotation)
+			i.rotation.y += Math.PI
 		}
 	})
 }
@@ -427,18 +432,6 @@ function updatePickupCursor() {
 function mainLoop(reportedTime: number) {
 	let now = new Date().getTime();
 
-	updateAllItems(itemList)
-
-	const visibleItems = itemList.filter((item) => {
-		const obj = thingdexIdToThreeObject.get(item.id)
-		if (obj && obj.visible) {
-			return obj
-		}
-	})
-
-	closestObj = findClosestObject(player, visibleItems)
-
-	updatePickupCursor()
 
 	gameTime.deltaTimeMs = Math.min(90, now - lastTickTime);// Prevent big time jumps
 	gameTime.timeMs += gameTime.deltaTimeMs;
@@ -461,8 +454,22 @@ function mainLoop(reportedTime: number) {
 
 	player.update(gameTime, level, input, camera, playerIdToPlayerObj);
 
+	updateAllItems(itemList)
+
+	const visibleItems = itemList.filter((item) => {
+		const obj = thingdexIdToThreeObject.get(item.id)
+		if (obj && obj.visible) {
+			return obj
+		}
+	})
+
+	closestObj = findClosestObject(player, visibleItems)
+
+	updatePickupCursor()
+
 	if (settings.showMinimap) {
-		minimapText.value = level.renderMinimap(player, playerIdToPlayerObj)
+		const itemsInRoom = itemList.filter((item) => item.level === requestedLevelMetadata.name)
+		minimapText.value = level.renderMinimap(player, playerIdToPlayerObj, itemsInRoom)
 	}
 
 	// Camera updates
@@ -531,7 +538,7 @@ function drop() {
 
 	sfxPutdown.stop()
 	sfxPutdown.start()
-	mp.connection.emit('dropItem', pos, player.object.quaternion)
+	mp.connection.emit('dropItem', pos, player.butt.rotation)
 }
 
 function sendSqueak() {
@@ -545,10 +552,11 @@ onMounted(() => {
 	textRenderer.setSize(window.innerWidth, window.innerHeight)
 	textRenderer.domElement.style.position = 'absolute';
 	textRenderer.domElement.style.top = '0px';
+	textRenderer.domElement.style.marginTop = '-16px';
 	textRenderer.domElement.style.left = '0px';
 	textRenderer.domElement.style.zIndex = '1';
 	textRenderer.domElement.style.color = 'white';
-	textRenderer.domElement.style.textShadow = '0 0 10px black';
+	textRenderer.domElement.style.textShadow = '0 0 7px black';
 	textRenderer.domElement.style.pointerEvents = 'none';
 	textRenderer.domElement.textContent = ''
 	document.getElementById('app')?.appendChild(textRenderer.domElement);
@@ -604,6 +612,7 @@ function updateChat(e: Event) {
 	const message = (e.target as HTMLInputElement).value
 	player.div.textContent = message
 	mp.chat(message)
+	sendSqueak()
 }
 
 function handleKey(e: KeyboardEvent) {
