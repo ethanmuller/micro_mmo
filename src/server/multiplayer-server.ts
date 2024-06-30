@@ -20,57 +20,56 @@ const io = new Server<
 >(server, {
   cors: {}
 });
-let e = new Euler()
-e.y = Math.PI * Math.random()
+
+function makeEulerWithRandomYRotation() {
+  return new Euler(0, Math.PI * Math.random(), 0)
+}
+
 const b1 = {
   id: generateUUID(),
   level: 'lab' as LevelName,
   location: new Vector3(30, 0.5, 60),
-  rotation: e,
+  rotation: makeEulerWithRandomYRotation(),
 }
 itemList.push(b1)
 
-e.y = Math.PI * Math.random()
 const b2 = {
   id: generateUUID(),
   level: 'lab' as LevelName,
   location: new Vector3(30, 0.5, 55),
-  rotation: e,
+  rotation: makeEulerWithRandomYRotation(),
 }
 itemList.push(b2)
 
-e.y = Math.PI * Math.random()
 itemList.push({
   id: generateUUID(),
   level: 'lab' as LevelName,
   location: new Vector3(4, 0.5, 12),
-  rotation: e,
+  rotation: makeEulerWithRandomYRotation(),
 })
 
-e.y = Math.PI * Math.random()
 itemList.push({
   id: generateUUID(),
   level: 'lab' as LevelName,
   location: new Vector3(13, 0.5, 15),
-  rotation: e,
+  rotation: makeEulerWithRandomYRotation(),
 })
 
-e.y = Math.PI * Math.random()
+
+
 const b3 = {
   id: generateUUID(),
   level: 'ohio' as LevelName,
   location: new Vector3(10, 0.5, 10),
-  rotation: e,
+  rotation: makeEulerWithRandomYRotation(),
 }
 itemList.push(b3)
 
-
-e.y = Math.PI * Math.random()
 itemList.push({
   id: generateUUID(),
   level: 'ohio' as LevelName,
   location: new Vector3(16, 0.5, 28),
-  rotation: e,
+  rotation: makeEulerWithRandomYRotation(),
 })
 
 // for (let i = 0; i < 5; i++) {
@@ -78,72 +77,64 @@ itemList.push({
 //     id: generateUUID(),
 //     level: 'the_cheddaverse' as LevelName,
 //     location: new Vector3(170 - i * 5, 0.5, 166),
-//     rotation: e,
+//     rotation: makeEulerWithRandomYRotation(),
 //   })
 // }
 
-e.y = Math.PI * Math.random()
 itemList.push({
   id: generateUUID(),
   level: 'the_cheddaverse' as LevelName,
   location: new Vector3(88, 0.5, 164),
-  rotation: e,
+  rotation: makeEulerWithRandomYRotation(),
 })
 
-e.y = Math.PI * Math.random()
 itemList.push({
   id: generateUUID(),
   level: 'the_cheddaverse' as LevelName,
   location: new Vector3(94, 0.5, 171),
-  rotation: e,
+  rotation: makeEulerWithRandomYRotation(),
 })
 
-e.y = Math.PI * Math.random()
 itemList.push({
   id: generateUUID(),
   level: 'the_cheddaverse' as LevelName,
   location: new Vector3(96, 0.5, 163),
-  rotation: e,
+  rotation: makeEulerWithRandomYRotation(),
 })
 
-e.y = Math.PI * Math.random()
 itemList.push({
   id: generateUUID(),
   level: 'the_cheddaverse' as LevelName,
   location: new Vector3(157, 0.5, 167),
-  rotation: e,
+  rotation: makeEulerWithRandomYRotation(),
 })
 
-e.y = Math.PI * Math.random()
 itemList.push({
   id: generateUUID(),
   level: 'the_cheddaverse' as LevelName,
   location: new Vector3(204, 0.5, 214),
-  rotation: e,
+  rotation: makeEulerWithRandomYRotation(),
 })
 
-e.y = Math.PI * Math.random()
 itemList.push({
   id: generateUUID(),
   level: 'the_cheddaverse' as LevelName,
   location: new Vector3(118, 0.5, 74),
-  rotation: e,
+  rotation: makeEulerWithRandomYRotation(),
 })
 
-e.y = Math.PI * Math.random()
 itemList.push({
   id: generateUUID(),
   level: 'the_cheddaverse' as LevelName,
   location: new Vector3(193, 0.5, 68),
-  rotation: e,
+  rotation: makeEulerWithRandomYRotation(),
 })
 
-e.y = Math.PI * Math.random()
 itemList.push({
   id: generateUUID(),
   level: 'the_cheddaverse' as LevelName,
   location: new Vector3(297, 0.5, 145),
-  rotation: e,
+  rotation: makeEulerWithRandomYRotation(),
 })
 
 app.get('/', (_req, res) => {
