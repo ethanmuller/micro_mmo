@@ -704,7 +704,7 @@ function clearChat() {
       <div class="chat-input-wrapper">
         <input ref="chat_input" class="chat-input" type="text" v-model="playerChatInput"
         @input="updateChat" @keydown="handleKey" />
-        <button v-if="playerChatInput?.length > 0" aria-label="clear" class="chat-box__clear-button" @click="clearChat">&times;</button>
+        <button v-if="playerChatInput && playerChatInput.length > 0" aria-label="clear" class="chat-box__clear-button" @click="clearChat">&times;</button>
       </div>
 		</div>
 		<div class="logs" v-if="settings.showLogs">
