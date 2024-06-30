@@ -39,3 +39,33 @@ h1 {
   padding: 2rem;
   text-align: center;
 }
+
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.squeak-bubble {
+  display: block;
+  margin-top: 0;
+
+	font-size: 16px;
+	padding: 0.5rem 1rem;
+	border-radius: 4rem;
+  box-sizing: border-box;
+
+}
+
+.fadeout {
+  transition: all 0.333s ease-out;
+  animation: fade-out 0.333s 3s ease-in both;
+  margin-top: -0.5em;
+
+	background: #2f90f7;
+	border: none;
+	color: white;
+}

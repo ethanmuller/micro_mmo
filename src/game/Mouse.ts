@@ -163,6 +163,7 @@ export class Mouse {
         }).toDestination()
 
         this.div = document.createElement('div')
+        this.div.classList.add('squeak-bubble')
         this.div.textContent = ''
         this.label = new CSS2DObject(this.div)
         scene.add(this.label)

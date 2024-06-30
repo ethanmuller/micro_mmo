@@ -42,8 +42,8 @@ export class MultiplayerClient {
       this.playerList = playerList;
     })
 
-    this.connection.on('chatFromPlayer', (message: string, id: string) => {
-      this.onChatFromPlayerCallbacks.forEach(cb => cb(message, id));
+    this.connection.on('chatKeystroke', (message: string, id: string) => {
+      this.receiveChatKeystrokeCallbacks.forEach(cb => cb(message, id));
     })
 
     this.connection.on('playerConnected', newPlayer => {
@@ -96,9 +96,9 @@ export class MultiplayerClient {
     this.onRemotePlayerFrameDataCallbacks.push(cb);
   }
 
-  private onChatFromPlayerCallbacks: ((message: string, id: string) => void)[] = [];
+  private receiveChatKeystrokeCallbacks: ((message: string, id: string) => void)[] = [];
   onChatFromPlayer(cb: (message: string, id: string) => void) {
-    this.onChatFromPlayerCallbacks.push(cb);
+    this.receiveChatKeystrokeCallbacks.push(cb);
   }
 
   disconnect() {
@@ -111,7 +111,7 @@ export class MultiplayerClient {
   }
 
   chat(message: string) {
-    this.connection.emit('playerChat', message)
+    this.connection.emit('chatKeystroke', message)
   }
 
   private computeServerTimeOffset(serverMessageTime: number) {

@@ -358,15 +358,26 @@ mp.onRemotePlayerDisconnected((id) => {
 	playerIdToPlayerObj.delete(id);
 });
 
-mp.onChatFromPlayer((message: string, id: string) => {
+mp.connection.on('chatKeystroke', ((message: string, id: string) => {
 	let thatPlayer = playerIdToPlayerObj.get(id);
 	if (thatPlayer && thatPlayer.div) {
-    if (message !== '') {
+    if (message.length > 0) {
       thatPlayer.chit()
     }
 		thatPlayer.div.textContent = message
+    thatPlayer.div.classList.remove('fadeout')
 	}
-});
+}));
+
+mp.connection.on('chatSay', ((message: string, id: string) => {
+	let thatPlayer = playerIdToPlayerObj.get(id);
+	if (thatPlayer) {
+    thatPlayer.squeak()
+    thatPlayer.div.textContent = message
+    thatPlayer.div.classList.add('fadeout')
+	}
+}));
+
 
 const sun = new THREE.DirectionalLight();
 sun.intensity = Math.PI
@@ -621,11 +632,13 @@ function settingsToggle() {
 
 function updateChat(e: Event) {
 	const message = (e.target as HTMLInputElement).value
+  playerChatInput.value = message
 	player.div.textContent = message
-  if (message != '') {
+  if (message.length > 0) {
     player.chit()
   }
-	mp.chat(message)
+	mp.connection.emit('chatKeystroke', message)
+  player.div.classList.remove('fadeout')
 	//sendSqueak()
 }
 
@@ -633,10 +646,11 @@ function handleKey(e: KeyboardEvent) {
 	if (e.key === 'Enter') {
 		if (playerChatInput.value === '') {
 			chatBoxOpen.value = false
-		} else {
+		} else if (playerChatInput.value) {
+      mp.connection.emit('chatSay', playerChatInput.value)
+      player.squeak()
+      player.div.classList.add('fadeout')
 			playerChatInput.value = ''
-			player.div.textContent = ''
-			mp.chat('')
 			return 0
 		}
 	}
@@ -654,9 +668,9 @@ function openChatBox() {
 }
 
 function clearChat() {
+	mp.connection.emit('chatKeystroke', '')
   playerChatInput.value = ''
   player.div.textContent = ''
-  mp.chat('')
 
 	nextTick(() => {
 		chat_input.value?.focus()
@@ -690,7 +704,7 @@ function clearChat() {
       <div class="chat-input-wrapper">
         <input ref="chat_input" class="chat-input" type="text" v-model="playerChatInput"
         @input="updateChat" @keydown="handleKey" />
-        <button v-if="playerChatInput !== ''" aria-label="clear" class="chat-box__clear-button" @click="clearChat">&times;</button>
+        <button v-if="playerChatInput?.length > 0" aria-label="clear" class="chat-box__clear-button" @click="clearChat">&times;</button>
       </div>
 		</div>
 		<div class="logs" v-if="settings.showLogs">
@@ -912,11 +926,14 @@ function clearChat() {
   align-self: end;
 	top: 0;
 	right: 0;
-	padding: 0.3rem 1rem;
+	padding: 0.3rem;
 	font-size: 4rem;
 	background: none;
 	border: none;
   transform: rotateZ(90deg);
+  line-height: 0;
+  height: 4rem;
+  width: 4rem;
 }
 
 .chat-box__clear-button {

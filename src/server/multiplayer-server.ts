@@ -201,8 +201,12 @@ io.on('connection', async (socket) => {
   });
 
 
-  socket.on('playerChat', (message: string) => {
-    socket.broadcast.to(level).emit('chatFromPlayer', message, socket.handshake.auth.token);
+  socket.on('chatKeystroke', (message: string) => {
+    socket.broadcast.to(level).emit('chatKeystroke', message, socket.handshake.auth.token);
+  });
+
+  socket.on('chatSay', (message: string) => {
+    socket.broadcast.to(level).emit('chatSay', message, socket.handshake.auth.token);
   });
 });
 
