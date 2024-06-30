@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import * as THREE from 'three';
 import { Mouse, MouseSkin, SerializedPlayerData } from './game/Mouse';
 import { Time } from './game/Time';
@@ -195,9 +195,9 @@ scene.add(pickupCursor)
 // scene.add(g3)
 // contextActionableItems.push(g3)
 
-// watch(playerChatInput, function(_, newMessage) {
-//   player.div.textContent = newMessage || ''
-// })
+watch(playerChatInput, function() {
+  playerChatInput.value = playerChatInput.value?.slice(0, 42) || ''
+})
 
 const sessionInfo = useSessionStore();
 let foundEntryPoint = false;
@@ -270,15 +270,19 @@ const mp = new MultiplayerClient({ token: store.token }, store.seed || 0, reques
 
 const sfxPickup = new Tone.Player('https://mush.network/files/sfx/sfx-pickup.wav', () => {
 	mp.connection.on('sfxPickup', () => {
-		sfxPickup.stop()
-		sfxPickup.start()
+    if (settings.enableSound) {
+      sfxPickup.stop()
+      sfxPickup.start()
+    }
 	})
 }).toDestination()
 
 const sfxPutdown = new Tone.Player('https://mush.network/files/sfx/sfx-putdown.wav', () => {
 	mp.connection.on('sfxPutdown', () => {
-		sfxPutdown.stop()
-		sfxPutdown.start()
+    if (settings.enableSound) {
+      sfxPutdown.stop()
+      sfxPutdown.start()
+    }
 	})
 }).toDestination()
 
@@ -586,7 +590,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
 	mp.disconnect();
 	document.removeEventListener('contextAction', contextAction)
-  textRenderer?.domElement.remove()
 })
 
 function onWindowResize(): void {
@@ -650,6 +653,16 @@ function openChatBox() {
 	}, 10)
 }
 
+function clearChat() {
+  playerChatInput.value = ''
+  player.div.textContent = ''
+  mp.chat('')
+
+	nextTick(() => {
+		chat_input.value?.focus()
+	})
+}
+
 </script>
 
 <template>
@@ -673,9 +686,12 @@ function openChatBox() {
 		<div class="minimap" v-if="settings.showMinimap && !chatBoxOpen">{{ minimapText }}</div>
 		<div class="chat-box" v-show="chatBoxOpen">
 			<button arial-label="close chat" class="chat-box__close-button"
-				@click="chatBoxOpen = false">&times;</button>
-			<input ref="chat_input" class="chat-input" type="text" v-model="playerChatInput"
-				@input="updateChat" @keydown="handleKey" />
+				@click="chatBoxOpen = false">&rsaquo;</button>
+      <div class="chat-input-wrapper">
+        <input ref="chat_input" class="chat-input" type="text" v-model="playerChatInput"
+        @input="updateChat" @keydown="handleKey" />
+        <button v-if="playerChatInput !== ''" aria-label="clear" class="chat-box__clear-button" @click="clearChat">&times;</button>
+      </div>
 		</div>
 		<div class="logs" v-if="settings.showLogs">
 			<span v-for="message in logs.messages.slice(0, 6).reverse()">{{ message }}</span>
@@ -884,21 +900,36 @@ function openChatBox() {
 	bottom: 0;
 	left: 0;
 	width: 100%;
-	padding-top: 3rem;
 	padding-bottom: 4rem;
 	background: white;
 	z-index: 999;
+  display: flex;
+  flex-direction: column;
 	/* todo: don't do this */
 }
 
 .chat-box__close-button {
-	position: absolute;
+  align-self: end;
 	top: 0;
 	right: 0;
 	padding: 0.3rem 1rem;
-	font-size: 2rem;
+	font-size: 4rem;
 	background: none;
 	border: none;
+  transform: rotateZ(90deg);
+}
+
+.chat-box__clear-button {
+  color: white;
+  background: #bbb;
+  border: none;
+  border-radius: 99rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  width: 2.25rem;
+  height: 2.25rem;
 }
 
 .chat-input {
@@ -911,5 +942,12 @@ function openChatBox() {
 	color: white;
 	outline: none;
 	width: 13rem;
+  box-sizing: border-box;
+}
+.chat-input-wrapper {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: 13rem 2.25rem;
+  justify-content: center;
 }
 </style>
