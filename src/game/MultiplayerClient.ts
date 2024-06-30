@@ -23,7 +23,7 @@ export class MultiplayerClient {
     console.log('setting up multiplayer client...')
 
     if (import.meta.env.PROD) {
-      this.connection = socket.io('https://mouse.homes', { auth, query: { skin, requestedLevel } });
+      this.connection = socket.io(window.location.hostname, { auth, query: { skin, requestedLevel } });
     } else {
       this.connection = socket.io(window.location.hostname + ':3000', { auth, query: { skin, requestedLevel } });
     }
