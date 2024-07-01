@@ -65,13 +65,6 @@ const b3 = {
 }
 itemList.push(b3)
 
-itemList.push({
-  id: generateUUID(),
-  level: 'ohio' as LevelName,
-  location: new Vector3(16, 0.5, 28),
-  rotation: makeEulerWithRandomYRotation(),
-})
-
 // for (let i = 0; i < 5; i++) {
 //   itemList.push({
 //     id: generateUUID(),

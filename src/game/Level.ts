@@ -488,9 +488,10 @@ const ohio: LevelMetaData = {
 ##   ##
 ##   ##
 ##   ##
-## t ##
+##   ##
 #######
-#######`,
+#######
+t `,
     sky: new URL('https://mush.network/files/sky/furry_clouds_1k.hdr'),
     topImage: "https://mush.network/files/textures/mc/grass.png",
     wallImage: "https://mush.network/files/textures/mc/grassdirt.png",
