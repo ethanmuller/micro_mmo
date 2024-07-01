@@ -410,19 +410,17 @@ function updateAllItems(itemList: Array<Item>) {
 		// only show items in the same room as client
 		i.visible = item.level === requestedLevelMetadata.name
 
-    const optimisticPickup = localPickedUpItem === item.id
+    const optimisticPickup = item.id === localPickedUpItem
 
     if (optimisticPickup) {
         i.rotation.copy(player.butt.rotation)
         i.rotation.y += Math.PI
 				i.position.copy(player.butt.position)
 				i.position.y += 1.125
+        return
     }
 
 		if (item.parent) {
-      if (item.id === localPickedUpItem && localPickedUpItem) {
-        localPickedUpItem = null
-      }
 			let p
 			const otherPlayer = playerIdToPlayerObj.get(item.parent)
       const parentOfItemIsLocalPlayer = item.parent === store.token
@@ -440,9 +438,6 @@ function updateAllItems(itemList: Array<Item>) {
 				i.position.copy(p.butt.position)
 				i.position.y += 1.125
 			}
-		} else {
-			i.rotation.copy(item.rotation)
-			i.rotation.y += Math.PI
 		}
 	})
 }
