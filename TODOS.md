@@ -1,1 +1,5 @@
-TODO: reduce lag: optimistic pickup and putdown: modify local data with parenting + sfx + whatever the end state is after player receives the data about themselves picking up an item: is this rollback vs. delay?
+- Reduce perceived latency by implementing optimistic client-side pickup code ||| reduce lag: optimistic pickup and putdown: modify local data with parenting + sfx + whatever the end state is after player receives the data about themselves picking up an item: is this rollback vs. delay?
+- function to find adjacent tiles that are empty
+- function to put something on the edge between tiles
+- add velocity to player when entering a room, to expel them from the room
+- wait until all resources load before tweening circle

@@ -1,8 +1,9 @@
 # 2024-07-01
-- Items that can be picked up, put down, or even stolen from other mice
-- New sound effects, sounds toggle in settings
+- Interactive items that can be picked up, put down, or even stolen from other mice
 - Minimap now shows other players and items
-- All mice are now colored as lab rats
+- "enable sounds" option in settings panel
 - Chat keystrokes are now audible & visible
+- Chat messages disappearing after pressing enter is now delayed, fading out smoothly
 - Chatbox now shows a clear button
-- New topdown camera behavior
+- All mice are now colored as lab rats
+- New topdown camera behavior, where camera moves up when you're next to a wall
