@@ -434,6 +434,9 @@ function updateAllItems(itemList: Array<Item>) {
 				i.position.copy(p.butt.position)
 				i.position.y += 1.125
 			}
+		} else {
+			i.rotation.copy(item.rotation)
+			i.rotation.y += Math.PI
 		}
 	})
 }
