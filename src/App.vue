@@ -420,6 +420,9 @@ function updateAllItems(itemList: Array<Item>) {
     }
 
 		if (item.parent) {
+      if (item.id === localPickedUpItem && localPickedUpItem) {
+        localPickedUpItem = null
+      }
 			let p
 			const otherPlayer = playerIdToPlayerObj.get(item.parent)
       const parentOfItemIsLocalPlayer = item.parent === store.token
