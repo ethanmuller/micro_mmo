@@ -111,6 +111,8 @@ if (!store.seed) {
 	store.generateSeed(skinList.length - 1)
 }
 
+let localPickedUpItem: string | undefined | null
+
 const player = new Mouse(scene, toonRamp, skinList[0], true);
 let circleFadeTween: TWEEN.Tween<{ value: number }>;
 player.onDoorEnterCallback = (d: string) => {
@@ -408,10 +410,21 @@ function updateAllItems(itemList: Array<Item>) {
 		// only show items in the same room as client
 		i.visible = item.level === requestedLevelMetadata.name
 
+    const optimisticPickup = localPickedUpItem === item.id
+
+    if (optimisticPickup) {
+        i.rotation.copy(player.butt.rotation)
+        i.rotation.y += Math.PI
+				i.position.copy(player.butt.position)
+				i.position.y += 1.125
+    }
+
 		if (item.parent) {
 			let p
 			const otherPlayer = playerIdToPlayerObj.get(item.parent)
-			if (item.parent === store.token) {
+      const parentOfItemIsLocalPlayer = item.parent === store.token
+
+			if (parentOfItemIsLocalPlayer) {
 				p = player
 				i.rotation.copy(player.butt.rotation)
 				i.rotation.y += Math.PI
@@ -532,7 +545,7 @@ function contextAction() {
 	closestObj = findClosestObject(player, itemsInRoom)
 
 	if (closestObj && closestObj.position.distanceTo(player.object.position) < pickupRadius) {
-		const i = threeObjIdToThingdexId.get(closestObj.id)
+		const i = threeObjIdToThingdexId.get(closestObj.id);
 		if (i) {
 			pickup(i)
 		}
@@ -546,6 +559,7 @@ function pickup(id: string) {
     sfxPickup.stop()
     sfxPickup.start()
   }
+  localPickedUpItem = id
 	mp.connection.emit('pickupItem', id)
 }
 
@@ -558,6 +572,7 @@ function drop() {
     sfxPutdown.stop()
     sfxPutdown.start()
   }
+  localPickedUpItem = null
 	mp.connection.emit('dropItem', pos, player.butt.rotation)
 }
 
