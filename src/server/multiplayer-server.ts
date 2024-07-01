@@ -136,6 +136,12 @@ app.get('/', (_req, res) => {
 
 io.on('connection', async (socket) => {
   const level = socket.handshake.query.requestedLevel?.toString() || 'lab'
+  const itemsOwnedByPlayer = itemList.filter((i) => i.parent === socket.handshake.auth.token)
+
+  itemsOwnedByPlayer.forEach((item) => {
+    item.level = level as LevelName
+  })
+
   socket.join(level)
   const skinNumber = parseInt(<string>socket.handshake.query.skin || "0", 10)
   playerList.push({ member_id: socket.handshake.auth.token, skin: skinNumber, level })

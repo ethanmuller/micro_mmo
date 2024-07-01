@@ -40,6 +40,9 @@ export class MultiplayerClient {
     this.connection.on('playerList', (playerList) => {
       this.playersOnline.value = `ASSOCIATES: ${playerList.length - 1}`;
       this.playerList = playerList;
+
+      const mouse = '🐁'
+      document.title = mouse.repeat(playerList.length)
     })
 
     this.connection.on('chatKeystroke', (message: string, id: string) => {

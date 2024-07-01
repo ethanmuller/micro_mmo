@@ -117,10 +117,6 @@ const player = new Mouse(scene, toonRamp, skinList[0], true);
 let circleFadeTween: TWEEN.Tween<{ value: number }>;
 player.onDoorEnterCallback = (d: string) => {
 	const playerIsHoldingItem = itemList.some((i) => i.parent === store.token)
-
-	if (playerIsHoldingItem) {
-		drop()
-	}
 	circleFade.uniforms.fadeOut.value = 0;
 	circleFadeTween = new TWEEN.Tween(circleFade.uniforms.fadeOut).to({ value: 1 }, 300).onComplete(() => {
 		const u = new URL(window.location.toString())
