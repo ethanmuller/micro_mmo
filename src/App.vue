@@ -113,10 +113,9 @@ if (!store.seed) {
 
 let localPickedUpItem: string | undefined | null
 
-const player = new Mouse(scene, toonRamp, skinList[0], true);
+const player = new Mouse(scene, toonRamp, skinList[store.seed || 0], true);
 let circleFadeTween: TWEEN.Tween<{ value: number }>;
 player.onDoorEnterCallback = (d: string) => {
-	const playerIsHoldingItem = itemList.some((i) => i.parent === store.token)
 	circleFade.uniforms.fadeOut.value = 0;
 	circleFadeTween = new TWEEN.Tween(circleFade.uniforms.fadeOut).to({ value: 1 }, 300).onComplete(() => {
 		const u = new URL(window.location.toString())
@@ -335,9 +334,7 @@ mp.onPlayerConnected((newPlayer: Player) => {
 	}
 	else { // Remote players
 		if (!playerIdToPlayerObj.has(newPlayer.member_id)) {
-			playerIdToPlayerObj.set(newPlayer.member_id, new Mouse(scene, toonRamp, skinList[0], false));
-			console.log(playerIdToPlayerObj)
-			console.log(playerIdToPlayerObj)
+			playerIdToPlayerObj.set(newPlayer.member_id, new Mouse(scene, toonRamp, skinList[newPlayer.skin], false));
 		}
 	}
 });
@@ -414,6 +411,10 @@ function updateAllItems(itemList: Array<Item>) {
 
 		// only show items in the same room as client
 		i.visible = item.level === requestedLevelMetadata.name
+
+		if (localPickedUpItem && item.id === localPickedUpItem && item.parent !== store.token) {
+      localPickedUpItem = null
+    }
 
     const optimisticPickup = item.id === localPickedUpItem
 
