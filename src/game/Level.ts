@@ -265,6 +265,14 @@ export class Level {
         return this.isTileAccessible(from.x, from.y, to.x, to.y, isCamera);
     }
 
+    public getFreeTileDirection(baseTile: Vector2) {
+      for (let i = 0; i <= CARDINAL.length; i++) {
+        if (this.isTileWalkable(baseTile.x + CARDINAL[i].x, baseTile.y + CARDINAL[i].y)) {
+          return CARDINAL[i]
+        }
+      }
+    }
+
     // This function tries to check for straight accessibility: it does not pathfind, it just checks straight & diagonal path
     isTileAccessible(fromX: number, fromY: number, toX: number, toY: number, isCamera: boolean = false): boolean {
         if (!this.isTileWalkable(toX, toY, isCamera))

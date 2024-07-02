@@ -206,6 +206,15 @@ if (sessionInfo.previousRoom != null && sessionInfo.previousRoom != "") {
 		let dt = level.getDoorTile(sessionInfo.previousRoom);
 		level.getWorldPositionFromTile(dt, player.object.position);
 
+    const t = new THREE.Vector2()
+    level.getTileFromWorldPosition(player.object.position, t)
+    const dir = level.getFreeTileDirection(t)
+    if (dir) {
+    
+      player.velocity.set(dir.x*1.5, 0, dir.y)
+      player.velocity.multiplyScalar(level.tileSize * 0.5)
+    }
+
 		player.animateOutOfDoor(level.getDoorChar(sessionInfo.previousRoom));
 		circleFade.uniforms.fadeOut.value = 1;
 		circleFadeTween = new TWEEN.Tween(circleFade.uniforms.fadeOut).to({ value: 0 }, 2000).start();
