@@ -1,17 +1,16 @@
 import { generateUUID } from 'three/src/math/MathUtils.js';
-import { MouseSkin } from '../game/Mouse';
 import { defineStore } from 'pinia'
-interface Seed {
-  seed: number | undefined
+interface Player {
+  skin: number | undefined
   token: string | undefined
 }
 function getRandomInt(max: number) {
   return Math.floor(Math.random() * Math.floor(max + 1));
 }
 
-export const useSeedStore = defineStore('seed', {
-  state: (): Seed => {
-    return { seed: undefined, token: undefined }
+export const usePlayerStore = defineStore('player', {
+  state: (): Player => {
+    return { skin: undefined, token: undefined }
   },
   getters: {
   },
@@ -20,12 +19,12 @@ export const useSeedStore = defineStore('seed', {
       this.token = generateUUID()
       return this.token
     },
-    generateSeed(max: number) {
-      this.seed = getRandomInt(max)
-      return this.seed
+    generateSkin(max: number) {
+      this.skin = getRandomInt(max)
+      return this.skin
     },
-    clearSeed() {
-      delete this.seed
+    clearSkin() {
+      delete this.skin
     }
   },
   persist: true,

@@ -11,7 +11,7 @@ import { DEFAULT_LEVEL, Level, LevelMetaData, levels } from './game/Level';
 import { useSessionStore } from "./stores/session.ts";
 import { useSettingsStore } from "./stores/settings.ts";
 import { useCrumbStore } from "./stores/crumb.ts";
-import { useSeedStore } from "./stores/seed.ts";
+import { usePlayerStore } from "./stores/player.ts";
 import { useLogStore } from "./stores/logs";
 import toonTexture from "./assets/threeTone_bright.jpg";
 import { NearestFilter } from 'three';
@@ -91,6 +91,8 @@ let level = new Level(requestedLevelMetadata, toonRamp);
 scene.add(level.object);
 
 const skinList: Array<MouseSkin> = [
+	{ skinColor: 0xeeaaaa, eyeColor: 0xaa0000, furColor: 0xffeeaa }, // spooky
+	{ skinColor: 0x000000, eyeColor: 0xffaaaa, furColor: 0x111111 }, // spooky
 	{ skinColor: 0xffaaaa, eyeColor: 0x880000, furColor: 0xffffff }, // lab mouse
 	{ skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0x453a38 }, // dark gray
 	{ skinColor: 0xffaaaa, eyeColor: 0x000000, furColor: 0xb95b48 }, // light brown
@@ -101,19 +103,19 @@ const skinList: Array<MouseSkin> = [
 ]
 let loadingNewLevel = false;
 
-const store = useSeedStore()
+const store = usePlayerStore()
 
 if (!store.token) {
 	store.generateToken()
 }
 
-if (typeof store.seed === 'undefined') {
-	store.generateSeed(skinList.length - 1)
+if (typeof store.skin === 'undefined') {
+	store.generateSkin(skinList.length - 1)
 }
 
 let localPickedUpItem: string | undefined | null
 
-const player = new Mouse(scene, toonRamp, skinList[store.seed || 0], true);
+const player = new Mouse(scene, toonRamp, skinList[store.skin || 0], true);
 let circleFadeTween: TWEEN.Tween<{ value: number }>;
 player.onDoorEnterCallback = (d: string) => {
 	circleFade.uniforms.fadeOut.value = 0;
@@ -272,7 +274,7 @@ if (crumbs.lastSeen) {
 
 const cameraMovement = new CameraMovement(camera, player, level);
 
-const mp = new MultiplayerClient({ token: store.token }, store.seed || 0, requestedLevelMetadata.name || DEFAULT_LEVEL)
+const mp = new MultiplayerClient({ token: store.token }, store.skin || 0, requestedLevelMetadata.name || DEFAULT_LEVEL)
 
 const sfxPickup = new Tone.Player('https://mush.network/files/sfx/sfx-pickup.wav', () => {
 	mp.connection.on('sfxPickup', () => {
