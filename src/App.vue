@@ -194,9 +194,11 @@ scene.add(pickupCursor)
 // scene.add(g3)
 // contextActionableItems.push(g3)
 
-watch(playerChatInput, function() {
-  playerChatInput.value = playerChatInput.value?.slice(0, 42) || ''
-})
+// watch(playerChatInput, function() {
+//   const trimmedMessage = playerChatInput.value?.slice(0, 1) || ''
+//   playerChatInput.value = trimmedMessage
+//   player.div.textContent = trimmedMessage
+// })
 
 const sessionInfo = useSessionStore();
 let foundEntryPoint = false;
@@ -389,6 +391,7 @@ const sun = new THREE.DirectionalLight();
 sun.intensity = Math.PI
 sun.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI * 0.1);
 scene.add(sun);
+
 let axesHelper = new THREE.AxesHelper();
 //scene.add(axesHelper);
 
