@@ -107,7 +107,7 @@ if (!store.token) {
 	store.generateToken()
 }
 
-if (!store.seed) {
+if (typeof store.seed === 'undefined') {
 	store.generateSeed(skinList.length - 1)
 }
 

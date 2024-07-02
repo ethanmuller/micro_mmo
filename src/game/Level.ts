@@ -1,4 +1,4 @@
-import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3, NearestFilter, SRGBColorSpace, } from "three";
+import { BoxGeometry, Mesh, MeshToonMaterial, Object3D, PlaneGeometry, Texture, TextureLoader, Vector2, Vector3, NearestFilter, SRGBColorSpace, MeshBasicMaterial, } from "three";
 import { Mouse } from './Mouse';
 import { MouseholeGeometry } from "./extensions/MouseholeGeometry"
 import { CameraMode } from '../game/CameraMovement'
@@ -125,12 +125,13 @@ export class Level {
         // Create a mesh for the wall using the materials array
         const wallMesh = new Mesh(wallGeometry, wallMaterials);
         const floorMesh = new Mesh(new PlaneGeometry(this.tileSize, this.tileSize, 1, 1), floorMaterial);
+        floorMesh.rotation.x -= Math.PI * 0.5;
         const holeMesh = new Mesh(holeGeometry, [mouseholeMaterial, mouseholeFloorMaterial, mouseholeTopMaterial, mouseholeInsideMaterial]);
         const wall = new Object3D();
+
         wallMesh.position.y = this.wallHeight * 0.5;
         wall.add(wallMesh);
         const floor = new Object3D();
-        floorMesh.rotation.x -= Math.PI * 0.5;
         // ceilingMesh.rotation.x += Math.PI * 0.5;
         // ceilingMesh.position.y = this.tileSize;
         floor.add(floorMesh);
@@ -201,6 +202,11 @@ export class Level {
                 this.object.add(w);
             });
         });
+
+        const OutOfBoundsFloorMesh = new Mesh(new PlaneGeometry(this.tileSize*1000, this.tileSize*1000, 1, 1), new MeshBasicMaterial({ color: 0x110011 }));
+        OutOfBoundsFloorMesh.position.y -= 1
+        OutOfBoundsFloorMesh.rotation.x -= Math.PI * 0.5;
+        this.object.add(OutOfBoundsFloorMesh)
 
         this.object.position.set(this.tileSize * 0.5, 0, this.tileSize * 0.5);
         this.object.updateMatrixWorld(true);

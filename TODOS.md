@@ -1,4 +1,6 @@
-- function to find adjacent tiles that are empty
-- function to put something on the edge between tiles
-- add velocity to player when entering a room, to expel them from the room
-- wait until all resources load before tweening circle
+# next
+- Better UI for text limit
+- wait until all textures load before tweening circle
+- change textures/materials for ohio
+- add orb item: LFO orb, summons worm over time
+- add hat
