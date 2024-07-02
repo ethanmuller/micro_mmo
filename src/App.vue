@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import * as THREE from 'three';
 import { Mouse, MouseSkin, SerializedPlayerData } from './game/Mouse';
 import { Time } from './game/Time';
@@ -674,11 +674,7 @@ function handleKey(e: KeyboardEvent) {
 		if (playerChatInput.value === '') {
 			chatBoxOpen.value = false
 		} else if (playerChatInput.value) {
-      mp.connection.emit('chatSay', playerChatInput.value)
-      player.squeak()
-      player.div.classList.add('fadeout')
-			playerChatInput.value = ''
-			return 0
+      sayChat()
 		}
 	}
 }
@@ -703,6 +699,19 @@ function clearChat() {
 		chat_input.value?.focus()
 	})
 }
+
+function sayChat() {
+      mp.connection.emit('chatSay', playerChatInput.value)
+      player.squeak()
+      player.div.classList.add('fadeout')
+      playerChatInput.value = ''
+      return 0
+
+	nextTick(() => {
+		chat_input.value?.focus()
+	})
+}
+const charLimit = ref(32)
 
 </script>
 
@@ -729,9 +738,14 @@ function clearChat() {
 			<button arial-label="close chat" class="chat-box__close-button"
 				@click="chatBoxOpen = false">&rsaquo;</button>
       <div class="chat-input-wrapper">
-        <input ref="chat_input" class="chat-input" type="text" v-model="playerChatInput"
-        @input="updateChat" @keydown="handleKey" />
-        <button v-if="playerChatInput && playerChatInput.length > 0" aria-label="clear" class="chat-box__clear-button" @click="clearChat">&times;</button>
+        <button :disabled="!(playerChatInput && playerChatInput.length > 0)" aria-label="clear" class="chat-box__clear-button l-button" @click="clearChat">&times;</button>
+        <div class="l-chat">
+          <input ref="chat_input" class="chat-input" type="text" v-model="playerChatInput" @input="updateChat" @keydown="handleKey" :maxLength="charLimit" />
+          <div class="input-limit" :style="playerChatInput?.length === charLimit ? { color: 'red', opacity: 1, } : {}">
+            {{playerChatInput?.length || 0}}/{{charLimit}}
+          </div>
+        </div>
+        <button :disabled="!(playerChatInput && playerChatInput.length > 0)" aria-label="say" class="chat-box__say-button l-button" @click="sayChat">&uarr;</button>
       </div>
 		</div>
 		<div class="logs" v-if="settings.showLogs">
@@ -972,8 +986,31 @@ function clearChat() {
   justify-content: center;
   align-items: center;
   font-size: 2rem;
+  display: inline-block;
   width: 2.25rem;
   height: 2.25rem;
+  box-sizing: border-box;
+  line-height: 0;
+}
+
+.chat-box__say-button {
+  color: white;
+	background: #2f90f7;
+  border: none;
+  border-radius: 99rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.4rem;
+  display: inline-block;
+  width: 2.75rem;
+  height: 2.25rem;
+  box-sizing: border-box;
+  line-height: 0;
+}
+
+.chat-box__clear-button:disabled, .chat-box__say-button:disabled {
+  opacity: 0;
 }
 
 .chat-input {
@@ -990,8 +1027,15 @@ function clearChat() {
 }
 .chat-input-wrapper {
   display: grid;
-  gap: 0.5rem;
-  grid-template-columns: 13rem 2.25rem;
+  grid-template-columns: 2.25rem 13rem 2.25rem;
   justify-content: center;
+  gap: 0.5rem;
+}
+
+.input-limit {
+  padding-left: 1.25rem;
+  text-align: left;
+  opacity: 0.5;
+  font-size: 0.7rem;
 }
 </style>
