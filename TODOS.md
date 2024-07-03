@@ -1,8 +1,10 @@
 # next
-- fix limit behavior
-- better ui for text limit
+- add hats
+- tear down file
 - fix for text in view
-- add hat
+- wheel.html
+- seed.html
+- mouse.html
 
 # later
 - add orb item: LFO orb, summons worm over time

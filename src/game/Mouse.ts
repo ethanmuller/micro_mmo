@@ -34,10 +34,10 @@ export type MouseSkin = {
 }
 
 const chirpNotes = {
-    A1: "h1.wav",
-    B1: "h2.wav",
-    C1: "h3.wav",
-    D1: "h4.wav",
+    A1: "c1.wav",
+    B1: "c2.wav",
+    C1: "c3.wav",
+    D1: "c6.wav",
 }
 
 export class Mouse {
@@ -85,7 +85,7 @@ export class Mouse {
 
     // text
     div: HTMLElement;
-    label: CSS2DObject;
+    public label: CSS2DObject;
 
     // composite body
     headPivot: Object3D;
@@ -159,7 +159,7 @@ export class Mouse {
         this.isLocalPlayer = isLocalPlayer
         this.squeakSampler = new Tone.Sampler({
             urls: chirpNotes,
-            baseUrl: "https://mush.network/files/sfx/",
+            baseUrl: "https://mush.network/files/sfx/chirps-and-squeaks/",
         }).toDestination()
 
         this.div = document.createElement('div')

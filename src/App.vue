@@ -631,13 +631,9 @@ onBeforeUnmount(() => {
 })
 
 function onWindowResize(): void {
-	const minFov = 80
-	const maxFov = 100
 	const width = window.innerWidth;
 	const height = window.innerHeight;
 	const ar = width / height;
-	const fov = Math.max(Math.min(90 / ar, maxFov), minFov)
-	camera.fov = fov
 	camera.aspect = ar;
 	camera.updateProjectionMatrix();
 	renderer.setSize(width, height)
@@ -701,17 +697,16 @@ function clearChat() {
 }
 
 function sayChat() {
-      mp.connection.emit('chatSay', playerChatInput.value)
-      player.squeak()
-      player.div.classList.add('fadeout')
-      playerChatInput.value = ''
-      return 0
+  mp.connection.emit('chatSay', playerChatInput.value || '')
+  player.squeak()
+  player.div.classList.add('fadeout')
+  playerChatInput.value = ''
 
 	nextTick(() => {
 		chat_input.value?.focus()
 	})
 }
-const charLimit = ref(32)
+const charLimit = ref(42)
 
 </script>
 
@@ -740,8 +735,9 @@ const charLimit = ref(32)
       <div class="chat-input-wrapper">
         <button :disabled="!(playerChatInput && playerChatInput.length > 0)" aria-label="clear" class="chat-box__clear-button l-button" @click="clearChat">&times;</button>
         <div class="l-chat">
-          <input ref="chat_input" class="chat-input" type="text" v-model="playerChatInput" @input="updateChat" @keydown="handleKey" :maxLength="charLimit" />
-          <div class="input-limit" :style="playerChatInput?.length === charLimit ? { color: 'red', opacity: 1, } : {}">
+          <input ref="chat_input" class="chat-input" type="text" v-model="playerChatInput" @input="updateChat" @keydown="handleKey" :maxlength="charLimit" />
+          <div class="input-limit" :style="(playerChatInput?.length || 0) >= charLimit ? { color: 'red', opacity: 1, } : {}">
+            <div class="line" :style="{ width: 100*((playerChatInput?.length || 0) / charLimit) + '%' }"></div>
             {{playerChatInput?.length || 0}}/{{charLimit}}
           </div>
         </div>
@@ -819,7 +815,7 @@ const charLimit = ref(32)
 #gamecanvas {
 	position: absolute;
 	left: 0;
-	top: 0;
+	bottom: 0;
 }
 
 #auxcanvas {
@@ -1033,9 +1029,16 @@ const charLimit = ref(32)
 }
 
 .input-limit {
-  padding-left: 1.25rem;
-  text-align: left;
+  margin: 0.5rem 0;
+  padding: 0 1.125rem;
+  text-align: right;
   opacity: 0.5;
   font-size: 0.7rem;
+}
+
+.input-limit .line {
+  height: 1px;
+  background: currentColor;
+  width: 100%;
 }
 </style>

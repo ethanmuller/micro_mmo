@@ -111,6 +111,7 @@ export class CameraMovement {
             this.camera.position.z += this.camSpringZ.position
             this.camera.position.y += this.camSpringY.position
             this.camera.lookAt(player.object.position);
+
             this.camera.updateProjectionMatrix();
 
             this.camSpringZ.update()
