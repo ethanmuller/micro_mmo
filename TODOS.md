@@ -1,4 +1,5 @@
 # next
+- add orb item
 - add hats
 - tear down App.vue file
 - fix for text in view
@@ -7,6 +8,5 @@
 - mouse.html
 
 # later
-- add orb item: LFO orb, summons worm over time
 - wait until all textures load before tweening circle
 - change textures/materials for ohio
