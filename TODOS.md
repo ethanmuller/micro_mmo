@@ -1,6 +1,6 @@
 # next
 - add hats
-- tear down file
+- tear down App.vue file
 - fix for text in view
 - wheel.html
 - seed.html
