@@ -1,4 +1,4 @@
-import { PerspectiveCamera, Vector2, Vector3 } from "three";
+import { PerspectiveCamera, Vector2, Vector3, MathUtils } from "three";
 import { Time } from "./Time";
 import { CARDINAL, DIAGONAL, Level } from "./Level";
 import { Mouse } from "./Mouse";
@@ -8,6 +8,8 @@ import { Spring } from "./Spring"
 
 export const cameraModes = ['iso', 'topdown', 'wholemap', 'mazecam', 'nothing', 'security_cam_1'] as const;
 export type CameraMode = typeof cameraModes[number];
+
+const lookTarget = new Vector3()
 
 export class CameraMovement {
     camera: PerspectiveCamera;
@@ -74,7 +76,7 @@ export class CameraMovement {
     lastFramePlayerPosition: Vector3 = new Vector3();
     walkingIntoCameraCount = 0;
 
-    update(player: Mouse, level: Level) {
+    update(player: Mouse, level: Level, isChatBoxOpen: boolean) {
         const session = useSessionStore()
 
         if (session.cameraMode === 'iso') {
@@ -86,7 +88,9 @@ export class CameraMovement {
         }
         if (session.cameraMode === 'topdown') {
             this.camera.fov = 30
+
             this.camera.position.copy(player.object.position);
+
             level.getTileFromWorldPosition(player.object.position, this.currentPlayerTile);
             const wallIn1 = !level.isTileWalkable(this.currentPlayerTile.x, this.currentPlayerTile.y + 1, true)
             const wallIn2 = !level.isTileWalkable(this.currentPlayerTile.x, this.currentPlayerTile.y + 2, true)
@@ -110,7 +114,12 @@ export class CameraMovement {
             }
             this.camera.position.z += this.camSpringZ.position
             this.camera.position.y += this.camSpringY.position
-            this.camera.lookAt(player.object.position);
+            lookTarget.copy(player.object.position)
+            if (isChatBoxOpen) {
+              lookTarget.y += 3
+              lookTarget.z -= 3
+            }
+            this.camera.lookAt(lookTarget);
 
             this.camera.updateProjectionMatrix();
 

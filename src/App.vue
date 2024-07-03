@@ -519,7 +519,7 @@ function mainLoop(reportedTime: number) {
 
 
 
-	cameraMovement.update(player, level);
+	cameraMovement.update(player, level, chatBoxOpen.value);
 
 	// draw
 	//circleFade.uniforms.fadeOut.value = (Math.sin(gameTime.time) + 1) / 2;
