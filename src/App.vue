@@ -933,6 +933,7 @@ const charLimit = ref(42)
 }
 
 .chat-box__close-button {
+  appearance: none;
   align-self: end;
 	top: 0;
 	right: 0;
@@ -947,6 +948,8 @@ const charLimit = ref(42)
 }
 
 .chat-box__clear-button {
+  appearance: none;
+	padding: 0;
   color: white;
   background: #bbb;
   border: none;
@@ -964,6 +967,7 @@ const charLimit = ref(42)
 
 .chat-box__say-button {
   color: white;
+	padding: 0;
 	background: #2f90f7;
   border: none;
   border-radius: 99rem;

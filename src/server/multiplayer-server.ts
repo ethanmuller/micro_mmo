@@ -34,13 +34,15 @@ function generateItems() {
     rotation: makeEulerWithRandomYRotation(),
   })
 
-  itemList.push({
+  for (let i = 0; i < 5; i++) {
+    itemList.push({
     thing: 'battery',
     id: generateUUID(),
     level: 'lab' as LevelName,
-    location: new Vector3(2, 0.5, 11),
-    rotation: makeEulerWithRandomYRotation(),
-  })
+    location: new Vector3(2 + i * 1.5, 0.5, 11),
+    rotation: new Euler(0, Math.PI * -0.25, 0),
+    })
+  }
 
   // const b1 = {
   //   thing: 'battery',

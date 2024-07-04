@@ -1,10 +1,12 @@
 # done
 - fix chat view
 - add orb item
-# next
-- add hats
-- tear down App.vue file
 - fix for text in view
+
+# next
+- fix iOS buttons
+- add hats: UI for unequip
+- tear down App.vue file
 - wheel.html
 - seed.html
 - mouse.html
