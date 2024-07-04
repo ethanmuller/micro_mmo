@@ -282,6 +282,8 @@ mp.connection.on('itemListInit', (list: Array<Item>) => {
 	itemList = list
 
 	list.forEach((item) => {
+    const thing = thingdex[item.thing]
+    if (!thing) return
 		const itemObj = new thingdex[item.thing]()
 		itemObj.rotateX(Math.PI / 2)
 		const itemObjGroup = new THREE.Group()
