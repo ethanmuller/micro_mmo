@@ -1,6 +1,8 @@
 import { Euler, Vector3 } from "three";
 import { LevelName } from "../game/Level";
 
+export type ItemName = 'orb' | 'battery'
+
 export interface ServerToClientEvents {
   sendEverybody: (list: Array<string>) => void;
   serverInfo: (time: number) => void;
@@ -35,6 +37,7 @@ export type Player = {
 }
 
 export type Item = {
+  thing: ItemName,
   id: string,
   parent?: string,
   level: LevelName,

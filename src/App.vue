@@ -5,7 +5,7 @@ import { Mouse, MouseSkin, SerializedPlayerData } from './game/Mouse';
 import { Time } from './game/Time';
 import { MultiplayerClient } from './game/MultiplayerClient';
 import { InputManager } from './game/InputManager';
-import { Battery } from './game/Battery.ts';
+import { Battery, Orb } from './game/Items.ts';
 import { Item, Player } from './server/MultiplayerTypes'
 import { DEFAULT_LEVEL, Level, LevelMetaData, levels } from './game/Level';
 import { useSessionStore } from "./stores/session.ts";
@@ -167,39 +167,6 @@ pickupCursor.material.depthTest = false;
 const pickupRadius = 6
 scene.add(pickupCursor)
 
-// const b = new Battery()
-// b.rotateX(Math.PI/2)
-// const g = new THREE.Group()
-// g.position.set(30, 0.5, 60)
-// // g.rotation.y = (Math.random()*10)
-// g.add(b)
-// scene.add(g)
-// contextActionableItems.push(g)
-// 
-// const b2 = new Battery()
-// b2.rotateX(Math.PI/2)
-// const g2 = new THREE.Group()
-// g2.position.set(32, 0.5, 40)
-// // g2.rotation.y = (Math.random()*10)
-// g2.add(b2)
-// scene.add(g2)
-// contextActionableItems.push(g2)
-// 
-// const b3 = new Battery()
-// b3.rotateX(Math.PI/2)
-// const g3 = new THREE.Group()
-// g3.position.set(27, 0.5, 32)
-// // g3.rotation.y = (Math.random()*10)
-// g3.add(b3)
-// scene.add(g3)
-// contextActionableItems.push(g3)
-
-// watch(playerChatInput, function() {
-//   const trimmedMessage = playerChatInput.value?.slice(0, 1) || ''
-//   playerChatInput.value = trimmedMessage
-//   player.div.textContent = trimmedMessage
-// })
-
 const sessionInfo = useSessionStore();
 let foundEntryPoint = false;
 if (sessionInfo.previousRoom != null && sessionInfo.previousRoom != "") {
@@ -305,11 +272,17 @@ const sfxPutdown = new Tone.Player('https://mush.network/files/sfx/sfx-putdown.w
 // 		})
 // 	}).toMaster()
 //
+
+const thingdex = {
+  orb: Orb,
+  battery: Battery,
+}
+
 mp.connection.on('itemListInit', (list: Array<Item>) => {
 	itemList = list
 
 	list.forEach((item) => {
-		const itemObj = new Battery()
+		const itemObj = new thingdex[item.thing]()
 		itemObj.rotateX(Math.PI / 2)
 		const itemObjGroup = new THREE.Group()
 		itemObjGroup.add(itemObj)

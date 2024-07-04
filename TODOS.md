@@ -1,5 +1,7 @@
-# next
+# done
+- fix chat view
 - add orb item
+# next
 - add hats
 - tear down App.vue file
 - fix for text in view

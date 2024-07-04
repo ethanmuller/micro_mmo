@@ -1,5 +1,26 @@
 import * as THREE from 'three';
 
+export class Orb extends THREE.Object3D {
+  constructor() {
+    super()
+
+    const obj = new THREE.Object3D()
+    const main = new THREE.Mesh(
+      new THREE.SphereGeometry(0.666),
+      new THREE.MeshStandardMaterial({
+        color: 0x000000,
+        emissive: 0x5500ff,
+        emissiveIntensity: 0.5,
+        metalness: 0.9,
+        roughness: 0.1,
+      }))
+      obj.add(main)
+
+
+      return obj
+  }
+}
+
 export class Battery extends THREE.Object3D {
   constructor() {
     super()

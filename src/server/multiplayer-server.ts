@@ -1,7 +1,7 @@
 import express from 'express';
 import { createServer } from 'node:http';
 import { Server } from "socket.io";
-import { ServerToClientEvents, ClientToServerEvents, } from './MultiplayerTypes';
+import { ServerToClientEvents, ClientToServerEvents, ItemName } from './MultiplayerTypes';
 import cors from 'cors'
 import { Player, Item } from './MultiplayerTypes'
 import { generateUUID } from 'three/src/math/MathUtils.js';
@@ -25,110 +25,131 @@ function makeEulerWithRandomYRotation() {
   return new Euler(0, Math.PI * Math.random(), 0)
 }
 
-const b1 = {
-  id: generateUUID(),
-  level: 'lab' as LevelName,
-  location: new Vector3(30, 0.5, 60),
-  rotation: makeEulerWithRandomYRotation(),
+function generateItems() {
+  itemList.push({
+    thing: 'orb',
+    id: generateUUID(),
+    level: 'lab' as LevelName,
+    location: new Vector3(30, 0.5, 60),
+    rotation: makeEulerWithRandomYRotation(),
+  })
+
+  itemList.push({
+    thing: 'battery',
+    id: generateUUID(),
+    level: 'lab' as LevelName,
+    location: new Vector3(2, 0.5, 11),
+    rotation: makeEulerWithRandomYRotation(),
+  })
+
+  // const b1 = {
+  //   thing: 'battery',
+  //   id: generateUUID(),
+  //   level: 'lab' as LevelName,
+  //   location: new Vector3(30, 0.5, 60),
+  //   rotation: makeEulerWithRandomYRotation(),
+  // }
+  // itemList.push(b1)
+
+  // const b2 = {
+  //   id: generateUUID(),
+  //   level: 'lab' as LevelName,
+  //   location: new Vector3(30, 0.5, 55),
+  //   rotation: makeEulerWithRandomYRotation(),
+  // }
+  // itemList.push(b2)
+
+  // itemList.push({
+  //   id: generateUUID(),
+  //   level: 'lab' as LevelName,
+  //   location: new Vector3(4, 0.5, 12),
+  //   rotation: makeEulerWithRandomYRotation(),
+  // })
+
+  // itemList.push({
+  //   id: generateUUID(),
+  //   level: 'lab' as LevelName,
+  //   location: new Vector3(13, 0.5, 15),
+  //   rotation: makeEulerWithRandomYRotation(),
+  // })
+
+
+
+  // const b3 = {
+  //   id: generateUUID(),
+  //   level: 'ohio' as LevelName,
+  //   location: new Vector3(10, 0.5, 10),
+  //   rotation: makeEulerWithRandomYRotation(),
+  // }
+  // itemList.push(b3)
+
+  // for (let i = 0; i < 5; i++) {
+  //   itemList.push({
+  //     id: generateUUID(),
+  //     level: 'the_cheddaverse' as LevelName,
+  //     location: new Vector3(170 - i * 5, 0.5, 166),
+  //     rotation: makeEulerWithRandomYRotation(),
+  //   })
+  // }
+
+  // itemList.push({
+  //   id: generateUUID(),
+  //   level: 'the_cheddaverse' as LevelName,
+  //   location: new Vector3(88, 0.5, 164),
+  //   rotation: makeEulerWithRandomYRotation(),
+  // })
+
+  // itemList.push({
+  //   id: generateUUID(),
+  //   level: 'the_cheddaverse' as LevelName,
+  //   location: new Vector3(94, 0.5, 171),
+  //   rotation: makeEulerWithRandomYRotation(),
+  // })
+
+  // itemList.push({
+  //   id: generateUUID(),
+  //   level: 'the_cheddaverse' as LevelName,
+  //   location: new Vector3(96, 0.5, 163),
+  //   rotation: makeEulerWithRandomYRotation(),
+  // })
+
+  // itemList.push({
+  //   id: generateUUID(),
+  //   level: 'the_cheddaverse' as LevelName,
+  //   location: new Vector3(157, 0.5, 167),
+  //   rotation: makeEulerWithRandomYRotation(),
+  // })
+
+  // itemList.push({
+  //   id: generateUUID(),
+  //   level: 'the_cheddaverse' as LevelName,
+  //   location: new Vector3(204, 0.5, 214),
+  //   rotation: makeEulerWithRandomYRotation(),
+  // })
+
+  // itemList.push({
+  //   id: generateUUID(),
+  //   level: 'the_cheddaverse' as LevelName,
+  //   location: new Vector3(118, 0.5, 74),
+  //   rotation: makeEulerWithRandomYRotation(),
+  // })
+
+  // itemList.push({
+  //   id: generateUUID(),
+  //   level: 'the_cheddaverse' as LevelName,
+  //   location: new Vector3(193, 0.5, 68),
+  //   rotation: makeEulerWithRandomYRotation(),
+  // })
+
+  // itemList.push({
+  //   id: generateUUID(),
+  //   level: 'the_cheddaverse' as LevelName,
+  //   location: new Vector3(297, 0.5, 145),
+  //   rotation: makeEulerWithRandomYRotation(),
+  // })
 }
-itemList.push(b1)
 
-const b2 = {
-  id: generateUUID(),
-  level: 'lab' as LevelName,
-  location: new Vector3(30, 0.5, 55),
-  rotation: makeEulerWithRandomYRotation(),
-}
-itemList.push(b2)
-
-itemList.push({
-  id: generateUUID(),
-  level: 'lab' as LevelName,
-  location: new Vector3(4, 0.5, 12),
-  rotation: makeEulerWithRandomYRotation(),
-})
-
-itemList.push({
-  id: generateUUID(),
-  level: 'lab' as LevelName,
-  location: new Vector3(13, 0.5, 15),
-  rotation: makeEulerWithRandomYRotation(),
-})
-
-
-
-const b3 = {
-  id: generateUUID(),
-  level: 'ohio' as LevelName,
-  location: new Vector3(10, 0.5, 10),
-  rotation: makeEulerWithRandomYRotation(),
-}
-itemList.push(b3)
-
-// for (let i = 0; i < 5; i++) {
-//   itemList.push({
-//     id: generateUUID(),
-//     level: 'the_cheddaverse' as LevelName,
-//     location: new Vector3(170 - i * 5, 0.5, 166),
-//     rotation: makeEulerWithRandomYRotation(),
-//   })
-// }
-
-itemList.push({
-  id: generateUUID(),
-  level: 'the_cheddaverse' as LevelName,
-  location: new Vector3(88, 0.5, 164),
-  rotation: makeEulerWithRandomYRotation(),
-})
-
-itemList.push({
-  id: generateUUID(),
-  level: 'the_cheddaverse' as LevelName,
-  location: new Vector3(94, 0.5, 171),
-  rotation: makeEulerWithRandomYRotation(),
-})
-
-itemList.push({
-  id: generateUUID(),
-  level: 'the_cheddaverse' as LevelName,
-  location: new Vector3(96, 0.5, 163),
-  rotation: makeEulerWithRandomYRotation(),
-})
-
-itemList.push({
-  id: generateUUID(),
-  level: 'the_cheddaverse' as LevelName,
-  location: new Vector3(157, 0.5, 167),
-  rotation: makeEulerWithRandomYRotation(),
-})
-
-itemList.push({
-  id: generateUUID(),
-  level: 'the_cheddaverse' as LevelName,
-  location: new Vector3(204, 0.5, 214),
-  rotation: makeEulerWithRandomYRotation(),
-})
-
-itemList.push({
-  id: generateUUID(),
-  level: 'the_cheddaverse' as LevelName,
-  location: new Vector3(118, 0.5, 74),
-  rotation: makeEulerWithRandomYRotation(),
-})
-
-itemList.push({
-  id: generateUUID(),
-  level: 'the_cheddaverse' as LevelName,
-  location: new Vector3(193, 0.5, 68),
-  rotation: makeEulerWithRandomYRotation(),
-})
-
-itemList.push({
-  id: generateUUID(),
-  level: 'the_cheddaverse' as LevelName,
-  location: new Vector3(297, 0.5, 145),
-  rotation: makeEulerWithRandomYRotation(),
-})
+generateItems()
 
 app.get('/', (_req, res) => {
   res.send('you are looking at the websocket server. this is the endpoint the socket.io client should connect to to send and receive messages.');
