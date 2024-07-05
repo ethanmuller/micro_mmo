@@ -47,6 +47,8 @@ export class Mouse {
     isLocalPlayer: Boolean
 
     squeakSampler: Tone.Sampler;
+    sfxHey: Tone.Player;
+    sfxWhat: Tone.Player;
     sfxChit: Tone.Player;
 
     // Materials
@@ -157,6 +159,8 @@ export class Mouse {
         this.sfxChit.volume.value += 10
 
         this.isLocalPlayer = isLocalPlayer
+        this.sfxHey = new Tone.Player('https://mush.network/files/sfx/h3.wav').toDestination()
+        this.sfxWhat = new Tone.Player('https://mush.network/files/sfx/h4.wav').toDestination()
         this.squeakSampler = new Tone.Sampler({
             urls: chirpNotes,
             baseUrl: "https://mush.network/files/sfx/chirps-and-squeaks/",
@@ -362,13 +366,33 @@ export class Mouse {
         // this.scene.add(boneHelper);
     }
 
+    hey() {
+        console.log('HEY')
+        const settings = useSettingsStore()
+        if (settings.enableSound) {
+            this.sfxHey.stop()
+            this.sfxHey.start()
+        }
+        this.headSpring.applyForce(0.3)
+    }
+
+    what() {
+        console.log('what')
+        const settings = useSettingsStore()
+        if (settings.enableSound) {
+            this.sfxWhat.stop()
+            this.sfxWhat.start()
+        }
+        this.headSpring.applyForce(0.3)
+    }
+
     squeak() {
         const settings = useSettingsStore()
         this.chirpIndex += 1
         this.chirpIndex = this.chirpIndex % (Object.keys(chirpNotes).length)
         if (settings.enableSound) {
-          const note = Object.keys(chirpNotes)[this.chirpIndex]
-          this.squeakSampler.triggerAttackRelease(note, "8n")
+            const note = Object.keys(chirpNotes)[this.chirpIndex]
+            this.squeakSampler.triggerAttackRelease(note, "8n")
         }
         this.headSpring.applyForce(0.3)
     }
@@ -376,11 +400,10 @@ export class Mouse {
     chit() {
         const settings = useSettingsStore()
         if (settings.enableSound) {
-          console.log('dit')
-          this.sfxChit.stop()
-          const r = (Math.random() - 0.5) 
-          this.sfxChit.playbackRate = 1.0 + r
-          this.sfxChit.start()
+            this.sfxChit.stop()
+            const r = (Math.random() - 0.5)
+            this.sfxChit.playbackRate = 1.0 + r
+            this.sfxChit.start()
         }
         this.headSpring.applyForce(0.2)
     }

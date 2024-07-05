@@ -355,7 +355,13 @@ mp.connection.on('chatKeystroke', ((message: string, id: string) => {
 mp.connection.on('chatSay', ((message: string, id: string) => {
 	let thatPlayer = playerIdToPlayerObj.get(id);
 	if (thatPlayer) {
-		thatPlayer.squeak()
+		if (message.toLowerCase() === 'hey') {
+			thatPlayer.hey()
+		} else if (message.toLowerCase() === 'what') {
+			thatPlayer.what()
+		} else {
+			thatPlayer.squeak()
+		}
 		thatPlayer.div.textContent = message
 		thatPlayer.div.classList.add('fadeout')
 	}
@@ -672,8 +678,15 @@ function clearChat() {
 }
 
 function sayChat() {
-	mp.connection.emit('chatSay', playerChatInput.value || '')
-	player.squeak()
+	const message = playerChatInput.value || '';
+	mp.connection.emit('chatSay', message)
+	if (message === 'hey') {
+		player.hey()
+	} else if (message.toLowerCase() === 'what') {
+		player.what()
+	} else {
+		player.squeak()
+	}
 	player.div.classList.add('fadeout')
 	playerChatInput.value = ''
 
