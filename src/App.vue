@@ -358,9 +358,9 @@ mp.connection.on('chatSay', ((message: string, id: string) => {
 		if (message.toLowerCase() === 'hey') {
 			thatPlayer.hey()
 		} else if (message.toLowerCase().match(/^yeah/)) {
-			player.yeah()
+			thatPlayer.yeah()
 		} else if (message.toLowerCase().match(/^ok/)) {
-			player.ok()
+			thatPlayer.ok()
 		} else if (message.toLowerCase() === 'ha') {
 			thatPlayer.ha()
 		} else if (message.toLowerCase() === 'what') {
