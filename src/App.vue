@@ -357,6 +357,8 @@ mp.connection.on('chatSay', ((message: string, id: string) => {
 	if (thatPlayer) {
 		if (message.toLowerCase() === 'hey') {
 			thatPlayer.hey()
+		} else if (message.toLowerCase().match(/^ok/)) {
+			player.ok()
 		} else if (message.toLowerCase() === 'what') {
 			thatPlayer.what()
 		} else {
@@ -680,8 +682,10 @@ function clearChat() {
 function sayChat() {
 	const message = playerChatInput.value || '';
 	mp.connection.emit('chatSay', message)
-	if (message === 'hey') {
+	if (message.toLowerCase() === 'hey') {
 		player.hey()
+	} else if (message.toLowerCase().match(/^ok/)) {
+		player.ok()
 	} else if (message.toLowerCase() === 'what') {
 		player.what()
 	} else {

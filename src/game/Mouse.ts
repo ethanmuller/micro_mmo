@@ -49,6 +49,7 @@ export class Mouse {
     squeakSampler: Tone.Sampler;
     sfxHey: Tone.Player;
     sfxWhat: Tone.Player;
+    sfxOk: Tone.Player;
     sfxChit: Tone.Player;
 
     // Materials
@@ -161,6 +162,7 @@ export class Mouse {
         this.isLocalPlayer = isLocalPlayer
         this.sfxHey = new Tone.Player('https://mush.network/files/sfx/h3.wav').toDestination()
         this.sfxWhat = new Tone.Player('https://mush.network/files/sfx/h4.wav').toDestination()
+        this.sfxOk = new Tone.Player('https://mush.network/files/sfx/ok.wav').toDestination()
         this.squeakSampler = new Tone.Sampler({
             urls: chirpNotes,
             baseUrl: "https://mush.network/files/sfx/chirps-and-squeaks/",
@@ -367,7 +369,6 @@ export class Mouse {
     }
 
     hey() {
-        console.log('HEY')
         const settings = useSettingsStore()
         if (settings.enableSound) {
             this.sfxHey.stop()
@@ -377,11 +378,19 @@ export class Mouse {
     }
 
     what() {
-        console.log('what')
         const settings = useSettingsStore()
         if (settings.enableSound) {
             this.sfxWhat.stop()
             this.sfxWhat.start()
+        }
+        this.headSpring.applyForce(0.3)
+    }
+
+    ok() {
+        const settings = useSettingsStore()
+        if (settings.enableSound) {
+            this.sfxOk.stop()
+            this.sfxOk.start()
         }
         this.headSpring.applyForce(0.3)
     }
