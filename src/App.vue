@@ -176,14 +176,14 @@ if (sessionInfo.previousRoom != null && sessionInfo.previousRoom != "") {
 		let dt = level.getDoorTile(sessionInfo.previousRoom);
 		level.getWorldPositionFromTile(dt, player.object.position);
 
-    const t = new THREE.Vector2()
-    level.getTileFromWorldPosition(player.object.position, t)
-    const dir = level.getFreeTileDirection(t)
-    if (dir) {
-    
-      player.velocity.set(dir.x*1.5, 0, dir.y)
-      player.velocity.multiplyScalar(level.tileSize * 0.5)
-    }
+		const t = new THREE.Vector2()
+		level.getTileFromWorldPosition(player.object.position, t)
+		const dir = level.getFreeTileDirection(t)
+		if (dir) {
+
+			player.velocity.set(dir.x * 1.5, 0, dir.y)
+			player.velocity.multiplyScalar(level.tileSize * 0.5)
+		}
 
 		player.animateOutOfDoor(level.getDoorChar(sessionInfo.previousRoom));
 		circleFade.uniforms.fadeOut.value = 1;
@@ -247,19 +247,19 @@ const mp = new MultiplayerClient({ token: store.token }, store.skin || 0, reques
 
 const sfxPickup = new Tone.Player('https://mush.network/files/sfx/sfx-pickup.wav', () => {
 	mp.connection.on('sfxPickup', () => {
-    if (settings.enableSound) {
-      sfxPickup.stop()
-      sfxPickup.start()
-    }
+		if (settings.enableSound) {
+			sfxPickup.stop()
+			sfxPickup.start()
+		}
 	})
 }).toDestination()
 
 const sfxPutdown = new Tone.Player('https://mush.network/files/sfx/sfx-putdown.wav', () => {
 	mp.connection.on('sfxPutdown', () => {
-    if (settings.enableSound) {
-      sfxPutdown.stop()
-      sfxPutdown.start()
-    }
+		if (settings.enableSound) {
+			sfxPutdown.stop()
+			sfxPutdown.start()
+		}
 	})
 }).toDestination()
 
@@ -274,16 +274,16 @@ const sfxPutdown = new Tone.Player('https://mush.network/files/sfx/sfx-putdown.w
 //
 
 const thingdex = {
-  orb: Orb,
-  battery: Battery,
+	orb: Orb,
+	battery: Battery,
 }
 
 mp.connection.on('itemListInit', (list: Array<Item>) => {
 	itemList = list
 
 	list.forEach((item) => {
-    const thing = thingdex[item.thing]
-    if (!thing) return
+		const thing = thingdex[item.thing]
+		if (!thing) return
 		const itemObj = new thingdex[item.thing]()
 		itemObj.rotateX(Math.PI / 2)
 		const itemObjGroup = new THREE.Group()
@@ -344,20 +344,20 @@ mp.onRemotePlayerDisconnected((id) => {
 mp.connection.on('chatKeystroke', ((message: string, id: string) => {
 	let thatPlayer = playerIdToPlayerObj.get(id);
 	if (thatPlayer && thatPlayer.div) {
-    if (message.length > 0) {
-      thatPlayer.chit()
-    }
+		if (message.length > 0) {
+			thatPlayer.chit()
+		}
 		thatPlayer.div.textContent = message
-    thatPlayer.div.classList.remove('fadeout')
+		thatPlayer.div.classList.remove('fadeout')
 	}
 }));
 
 mp.connection.on('chatSay', ((message: string, id: string) => {
 	let thatPlayer = playerIdToPlayerObj.get(id);
 	if (thatPlayer) {
-    thatPlayer.squeak()
-    thatPlayer.div.textContent = message
-    thatPlayer.div.classList.add('fadeout')
+		thatPlayer.squeak()
+		thatPlayer.div.textContent = message
+		thatPlayer.div.classList.add('fadeout')
 	}
 }));
 
@@ -393,23 +393,23 @@ function updateAllItems(itemList: Array<Item>) {
 		i.visible = item.level === requestedLevelMetadata.name
 
 		if (localPickedUpItem && item.id === localPickedUpItem && item.parent !== store.token) {
-      localPickedUpItem = null
-    }
+			localPickedUpItem = null
+		}
 
-    const optimisticPickup = item.id === localPickedUpItem
+		const optimisticPickup = item.id === localPickedUpItem
 
-    if (optimisticPickup) {
-        i.rotation.copy(player.butt.rotation)
-        i.rotation.y += Math.PI
-				i.position.copy(player.butt.position)
-				i.position.y += 1.125
-        return
-    }
+		if (optimisticPickup) {
+			i.rotation.copy(player.butt.rotation)
+			i.rotation.y += Math.PI
+			i.position.copy(player.butt.position)
+			i.position.y += 1.125
+			return
+		}
 
 		if (item.parent) {
 			let p
 			const otherPlayer = playerIdToPlayerObj.get(item.parent)
-      const parentOfItemIsLocalPlayer = item.parent === store.token
+			const parentOfItemIsLocalPlayer = item.parent === store.token
 
 			if (parentOfItemIsLocalPlayer) {
 				p = player
@@ -542,11 +542,11 @@ function contextAction() {
 }
 
 function pickup(id: string) {
-  if (settings.enableSound) {
-    sfxPickup.stop()
-    sfxPickup.start()
-  }
-  localPickedUpItem = id
+	if (settings.enableSound) {
+		sfxPickup.stop()
+		sfxPickup.start()
+	}
+	localPickedUpItem = id
 	mp.connection.emit('pickupItem', id)
 }
 
@@ -555,18 +555,18 @@ function drop() {
 	pos.copy(player.object.position)
 	pos.y = 0.5
 
-  if (settings.enableSound) {
-    sfxPutdown.stop()
-    sfxPutdown.start()
-  }
-  localPickedUpItem = null
+	if (settings.enableSound) {
+		sfxPutdown.stop()
+		sfxPutdown.start()
+	}
+	localPickedUpItem = null
 	mp.connection.emit('dropItem', pos, player.butt.rotation)
 }
 
 function sendSqueak() {
-  if (settings.enableSound) {
-    Tone.start()
-  }
+	if (settings.enableSound) {
+		Tone.start()
+	}
 	player.squeak()
 	mp.connection.emit('squeak', player.chirpIndex)
 }
@@ -630,13 +630,13 @@ function settingsToggle() {
 
 function updateChat(e: Event) {
 	const message = (e.target as HTMLInputElement).value
-  playerChatInput.value = message
+	playerChatInput.value = message
 	player.div.textContent = message
-  if (message.length > 0) {
-    player.chit()
-  }
+	if (message.length > 0) {
+		player.chit()
+	}
 	mp.connection.emit('chatKeystroke', message)
-  player.div.classList.remove('fadeout')
+	player.div.classList.remove('fadeout')
 	//sendSqueak()
 }
 
@@ -645,7 +645,7 @@ function handleKey(e: KeyboardEvent) {
 		if (playerChatInput.value === '') {
 			chatBoxOpen.value = false
 		} else if (playerChatInput.value) {
-      sayChat()
+			sayChat()
 		}
 	}
 }
@@ -663,8 +663,8 @@ function openChatBox() {
 
 function clearChat() {
 	mp.connection.emit('chatKeystroke', '')
-  playerChatInput.value = ''
-  player.div.textContent = ''
+	playerChatInput.value = ''
+	player.div.textContent = ''
 
 	nextTick(() => {
 		chat_input.value?.focus()
@@ -672,10 +672,10 @@ function clearChat() {
 }
 
 function sayChat() {
-  mp.connection.emit('chatSay', playerChatInput.value || '')
-  player.squeak()
-  player.div.classList.add('fadeout')
-  playerChatInput.value = ''
+	mp.connection.emit('chatSay', playerChatInput.value || '')
+	player.squeak()
+	player.div.classList.add('fadeout')
+	playerChatInput.value = ''
 
 	nextTick(() => {
 		chat_input.value?.focus()
@@ -705,19 +705,55 @@ const charLimit = ref(42)
 		</div>
 		<div class="minimap" v-if="settings.showMinimap && !chatBoxOpen">{{ minimapText }}</div>
 		<div class="chat-box" v-show="chatBoxOpen">
-			<button arial-label="close chat" class="chat-box__close-button"
-				@click="chatBoxOpen = false">&rsaquo;</button>
-      <div class="chat-input-wrapper">
-        <button :disabled="!(playerChatInput && playerChatInput.length > 0)" aria-label="clear" class="chat-box__clear-button l-button" @click="clearChat">&times;</button>
-        <div class="l-chat">
-          <input ref="chat_input" class="chat-input" type="text" v-model="playerChatInput" @input="updateChat" @keydown="handleKey" :maxlength="charLimit" />
-          <div class="input-limit" :style="(playerChatInput?.length || 0) >= charLimit ? { color: 'red', opacity: 1, } : {}">
-            <div class="line" :style="{ width: 100*((playerChatInput?.length || 0) / charLimit) + '%' }"></div>
-            {{playerChatInput?.length || 0}}/{{charLimit}}
-          </div>
-        </div>
-        <button :disabled="!(playerChatInput && playerChatInput.length > 0)" aria-label="say" class="chat-box__say-button l-button" @click="sayChat">&uarr;</button>
-      </div>
+			<button arial-label="close chat" class="chat-box__close-button" @click="chatBoxOpen = false">
+
+
+				<svg width="28" height="20" viewBox="0 0 28 20" fill="none"
+					xmlns="http://www.w3.org/2000/svg">
+					<path d="M16.7595 17.034C15.1975 18.5961 12.6648 18.5961 11.1027 17.034C9.5406 15.4719 9.5406 12.9392 11.1027 11.3771L18.8809 3.59896C20.443 2.03687 22.9756 2.03687 24.5377 3.59896C26.0998 5.16106 26.0998 7.69372 24.5377 9.25582L16.7595 17.034Z"
+						fill="#C9C9C9" />
+					<path d="M11.1737 16.7619C12.7358 18.324 15.2685 18.324 16.8306 16.7619C18.3927 15.1998 18.3927 12.6672 16.8306 11.1051L9.0556 3.33007C7.4935 1.76797 4.96084 1.76797 3.39874 3.33007C1.83664 4.89216 1.83664 7.42482 3.39874 8.98692L11.1737 16.7619Z"
+						fill="#C9C9C9" />
+				</svg>
+
+
+			</button>
+			<div class="chat-input-wrapper">
+				<button :disabled="!(playerChatInput && playerChatInput.length > 0)" aria-label="clear"
+					class="chat-box__clear-button l-button" @click="clearChat">
+
+					<svg width="23" height="23" viewBox="0 0 23 23" fill="none"
+						xmlns="http://www.w3.org/2000/svg">
+						<path fill-rule="evenodd" clip-rule="evenodd"
+							d="M21.6066 1.17157C20.0445 -0.390524 17.5118 -0.390524 15.9497 1.17157L11.7071 5.41421L7.46446 1.17157C5.90237 -0.390524 3.3697 -0.390524 1.80761 1.17157C0.24551 2.73367 0.24551 5.26633 1.80761 6.82843L6.05024 11.0711L1.8076 15.3137C0.24551 16.8758 0.24551 19.4085 1.8076 20.9706C3.3697 22.5327 5.90236 22.5327 7.46446 20.9706L11.7071 16.7279L15.9497 20.9706C17.5118 22.5327 20.0445 22.5327 21.6066 20.9706C23.1687 19.4085 23.1687 16.8758 21.6066 15.3137L17.3639 11.0711L21.6066 6.82843C23.1687 5.26633 23.1687 2.73367 21.6066 1.17157Z"
+							fill="#AAA398" />
+					</svg>
+
+				</button>
+				<div class="l-chat">
+					<input ref="chat_input" class="chat-input" type="text" v-model="playerChatInput"
+						@input="updateChat" @keydown="handleKey" :maxlength="charLimit" />
+					<div class="input-limit"
+						:style="(playerChatInput?.length || 0) >= charLimit ? { color: 'red', opacity: 1, } : {}">
+						<div class="line"
+							:style="{ width: 100 * ((playerChatInput?.length || 0) / charLimit) + '%' }">
+						</div>
+						{{ playerChatInput?.length || 0 }}/{{ charLimit }}
+					</div>
+				</div>
+				<button :disabled="!(playerChatInput && playerChatInput.length > 0)" aria-label="say"
+					class="chat-box__say-button l-button" @click="sayChat">
+
+
+					<svg width="24" height="29" viewBox="0 0 24 29" fill="none"
+						xmlns="http://www.w3.org/2000/svg">
+						<path fill-rule="evenodd" clip-rule="evenodd"
+							d="M9.24266 1.17157C10.8048 -0.390524 13.3374 -0.390524 14.8995 1.17157C15.2412 1.51322 15.5081 1.90128 15.7003 2.31547L22.6035 9.21865C24.1656 10.7807 24.1656 13.3134 22.6035 14.8755C21.0414 16.4376 18.5087 16.4376 16.9466 14.8755L16 13.9289V24.0711C16 26.2802 14.2091 28.0711 12 28.0711C9.79087 28.0711 8.00001 26.2802 8.00001 24.0711V13.7279L7.12133 14.6066C5.55924 16.1687 3.02658 16.1687 1.46448 14.6066C-0.0976166 13.0445 -0.0976166 10.5118 1.46448 8.94975L9.16691 1.24732L9.17626 1.23797L9.24266 1.17157Z"
+							fill="white" />
+					</svg>
+
+				</button>
+			</div>
 		</div>
 		<div class="logs" v-if="settings.showLogs">
 			<span v-for="message in logs.messages.slice(0, 6).reverse()">{{ message }}</span>
@@ -922,70 +958,71 @@ const charLimit = ref(42)
 }
 
 .chat-box {
-	position: fixed;
+	position: absolute;
 	bottom: 0;
 	left: 0;
 	width: 100%;
 	padding-bottom: 4rem;
 	background: white;
 	z-index: 999;
-  display: flex;
-  flex-direction: column;
+	display: flex;
+	flex-direction: column;
 	/* todo: don't do this */
 }
 
 .chat-box__close-button {
-  appearance: none;
-  align-self: end;
+	appearance: none;
+	align-self: end;
 	top: 0;
 	right: 0;
 	padding: 0.3rem;
 	font-size: 4rem;
 	background: none;
 	border: none;
-  transform: rotateZ(90deg);
-  line-height: 0;
-  height: 4rem;
-  width: 4rem;
+	line-height: 0;
+	height: 4rem;
+	width: 4rem;
 }
 
 .chat-box__clear-button {
-  appearance: none;
+	appearance: none;
 	padding: 0;
-  color: white;
-  background: #bbb;
-  border: none;
-  border-radius: 99rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 2rem;
-  display: inline-block;
-  width: 2.25rem;
-  height: 2.25rem;
-  box-sizing: border-box;
-  line-height: 0;
+	color: white;
+	background: #bbb;
+	border: none;
+	border-radius: 99rem;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 2rem;
+	display: inline-block;
+	background: #DED4C5;
+	width: 64px;
+	height: 64px;
+	box-sizing: border-box;
+	line-height: 0;
 }
 
 .chat-box__say-button {
-  color: white;
+	color: white;
 	padding: 0;
 	background: #2f90f7;
-  border: none;
-  border-radius: 99rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.4rem;
-  display: inline-block;
-  width: 2.75rem;
-  height: 2.25rem;
-  box-sizing: border-box;
-  line-height: 0;
+	border: none;
+	border-radius: 99rem;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 1.4rem;
+	display: inline-block;
+	width: 64px;
+	height: 64px;
+	box-sizing: border-box;
+	line-height: 0;
 }
 
-.chat-box__clear-button:disabled, .chat-box__say-button:disabled {
-  opacity: 0;
+.chat-box__clear-button:disabled,
+.chat-box__say-button:disabled {
+	opacity: 0;
 }
 
 .chat-input {
@@ -997,27 +1034,34 @@ const charLimit = ref(42)
 	padding: 0.5rem 1rem;
 	color: white;
 	outline: none;
-	width: 13rem;
-  box-sizing: border-box;
-}
-.chat-input-wrapper {
-  display: grid;
-  grid-template-columns: 2.25rem 13rem 2.25rem;
-  justify-content: center;
-  gap: 0.5rem;
+	width: 100%;
+	box-sizing: border-box;
 }
 
+.chat-input-wrapper {
+	display: grid;
+	grid-template-columns: 64px 210px 64px;
+	justify-content: center;
+	gap: 0.5rem;
+	padding: 0 1rem;
+}
+
+.l-chat {}
+
 .input-limit {
-  margin: 0.5rem 0;
-  padding: 0 1.125rem;
-  text-align: right;
-  opacity: 0.5;
-  font-size: 0.7rem;
+	margin: 0.5rem 0;
+	padding: 0 1.125rem;
+	text-align: right;
+	opacity: 0.5;
+	font-size: 0.7rem;
+	display: flex;
+	flex-direction: column;
+	align-items: end;
 }
 
 .input-limit .line {
-  height: 1px;
-  background: currentColor;
-  width: 100%;
+	height: 1px;
+	background: currentColor;
+	width: 100%;
 }
 </style>

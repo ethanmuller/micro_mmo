@@ -1,3 +1,8 @@
+# 2024-07-04
+- New orb item
+- Camera shifts when chat box is open
+- Fix for messed-up iOS buttons
+
 # 2024-07-01
 - Interactive items that can be picked up, put down, or even stolen from other mice
 - Items can move in between rooms

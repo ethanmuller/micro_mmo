@@ -2,10 +2,10 @@
 - fix chat view
 - add orb item
 - fix for text in view
+- fix iOS buttons
 
 # next
-- fix iOS buttons
-- add hats: UI for unequip
+- add hats: new class of item, equippable, requires UI for unequip
 - tear down App.vue file
 - wheel.html
 - seed.html
