@@ -21,8 +21,8 @@ export class CameraMovement {
     camSpringY: Spring;
 
     constructor(cam: PerspectiveCamera, player: Mouse, level: Level) {
-        this.camSpringZ = new Spring(0, 8, 0.02, 1 - Number.EPSILON)
-        this.camSpringY = new Spring(0, 8, 0.02, 1 - Number.EPSILON)
+        this.camSpringZ = new Spring(0, 0.7, 0.6, 0.5)
+        this.camSpringY = new Spring(0, 0.7, 0.6, 0.5)
         this.camera = cam;
         this.distanceFromFloor = 3.5;
         this.distanceFromWall = 1; // Maximum level.tileSize * 0.5, can be less
@@ -87,7 +87,7 @@ export class CameraMovement {
             this.camera.updateProjectionMatrix();
         }
         if (session.cameraMode === 'topdown') {
-            this.camera.fov = 30
+            this.camera.fov = 40
 
             this.camera.position.copy(player.object.position);
 
@@ -106,7 +106,7 @@ export class CameraMovement {
             if (wallIn1) {
                 this.camSpringZ.springiness = 0.04
                 this.camSpringY.springiness = 0.04
-                this.camSpringY.restPosition = +30
+                this.camSpringY.restPosition = level.wallHeight + 14
                 this.camSpringZ.restPosition = -38
             } else {
                 this.camSpringZ.springiness = 0.02
@@ -116,8 +116,8 @@ export class CameraMovement {
             this.camera.position.y += this.camSpringY.position
             lookTarget.copy(player.object.position)
             if (isChatBoxOpen) {
-              lookTarget.y += 3
-              lookTarget.z -= 3
+                lookTarget.y += 3
+                lookTarget.z -= 3
             }
             this.camera.lookAt(lookTarget);
 
