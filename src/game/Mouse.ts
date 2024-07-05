@@ -50,6 +50,8 @@ export class Mouse {
     sfxHey: Tone.Player;
     sfxWhat: Tone.Player;
     sfxOk: Tone.Player;
+    sfxYeah: Tone.Player;
+    sfxHa: Tone.Player;
     sfxChit: Tone.Player;
 
     // Materials
@@ -163,10 +165,14 @@ export class Mouse {
         this.sfxHey = new Tone.Player('https://mush.network/files/sfx/h3.wav').toDestination()
         this.sfxWhat = new Tone.Player('https://mush.network/files/sfx/h4.wav').toDestination()
         this.sfxOk = new Tone.Player('https://mush.network/files/sfx/ok.wav').toDestination()
+        this.sfxYeah = new Tone.Player('https://mush.network/files/sfx/yeah.wav').toDestination()
+        this.sfxHa = new Tone.Player('https://mush.network/files/sfx/h1.wav').toDestination()
         this.squeakSampler = new Tone.Sampler({
             urls: chirpNotes,
             baseUrl: "https://mush.network/files/sfx/chirps-and-squeaks/",
         }).toDestination()
+
+        this.sfxYeah.volume.value = 12
 
         this.div = document.createElement('div')
         this.div.classList.add('squeak-bubble')
@@ -391,6 +397,24 @@ export class Mouse {
         if (settings.enableSound) {
             this.sfxOk.stop()
             this.sfxOk.start()
+        }
+        this.headSpring.applyForce(0.3)
+    }
+
+    yeah() {
+        const settings = useSettingsStore()
+        if (settings.enableSound) {
+            this.sfxYeah.stop()
+            this.sfxYeah.start()
+        }
+        this.headSpring.applyForce(0.3)
+    }
+
+    ha() {
+        const settings = useSettingsStore()
+        if (settings.enableSound) {
+            this.sfxHa.stop()
+            this.sfxHa.start()
         }
         this.headSpring.applyForce(0.3)
     }

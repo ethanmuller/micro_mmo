@@ -357,8 +357,12 @@ mp.connection.on('chatSay', ((message: string, id: string) => {
 	if (thatPlayer) {
 		if (message.toLowerCase() === 'hey') {
 			thatPlayer.hey()
+		} else if (message.toLowerCase().match(/^yeah/)) {
+			player.yeah()
 		} else if (message.toLowerCase().match(/^ok/)) {
 			player.ok()
+		} else if (message.toLowerCase() === 'ha') {
+			thatPlayer.ha()
 		} else if (message.toLowerCase() === 'what') {
 			thatPlayer.what()
 		} else {
@@ -684,8 +688,12 @@ function sayChat() {
 	mp.connection.emit('chatSay', message)
 	if (message.toLowerCase() === 'hey') {
 		player.hey()
+	} else if (message.toLowerCase().match(/^yeah/)) {
+		player.yeah()
 	} else if (message.toLowerCase().match(/^ok/)) {
 		player.ok()
+	} else if (message.toLowerCase() === 'ha') {
+		player.ha()
 	} else if (message.toLowerCase() === 'what') {
 		player.what()
 	} else {
