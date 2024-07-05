@@ -55,7 +55,6 @@ const circleFade = new ShaderPass(CircleTransitionShader);
 composer.addPass(circleFade);
 circleFade.uniforms.fadeOut.value = 0.0;
 
-
 scene.background = new THREE.Color(0xddddee)
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -236,14 +235,20 @@ function secondsMinutesHours(ms: number): string {
 	return `${seconds} seconds`
 }
 
-
 if (crumbs.lastSeen) {
 	welcomeBack()
 }
 
 const cameraMovement = new CameraMovement(camera, player, level);
 
-const mp = new MultiplayerClient({ token: store.token }, store.skin || 0, requestedLevelMetadata.name || DEFAULT_LEVEL)
+const mp = new MultiplayerClient({ token: store.token }, store.skin || 0, 'lab')
+
+mp.connection.on('newMaze', (ascii: string) => {
+	scene.remove(level.object);
+	requestedLevelMetadata.ascii = ascii
+	level = new Level(requestedLevelMetadata, toonRamp);
+	scene.add(level.object);
+})
 
 const sfxPickup = new Tone.Player('https://mush.network/files/sfx/sfx-pickup.wav', () => {
 	mp.connection.on('sfxPickup', () => {

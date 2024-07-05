@@ -1,12 +1,15 @@
 import express from 'express';
 import { createServer } from 'node:http';
-import { Server } from "socket.io";
-import { ServerToClientEvents, ClientToServerEvents, ItemName } from './MultiplayerTypes';
+import { Server, Socket } from "socket.io";
+import { ServerToClientEvents, ClientToServerEvents, } from './MultiplayerTypes';
 import cors from 'cors'
 import { Player, Item } from './MultiplayerTypes'
 import { generateUUID } from 'three/src/math/MathUtils.js';
 import { Euler, Vector3 } from 'three';
 import { LevelName } from '../game/Level';
+
+// @ts-ignore
+import nmg from 'node-maze-generator'
 
 
 const app = express();
@@ -30,125 +33,19 @@ function generateItems() {
     thing: 'orb',
     id: generateUUID(),
     level: 'lab' as LevelName,
-    location: new Vector3(30, 0.5, 60),
+    location: new Vector3(7, 0.5, 8),
     rotation: makeEulerWithRandomYRotation(),
   })
 
   for (let i = 0; i < 5; i++) {
     itemList.push({
-    thing: 'battery',
-    id: generateUUID(),
-    level: 'lab' as LevelName,
-    location: new Vector3(2 + i * 1.5, 0.5, 11),
-    rotation: new Euler(0, Math.PI * -0.25, 0),
+      thing: 'battery',
+      id: generateUUID(),
+      level: 'lab' as LevelName,
+      location: new Vector3(6 + i * 1.5, 0.5, 11),
+      rotation: new Euler(0, Math.PI * -0.25, 0),
     })
   }
-
-  // const b1 = {
-  //   thing: 'battery',
-  //   id: generateUUID(),
-  //   level: 'lab' as LevelName,
-  //   location: new Vector3(30, 0.5, 60),
-  //   rotation: makeEulerWithRandomYRotation(),
-  // }
-  // itemList.push(b1)
-
-  // const b2 = {
-  //   id: generateUUID(),
-  //   level: 'lab' as LevelName,
-  //   location: new Vector3(30, 0.5, 55),
-  //   rotation: makeEulerWithRandomYRotation(),
-  // }
-  // itemList.push(b2)
-
-  // itemList.push({
-  //   id: generateUUID(),
-  //   level: 'lab' as LevelName,
-  //   location: new Vector3(4, 0.5, 12),
-  //   rotation: makeEulerWithRandomYRotation(),
-  // })
-
-  // itemList.push({
-  //   id: generateUUID(),
-  //   level: 'lab' as LevelName,
-  //   location: new Vector3(13, 0.5, 15),
-  //   rotation: makeEulerWithRandomYRotation(),
-  // })
-
-
-
-  // const b3 = {
-  //   id: generateUUID(),
-  //   level: 'ohio' as LevelName,
-  //   location: new Vector3(10, 0.5, 10),
-  //   rotation: makeEulerWithRandomYRotation(),
-  // }
-  // itemList.push(b3)
-
-  // for (let i = 0; i < 5; i++) {
-  //   itemList.push({
-  //     id: generateUUID(),
-  //     level: 'the_cheddaverse' as LevelName,
-  //     location: new Vector3(170 - i * 5, 0.5, 166),
-  //     rotation: makeEulerWithRandomYRotation(),
-  //   })
-  // }
-
-  // itemList.push({
-  //   id: generateUUID(),
-  //   level: 'the_cheddaverse' as LevelName,
-  //   location: new Vector3(88, 0.5, 164),
-  //   rotation: makeEulerWithRandomYRotation(),
-  // })
-
-  // itemList.push({
-  //   id: generateUUID(),
-  //   level: 'the_cheddaverse' as LevelName,
-  //   location: new Vector3(94, 0.5, 171),
-  //   rotation: makeEulerWithRandomYRotation(),
-  // })
-
-  // itemList.push({
-  //   id: generateUUID(),
-  //   level: 'the_cheddaverse' as LevelName,
-  //   location: new Vector3(96, 0.5, 163),
-  //   rotation: makeEulerWithRandomYRotation(),
-  // })
-
-  // itemList.push({
-  //   id: generateUUID(),
-  //   level: 'the_cheddaverse' as LevelName,
-  //   location: new Vector3(157, 0.5, 167),
-  //   rotation: makeEulerWithRandomYRotation(),
-  // })
-
-  // itemList.push({
-  //   id: generateUUID(),
-  //   level: 'the_cheddaverse' as LevelName,
-  //   location: new Vector3(204, 0.5, 214),
-  //   rotation: makeEulerWithRandomYRotation(),
-  // })
-
-  // itemList.push({
-  //   id: generateUUID(),
-  //   level: 'the_cheddaverse' as LevelName,
-  //   location: new Vector3(118, 0.5, 74),
-  //   rotation: makeEulerWithRandomYRotation(),
-  // })
-
-  // itemList.push({
-  //   id: generateUUID(),
-  //   level: 'the_cheddaverse' as LevelName,
-  //   location: new Vector3(193, 0.5, 68),
-  //   rotation: makeEulerWithRandomYRotation(),
-  // })
-
-  // itemList.push({
-  //   id: generateUUID(),
-  //   level: 'the_cheddaverse' as LevelName,
-  //   location: new Vector3(297, 0.5, 145),
-  //   rotation: makeEulerWithRandomYRotation(),
-  // })
 }
 
 generateItems()
@@ -156,6 +53,39 @@ generateItems()
 app.get('/', (_req, res) => {
   res.send('you are looking at the websocket server. this is the endpoint the socket.io client should connect to to send and receive messages.');
 });
+
+
+function generateAndEmitNewMaze(io: Server, level: string) {
+  const mazegen = new nmg.generators.maze({}, { width: 15, height: 15 });
+
+  function maze_generator_to_ascii(generator: nmg.generators.maze): string {
+    for (let z = 0; z < generator.data.grid.total_floors; z++) {
+      let maze = ''
+      for (let y = 0; y < generator.data.grid.height; y++) {
+        let row = '';
+        for (let x = 0; x < generator.data.grid.width; x++) {
+          let cell = generator.data.grid.cells[z][y][x];
+          let f = cell.blocked ? ' ' : '#';
+          if (cell.stairs) {
+            if (cell.stairs.direction === 'up') {
+              f = '@';
+            }
+            else {
+              f = 'o';
+            }
+          }
+          row += f;
+        }
+        maze += row
+        maze += '\n'
+      }
+      return maze
+
+    }
+    return ''
+  }
+  io.to(level).emit('newMaze', maze_generator_to_ascii(mazegen))
+}
 
 io.on('connection', async (socket) => {
   const level = socket.handshake.query.requestedLevel?.toString() || 'lab'
@@ -175,6 +105,8 @@ io.on('connection', async (socket) => {
   io.to(level).emit('playerList', playerList.filter((p) => p.level === level));
   io.to(level).emit('playerConnected', { member_id: socket.handshake.auth.token, skin: skinNumber, level });
 
+  generateAndEmitNewMaze(io, level)
+
   socket.on('disconnect', async () => {
     const disconnectedPlayerIndex = playerList.findIndex((p) => p.member_id === socket.handshake.auth.token)
     playerList.splice(disconnectedPlayerIndex, 1)
@@ -182,6 +114,7 @@ io.on('connection', async (socket) => {
     console.log(`CLIENT DISCONNECTED. total sockets: ${playerList.length}`)
     io.to(level).emit('playerList', playerList.filter((p) => p.level === level))
     io.to(level).emit('playerDisconnected', socket.handshake.auth.token);
+    generateAndEmitNewMaze(io, level)
   });
 
   socket.on('squeak', (n: number) => {
