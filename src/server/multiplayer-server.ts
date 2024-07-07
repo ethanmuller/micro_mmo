@@ -1,22 +1,21 @@
 import express from 'express';
 import { createServer } from 'node:http';
-import { Server, Socket } from "socket.io";
+import { Server, } from "socket.io";
 import { ServerToClientEvents, ClientToServerEvents, } from './MultiplayerTypes';
 import cors from 'cors'
 import { Player, Item } from './MultiplayerTypes'
 import { generateUUID } from 'three/src/math/MathUtils.js';
 import { Euler, Vector3 } from 'three';
 import { LevelName } from '../game/Level';
-
-// @ts-ignore
-import nmg from 'node-maze-generator'
-
+import { Dungeon } from '../game/Dungeon.ts'
 
 const app = express();
 app.use(cors())
 const server = createServer(app);
 const playerList: Player[] = []
+let mazeAsString: string = ''
 const itemList: Item[] = []
+const batteryList: Item[] = []
 const io = new Server<
   ClientToServerEvents,
   ServerToClientEvents
@@ -28,64 +27,48 @@ function makeEulerWithRandomYRotation() {
   return new Euler(0, Math.PI * Math.random(), 0)
 }
 
-function generateItems() {
-  itemList.push({
-    thing: 'orb',
-    id: generateUUID(),
-    level: 'lab' as LevelName,
-    location: new Vector3(7, 0.5, 8),
-    rotation: makeEulerWithRandomYRotation(),
-  })
-
-  for (let i = 0; i < 5; i++) {
-    itemList.push({
-      thing: 'battery',
-      id: generateUUID(),
-      level: 'lab' as LevelName,
-      location: new Vector3(6 + i * 1.5, 0.5, 11),
-      rotation: new Euler(0, Math.PI * -0.25, 0),
-    })
-  }
+const orb: Item = {
+  thing: 'orb',
+  id: generateUUID(),
+  level: 'lab' as LevelName,
+  location: new Vector3(7, 0.5, 8),
+  rotation: makeEulerWithRandomYRotation(),
 }
 
-generateItems()
+itemList.push(orb)
+
+
+for (let i = 0; i < 5; i++) {
+  const battery: Item = {
+    thing: 'battery',
+    id: generateUUID(),
+    level: 'lab' as LevelName,
+    location: new Vector3(6 + i * 1.5, 0.5, 11),
+    rotation: new Euler(0, Math.PI * -0.25, 0),
+  }
+  batteryList.push(battery)
+  itemList.push(battery)
+}
+
+let dungeon = new Dungeon(15, 15)
+
+function distributeItems(dungeon: Dungeon) {
+  const tileSize = 7;
+  orb.location = new Vector3(dungeon.centerX * tileSize, 0.5, dungeon.centerY * tileSize)
+  const deadEnds = dungeon.getDeadEnds()
+  console.log(`shuffling ${itemList.length} items into ${deadEnds.length} slots`)
+  deadEnds.forEach((p, i) => {
+    const item = itemList[i % (itemList.length)]
+    if (item === orb) return
+    item.location = new Vector3(p.x * tileSize, 0.5, p.y * tileSize)
+  })
+}
+
+
 
 app.get('/', (_req, res) => {
   res.send('you are looking at the websocket server. this is the endpoint the socket.io client should connect to to send and receive messages.');
 });
-
-
-function generateAndEmitNewMaze(io: Server, level: string) {
-  const mazegen = new nmg.generators.maze({}, { width: 15, height: 15 });
-
-  function maze_generator_to_ascii(generator: nmg.generators.maze): string {
-    for (let z = 0; z < generator.data.grid.total_floors; z++) {
-      let maze = ''
-      for (let y = 0; y < generator.data.grid.height; y++) {
-        let row = '';
-        for (let x = 0; x < generator.data.grid.width; x++) {
-          let cell = generator.data.grid.cells[z][y][x];
-          let f = cell.blocked ? ' ' : '#';
-          if (cell.stairs) {
-            if (cell.stairs.direction === 'up') {
-              f = '@';
-            }
-            else {
-              f = 'o';
-            }
-          }
-          row += f;
-        }
-        maze += row
-        maze += '\n'
-      }
-      return maze
-
-    }
-    return ''
-  }
-  io.to(level).emit('newMaze', maze_generator_to_ascii(mazegen))
-}
 
 io.on('connection', async (socket) => {
   const level = socket.handshake.query.requestedLevel?.toString() || 'lab'
@@ -101,11 +84,18 @@ io.on('connection', async (socket) => {
   console.log(playerList)
   console.log(`CLIENT CONNECTED.    total sockets: ${playerList.length}`)
   io.emit('serverInfo', Date.now());
-  io.to(socket.id).emit('itemListInit', itemList);
-  io.to(level).emit('playerList', playerList.filter((p) => p.level === level));
+  const playerListForThisLevel = playerList.filter((p) => p.level === level)
+  io.to(level).emit('playerList', playerListForThisLevel);
   io.to(level).emit('playerConnected', { member_id: socket.handshake.auth.token, skin: skinNumber, level });
 
-  generateAndEmitNewMaze(io, level)
+  if (playerListForThisLevel.length === 1) {
+    dungeon = new Dungeon(15, 15)
+    distributeItems(dungeon)
+    mazeAsString = dungeon.asString().replace(/#/g, ' ').replace(/\./g, '#')
+  }
+
+  io.to(socket.id).emit('itemListInit', itemList);
+  io.to(level).emit('newMaze', mazeAsString)
 
   socket.on('disconnect', async () => {
     const disconnectedPlayerIndex = playerList.findIndex((p) => p.member_id === socket.handshake.auth.token)
@@ -114,7 +104,6 @@ io.on('connection', async (socket) => {
     console.log(`CLIENT DISCONNECTED. total sockets: ${playerList.length}`)
     io.to(level).emit('playerList', playerList.filter((p) => p.level === level))
     io.to(level).emit('playerDisconnected', socket.handshake.auth.token);
-    generateAndEmitNewMaze(io, level)
   });
 
   socket.on('squeak', (n: number) => {

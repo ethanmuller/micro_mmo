@@ -87,23 +87,24 @@ export class CameraMovement {
             this.camera.updateProjectionMatrix();
         }
         if (session.cameraMode === 'topdown') {
-            this.camera.fov = 40
-
+            this.camera.fov = Math.min(40, (20 + window.innerHeight / window.innerWidth * 30) * 0.5
+            )
             this.camera.position.copy(player.object.position);
 
             level.getTileFromWorldPosition(player.object.position, this.currentPlayerTile);
             const wallIn1 = !level.isTileWalkable(this.currentPlayerTile.x, this.currentPlayerTile.y + 1, true)
             const wallIn2 = !level.isTileWalkable(this.currentPlayerTile.x, this.currentPlayerTile.y + 2, true)
-            this.camera.position.y += 30
+            this.camera.position.y += 40
             this.camera.position.z += 40
+            // this.camera.position.x += 40
 
             this.camSpringZ.restPosition = 0
             this.camSpringY.restPosition = 0
-            if (wallIn2) {
+            if (wallIn2 && false) {
                 this.camSpringY.restPosition = +15
                 this.camSpringZ.restPosition -= 20
             }
-            if (wallIn1) {
+            if (wallIn1 && false) {
                 this.camSpringZ.springiness = 0.04
                 this.camSpringY.springiness = 0.04
                 this.camSpringY.restPosition = level.wallHeight + 14

@@ -247,7 +247,10 @@ mp.connection.on('newMaze', (ascii: string) => {
 	scene.remove(level.object);
 	requestedLevelMetadata.ascii = ascii
 	level = new Level(requestedLevelMetadata, toonRamp);
+	const spawnTileCoords = level.start
+	level.getWorldPositionFromTile(spawnTileCoords, player.object.position)
 	scene.add(level.object);
+	console.log(ascii)
 })
 
 const sfxPickup = new Tone.Player('https://mush.network/files/sfx/sfx-pickup.wav', () => {
@@ -402,6 +405,10 @@ let input: InputManager
 let axesHelperV2 = new THREE.Vector2();
 
 function updateAllItems(itemList: Array<Item>) {
+	const holdingOrb = itemList.some((i) => i.thing === 'orb' && i.parent === store.token)
+
+	settings.showMinimap = holdingOrb
+
 	itemList.forEach((item) => {
 		const i = thingdexIdToThreeObject.get(item.id)
 		if (!i) return

@@ -12,6 +12,7 @@ type UppercaseAlpha = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' 
 type ButtonChar = UppercaseAlpha
 type CharToButton = Map<ButtonChar, Function>
 
+
 // levels are defined by authoring a LevelMetaData
 // whereas the Level class is used to load and represent a level at runtime
 export interface LevelMetaData {
@@ -222,6 +223,7 @@ export class Level {
                 let char = this.getCharAtTilePosition(column, row)
                 char = char.replace(/@/g, '.')
                 char = char.replace(/#/g, '.')
+                char = char.replace(/=/g, '.')
                 char = char.replace(/[a-z]/g, 'o')
 
                 // if an item is on this tile, draw as a =
@@ -489,8 +491,8 @@ export type LevelName = 'lab'
 const lab: LevelMetaData = {
     name: 'lab',
     cameraType: 'topdown',
-    tileSize: 10,
-    wallHeight: 10,
+    tileSize: 7,
+    wallHeight: 1.125,
     doors: new Map(),
     ascii: '',
     sky: new URL('https://mush.network/files/sky/furry_clouds_1k.hdr'),
@@ -499,7 +501,7 @@ const lab: LevelMetaData = {
     floorImage: "https://mush.network/files/textures/mc/dirt.png",
 }
 
-export const levels: { [index: string]: any } = { lab }
+export const levels: { [index: string]: LevelMetaData } = { lab }
 
 const CARDINAL = [new Vector2(0, 1), new Vector2(1, 0), new Vector2(0, -1), new Vector2(-1, 0)];
 const DIAGONAL = [new Vector2(1, 1), new Vector2(1, -1), new Vector2(-1, -1), new Vector2(-1, 1)];
