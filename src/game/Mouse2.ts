@@ -57,10 +57,6 @@ export class Mouse {
     headRadius: number;
     bodyLength: number;
     buttRadius: number;
-    headWobbleTime: number = 3;
-    headWobbleFrequency: number = 20;
-    headWobbleAmount: number = 0.1;
-    headWobbleMinHeight: number = 0.2;
     stepHeight: number = 0.45;
     frontLegStepReachSquared: number = 0.7 * 0.7;
     backLegStepReachSquared: number = 0.5 * 0.5;
@@ -327,16 +323,13 @@ export class Mouse {
     private previousFramePosition = new Vector3();
 
     update(time: Time) {
-      let positionBefore = this.previousFramePosition.copy(this.object.position);
+        let positionBefore = this.previousFramePosition.copy(this.object.position);
 
-      this.object.position.x += this.velocity.x * time.deltaTime;
-      this.object.position.z += this.velocity.z * time.deltaTime;
+        this.object.position.x += this.velocity.x * time.deltaTime;
+        this.object.position.z += this.velocity.z * time.deltaTime;
 
 
         // Visually update, animations
-        this.headWobbleTime += time.deltaTime;
-        this.headPivot.position.y = (Math.sin(this.headWobbleTime * this.headWobbleFrequency) * 0.5 + 0.5) * this.headWobbleAmount + this.headWobbleMinHeight;
-
         let frameDisplacement = positionBefore.sub(this.object.position);
         frameDisplacement.multiplyScalar(-1);
         let isMoving = frameDisplacement.lengthSq() > 0.0001;
@@ -357,21 +350,20 @@ export class Mouse {
         let buttPreviousPosition = this.var.v4.copy(this.butt.position);
         this.butt.position.copy(headPos).sub(buttDisplacement);
         let buttFrameDisplacement = buttPreviousPosition.sub(this.butt.position).multiplyScalar(-1);
-        this.butt.position.y = this.buttRadius;
+        this.butt.position.y = this.buttRadius + Math.sin(time.time * 30) * 0.1;
         buttDisplacement.multiplyScalar(-2).add(headPos);
         this.butt.lookAt(buttDisplacement)
-        //this.butt.quaternion.setFromUnitVectors(Constants.forward, deltaHead);
-        // deal with squishing
         deltaHead.copy(headPos);
         deltaHead.sub(this.butt.position);
         let bodyLength = deltaHead.length();
         this.bodyConnector.scale.set(1, bodyLength, 1);
         let bodyAngle = Utils.SignedAngle2D(Constants.forward, deltaHead);
+        this.headPivot.position.y = 0 + Math.sin(Math.PI * 0.5 + time.time * 30) * 0.1
+
+        this.animateFeet(time);
 
         this.butt.updateMatrixWorld(true);
         this.animateTail(time);
-
-        this.animateFeet(time);
 
         if (!isMoving) {
             this.changeHeadLookTimer -= time.deltaTime;
@@ -415,34 +407,26 @@ export class Mouse {
     }
 
 
-    // frame after frame vars of function below
-    private tailDeltaDirection = new Vector3();
-    private tailQuat = new Quaternion();
-    private tailPrevDelta = new Vector3();
-
     private animateTail(time: Time) {
         this.tail.position.copy(this.butt.position);
-        this.tail.position.y = this.maxTailThickness;
+        this.tail.position.y = this.tail.position.y * 0.5
+        //this.tail.position.y = this.maxTailThickness;
         this.tailBonesPositions[0].copy(this.tail.position);
         this.tailBones[0].rotation.x = Math.PI
 
-        let prevAngle = 0;
-
         for (let i = 1; i < this.tailBones.length; ++i) {
-            const angle = -Math.PI*0.1 + (i * 0.03) - Math.abs(Math.sin(time.time*10)* 0.2)
+            const angle = -Math.PI * 0.1 + (i * 0.03) - Math.abs(Math.sin(time.time * 10) * 0.2)
             this.tailBones[i].rotation.x = angle
             // prevAngle += angle;
         }
     }
 
-    private feetBodyRight = new Vector3();
-    private feetDeltaPos = new Vector3();
     private animateFeet(time: Time) {
-      const mult = 20
+        const mult = 30
         for (let i = 0; i < this.feet.length; ++i) {
             const f = this.feet[i]
-            this.getFootNeutralPosition(i, f.obj.position, Constants.forward, Constants.right);
-            f.obj.position.y = (Math.sin(mult*time.time + Math.PI*i*0.5) + 1)*0.1
+            this.getAnimatedFootPosition(i, time, f.obj.position, Constants.forward, Constants.right);
+            //f.obj.position.y = (Math.sin(mult * time.time + Math.PI * i * 0.5) + 1) * 0.1
         }
     }
 
@@ -455,6 +439,29 @@ export class Mouse {
         outVector.add(this.rightClone.copy(right).multiplyScalar(relPos.x));
         // TODO Y position might vary
         outVector.y = this.feet[feetId].neutralPosition.y;
+    }
+    private getAnimatedFootPosition(feetId: number, time: Time, outVector: Vector3, forward: Vector3, right: Vector3) {
+        outVector.copy(this.feet[feetId].attachment.position);
+        const relPos = this.feet[feetId].neutralPosition;
+        outVector.add(this.forwardClone.copy(forward).multiplyScalar(relPos.z));
+        outVector.add(this.rightClone.copy(right).multiplyScalar(relPos.x));
+        // TODO Y position might vary
+        outVector.y = this.feet[feetId].neutralPosition.y
+        const mult = 30
+        const amount = 0.1
+
+        if (feetId === 0) {
+            outVector.y += Math.cos(Math.PI * 0.666 + time.time * mult) * amount;
+        }
+        if (feetId === 1) {
+            outVector.y += Math.sin(Math.PI * 0.666 + time.time * mult) * amount;
+        }
+        if (feetId === 2) {
+            outVector.y += Math.sin(Math.PI * 0.333 + time.time * mult) * amount;
+        }
+        if (feetId === 3) {
+            outVector.y += Math.cos(Math.PI * 0.333 + time.time * mult) * amount;
+        }
     }
 
     serializePlayerData(): SerializedPlayerData {
