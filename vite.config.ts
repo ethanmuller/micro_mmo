@@ -8,4 +8,12 @@ export default defineConfig({
   plugins: [vue(), qrcode()],
   assetsInclude: ["**/*.txt"],
   base: '',
+  build: {
+    rollupOptions: {
+      input: {
+        mouse: 'index.html',
+        wheel: 'wheel.html',
+      }
+    }
+  }
 })
