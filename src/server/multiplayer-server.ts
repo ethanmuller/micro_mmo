@@ -34,13 +34,61 @@ function generateItems() {
     rotation: makeEulerWithRandomYRotation(),
   })
 
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 3; i++) {
     itemList.push({
+      thing: 'battery',
+      id: generateUUID(),
+      level: 'lab' as LevelName,
+      location: new Vector3(2 + i * 5, 0.5, 11 + Math.random() * 10 - 5),
+      rotation: makeEulerWithRandomYRotation(),
+    })
+  }
+
+  itemList.push({
     thing: 'battery',
     id: generateUUID(),
-    level: 'lab' as LevelName,
-    location: new Vector3(2 + i * 1.5, 0.5, 11),
-    rotation: new Euler(0, Math.PI * -0.25, 0),
+    level: 'ohio' as LevelName,
+    location: new Vector3(6, 0.5, 14),
+    rotation: makeEulerWithRandomYRotation(),
+  })
+
+  for (let i = 0; i < 5; i++) {
+    itemList.push({
+      thing: 'battery',
+      id: generateUUID(),
+      level: 'the_cheddaverse' as LevelName,
+      location: new Vector3(115 + i * 3, 0.5, 70 + Math.random() * 10 - 5),
+      rotation: makeEulerWithRandomYRotation(),
+    })
+  }
+
+  for (let i = 0; i < 5; i++) {
+    itemList.push({
+      thing: 'battery',
+      id: generateUUID(),
+      level: 'the_cheddaverse' as LevelName,
+      location: new Vector3(190 + i * 1.5, 0.5, 72 + Math.random() * 10 - 5),
+      rotation: makeEulerWithRandomYRotation(),
+    })
+  }
+
+  for (let i = 0; i < 5; i++) {
+    itemList.push({
+      thing: 'battery',
+      id: generateUUID(),
+      level: 'the_cheddaverse' as LevelName,
+      location: new Vector3(290 + i * 1.5, 0.5, 145 + Math.random() * 10 - 5),
+      rotation: makeEulerWithRandomYRotation(),
+    })
+  }
+
+  for (let i = 0; i < 7; i++) {
+    itemList.push({
+      thing: 'battery',
+      id: generateUUID(),
+      level: 'the_cheddaverse' as LevelName,
+      location: new Vector3(210 + i * 3, 0.5, 217 + Math.random() * 10 - 5),
+      rotation: makeEulerWithRandomYRotation(),
     })
   }
 
