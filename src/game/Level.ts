@@ -203,7 +203,7 @@ export class Level {
             });
         });
 
-        const OutOfBoundsFloorMesh = new Mesh(new PlaneGeometry(this.tileSize*1000, this.tileSize*1000, 1, 1), new MeshBasicMaterial({ color: 0x110011 }));
+        const OutOfBoundsFloorMesh = new Mesh(new PlaneGeometry(this.tileSize * 1000, this.tileSize * 1000, 1, 1), new MeshBasicMaterial({ color: 0x110011 }));
         OutOfBoundsFloorMesh.position.y -= 1
         OutOfBoundsFloorMesh.rotation.x -= Math.PI * 0.5;
         this.object.add(OutOfBoundsFloorMesh)
@@ -272,11 +272,11 @@ export class Level {
     }
 
     public getFreeTileDirection(baseTile: Vector2) {
-      for (let i = 0; i <= CARDINAL.length; i++) {
-        if (this.isTileWalkable(baseTile.x + CARDINAL[i].x, baseTile.y + CARDINAL[i].y)) {
-          return CARDINAL[i]
+        for (let i = 0; i <= CARDINAL.length; i++) {
+            if (this.isTileWalkable(baseTile.x + CARDINAL[i].x, baseTile.y + CARDINAL[i].y)) {
+                return CARDINAL[i]
+            }
         }
-      }
     }
 
     // This function tries to check for straight accessibility: it does not pathfind, it just checks straight & diagonal path
@@ -502,10 +502,10 @@ const ohio: LevelMetaData = {
 ##   ##
 ##   ##
 ##   ##
-##   ##
+## t ##
 #######
 #######
-t `,
+  `,
     sky: new URL('https://mush.network/files/sky/furry_clouds_1k.hdr'),
     topImage: "https://mush.network/files/textures/mc/grass.png",
     wallImage: "https://mush.network/files/textures/mc/grassdirt.png",
@@ -523,16 +523,16 @@ const lab: LevelMetaData = {
 #######      
 #######      
 ########     
-   ######     
-   ########   
-   ########   
-   ## #####     
-   ###@# ##       
-   ########       
-   #### ###       
-   ########    
-   ######## 
-   o        
+   ###### o   
+   #########  
+   #########  
+   ## ######    
+   ###@# ###      
+   #########      
+   #### ####      
+   #########   
+   #########
+            
   `,
     doors: new Map([['o', 'ohio'],]),
     sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr'),
@@ -553,9 +553,9 @@ const the_cheddaverse: LevelMetaData = {
      #  #        
    #########     
    #       #     
-   #       ##
+   # o     ##
    ####@   #      
-     o #   #      
+       #   #      
        #####      
     `,
     sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr'),
