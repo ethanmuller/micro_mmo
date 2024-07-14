@@ -514,6 +514,9 @@ function mainLoop(reportedTime: number) {
 	circleFade.enabled = circleFade.uniforms.fadeOut.value > 0;
 	composer.render();
 
+	if (settings.enableChat) {
+		textRenderer?.render(scene, camera)
+	}
 
 	// send info to the server if it's time
 	if (gameTime.time - lastNetworkUpdate > NETWORK_TIME_BETWEEN_UPDATES) {
@@ -659,6 +662,16 @@ function handleKey(e: KeyboardEvent) {
 	}
 }
 
+function openChatBox() {
+	chatBoxOpen.value = true
+
+	nextTick(() => {
+		chat_input.value?.focus()
+	})
+
+	window.setTimeout(() => {
+	}, 10)
+}
 
 function clearChat() {
 	mp.connection.emit('chatKeystroke', '')
@@ -703,6 +716,9 @@ const charLimit = ref(42)
 		<canvas id="auxcanvas"></canvas>
 		<div ref="trackballEl" id="trackball"></div>
 		<div class="bottom-A" v-show="!chatBoxOpen">
+			<button class="app-icon" v-if="settings.enableChat" @click="openChatBox">
+				<div>💬</div>
+			</button>
 			<div class="nametag">
 				<qrcode-vue :value="host" @click="qrCodeBigger = !qrCodeBigger" class="qr"
 					:size="qrCodeBigger ? 150 : 50"></qrcode-vue>
@@ -781,6 +797,11 @@ const charLimit = ref(42)
 				</label>
 
 				<label>
+					<input type="checkbox" v-model="settings.enableChat" />
+					enable chat
+				</label>
+
+				<label>
 					<input type="checkbox" v-model="settings.showLogs" />
 					show logs
 				</label>
@@ -797,6 +818,7 @@ const charLimit = ref(42)
 			</div>
 			<button class="settings__toggle" @click="settingsToggle">⚙️ settings</button>
 		</div>
+		<div ref="chat_renderer" v-show="settings.enableChat"></div>
 	</div>
 </template>
 
