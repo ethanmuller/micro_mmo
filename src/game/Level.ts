@@ -205,11 +205,6 @@ export class Level {
             });
         });
 
-        const OutOfBoundsFloorMesh = new Mesh(new PlaneGeometry(this.tileSize * 1000, this.tileSize * 1000, 1, 1), new MeshBasicMaterial({ color: 0x110011 }));
-        OutOfBoundsFloorMesh.position.y -= 1
-        OutOfBoundsFloorMesh.rotation.x -= Math.PI * 0.5;
-        this.object.add(OutOfBoundsFloorMesh)
-
         this.object.position.set(this.tileSize * 0.5, 0, this.tileSize * 0.5);
         this.object.updateMatrixWorld(true);
     }
