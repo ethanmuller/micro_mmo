@@ -551,7 +551,7 @@ const the_cheddaverse: LevelMetaData = {
      #  #        
    #########     
    #       #     
-   # o     ##
+   #   o   ##
    ####@####      
        #   #      
        #####      
