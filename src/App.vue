@@ -21,6 +21,7 @@ import { CameraMovement } from './game/CameraMovement.ts';
 import { CircleTransitionShader } from './game/shaders/CircleTransitionShader';
 import * as TWEEN from '@tweenjs/tween.js';
 import * as Tone from "tone";
+import { cdn_path } from "./cdn_path";
 
 const NETWORK_TIME_BETWEEN_UPDATES = 1 / 15; // 1/timesPerSecond
 let lastNetworkUpdate = 0;
@@ -245,7 +246,7 @@ const cameraMovement = new CameraMovement(camera, player, level);
 
 const mp = new MultiplayerClient({ token: store.token }, store.skin || 0, requestedLevelMetadata.name || DEFAULT_LEVEL)
 
-const sfxPickup = new Tone.Player('https://mush.network/files/sfx/sfx-pickup.wav', () => {
+const sfxPickup = new Tone.Player(`${cdn_path}/sfx/sfx-pickup.wav`, () => {
 	mp.connection.on('sfxPickup', () => {
 		if (settings.enableSound) {
 			sfxPickup.stop()
@@ -254,7 +255,7 @@ const sfxPickup = new Tone.Player('https://mush.network/files/sfx/sfx-pickup.wav
 	})
 }).toDestination()
 
-const sfxPutdown = new Tone.Player('https://mush.network/files/sfx/sfx-putdown.wav', () => {
+const sfxPutdown = new Tone.Player(`${cdn_path}/sfx/sfx-putdown.wav`, () => {
 	mp.connection.on('sfxPutdown', () => {
 		if (settings.enableSound) {
 			sfxPutdown.stop()

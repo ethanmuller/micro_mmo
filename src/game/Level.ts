@@ -4,6 +4,8 @@ import { MouseholeGeometry } from "./extensions/MouseholeGeometry"
 import { CameraMode } from '../game/CameraMovement'
 import { Item } from "../server/MultiplayerTypes";
 
+import { cdn_path } from "../cdn_path";
+
 
 type LowercaseAlpha = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
 type DoorChar = LowercaseAlpha
@@ -507,10 +509,10 @@ const ohio: LevelMetaData = {
 #######
 #######
   `,
-    sky: new URL('https://mush.network/files/sky/furry_clouds_1k.hdr'),
-    topImage: "https://mush.network/files/textures/mc/grass.png",
-    wallImage: "https://mush.network/files/textures/mc/grassdirt.png",
-    floorImage: "https://mush.network/files/textures/mc/dirt.png",
+    sky: new URL(`${cdn_path}/sky/furry_clouds_1k.hdr`),
+    topImage: `${cdn_path}/textures/mc/grass.png`,
+    wallImage: `${cdn_path}/textures/mc/grassdirt.png`,
+    floorImage: `${cdn_path}/textures/mc/dirt.png`,
 }
 
 const lab: LevelMetaData = {
@@ -536,9 +538,9 @@ const lab: LevelMetaData = {
             
   `,
     doors: new Map([['o', 'ohio'],]),
-    sky: new URL('https://mush.network/files/sky/vintage_measuring_lab_1k.hdr'),
-    wallImage: "https://mush.network/files/textures/etc/plywood.png",
-    floorImage: "https://mush.network/files/textures/etc/concrete.png",
+    sky: new URL(`${cdn_path}/sky/vintage_measuring_lab_1k.hdr`),
+    wallImage: `${cdn_path}/textures/etc/plywood.png`,
+    floorImage: `${cdn_path}/textures/etc/concrete.png`,
 }
 const the_cheddaverse: LevelMetaData = {
     name: 'the_cheddaverse',
@@ -559,10 +561,10 @@ const the_cheddaverse: LevelMetaData = {
        #   #      
        #####      
     `,
-    sky: new URL('https://mush.network/files/sky/wasteland_clouds_puresky_1k.hdr'),
-    topImage: "https://mush.network/files/textures/win95/wall.png",
-    wallImage: "https://mush.network/files/textures/win95/wall.png",
-    floorImage: "https://mush.network/files/textures/win95/floor.png",
+    sky: new URL(`${cdn_path}/sky/wasteland_clouds_puresky_1k.hdr`),
+    topImage: `${cdn_path}/textures/win95/wall.png`,
+    wallImage: `${cdn_path}/textures/win95/wall.png`,
+    floorImage: `${cdn_path}/textures/win95/floor.png`,
 }
 
 export const levels: { [index: string]: any } = { ohio, lab, the_cheddaverse }

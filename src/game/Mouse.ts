@@ -9,6 +9,7 @@ import { useSettingsStore } from "../stores/settings";
 import { TailGeometry } from "./extensions/TailGeometry";
 import { CSS2DObject, } from 'three/addons/renderers/CSS2DRenderer.js';
 import * as Tone from "tone";
+import { cdn_path } from "../cdn_path";
 
 export type SerializedPlayerData = {
     position: Vector3,
@@ -157,19 +158,19 @@ export class Mouse {
     private frameDisplacementDirection: Vector3 = new Vector3();
 
     constructor(scene: Scene, toonRamp: Texture, skin: MouseSkin, isLocalPlayer: boolean) {
-        this.sfxChit = new Tone.Player('https://mush.network/files/sfx/mouse-step-b.wav').toDestination()
+        this.sfxChit = new Tone.Player(`${cdn_path}/sfx/mouse-step-b.wav`).toDestination()
         this.sfxChit.volume.value = 0
         this.sfxChit.volume.value += 10
 
         this.isLocalPlayer = isLocalPlayer
-        this.sfxHey = new Tone.Player('https://mush.network/files/sfx/h3.wav').toDestination()
-        this.sfxWhat = new Tone.Player('https://mush.network/files/sfx/h4.wav').toDestination()
-        this.sfxOk = new Tone.Player('https://mush.network/files/sfx/ok.wav').toDestination()
-        this.sfxYeah = new Tone.Player('https://mush.network/files/sfx/yeah.wav').toDestination()
-        this.sfxHa = new Tone.Player('https://mush.network/files/sfx/h1.wav').toDestination()
+        this.sfxHey = new Tone.Player(`${cdn_path}/sfx/h3.wav`).toDestination()
+        this.sfxWhat = new Tone.Player(`${cdn_path}/sfx/h4.wav`).toDestination()
+        this.sfxOk = new Tone.Player(`${cdn_path}/sfx/ok.wav`).toDestination()
+        this.sfxYeah = new Tone.Player(`${cdn_path}/sfx/yeah.wav`).toDestination()
+        this.sfxHa = new Tone.Player(`${cdn_path}/sfx/h1.wav`).toDestination()
         this.squeakSampler = new Tone.Sampler({
             urls: chirpNotes,
-            baseUrl: "https://mush.network/files/sfx/chirps-and-squeaks/",
+            baseUrl: `${cdn_path}/sfx/chirps-and-squeaks/`,
         }).toDestination()
 
         this.sfxYeah.volume.value = 12
