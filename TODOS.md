@@ -1,11 +1,11 @@
 # done
 
 # next
-- add hats: new class of item, equippable, requires UI for unequip
-- tear down App.vue file
-- wheel.html
-- seed.html
-- mouse.html
+- orb = map
+- fix chat framing bug
+- fix multiplayer door bug
+- turn map into gahanna building
+- add hats
 
 # later
 - wait until all textures load before tweening circle
