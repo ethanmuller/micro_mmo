@@ -38,6 +38,7 @@ const chatBoxOpen = ref<boolean>(false);
 const qrCodeBigger = ref<boolean>(false);
 const settings = useSettingsStore()
 const logs = useLogStore()
+const showMiniMap = ref<boolean>(true);
 
 let str = 'ESTABLISHING ENCRYPTED CONNECTION...'
 str += window.location.toString().match(/^https/) ? 'OK' : 'ERROR'
@@ -496,7 +497,9 @@ function mainLoop(reportedTime: number) {
 
 	updatePickupCursor()
 
-	if (settings.showMinimap) {
+	const playerIsHoldingOrb = itemList.some((i) => i.thing === 'orb' && i.parent == store.token)
+ 	showMiniMap.value = playerIsHoldingOrb
+	if (showMiniMap.value) {
 		const itemsInRoom = itemList.filter((item) => item.level === requestedLevelMetadata.name)
 		minimapText.value = level.renderMinimap(player, playerIdToPlayerObj, itemsInRoom)
 	}
@@ -729,7 +732,7 @@ const charLimit = ref(42)
 				</div>
 			</div>
 		</div>
-		<div class="minimap" v-if="settings.showMinimap && !chatBoxOpen">{{ minimapText }}</div>
+		<div class="minimap" v-if="showMiniMap && !chatBoxOpen">{{ minimapText }}</div>
 		<div class="chat-box" v-show="chatBoxOpen">
 			<button arial-label="close chat" class="chat-box__close-button" @click="chatBoxOpen = false">
 
@@ -790,11 +793,6 @@ const charLimit = ref(42)
 				<label>
 					<input type="checkbox" v-model="settings.enableSound" />
 					enable sounds
-				</label>
-
-				<label>
-					<input type="checkbox" v-model="settings.showMinimap" />
-					show minimap
 				</label>
 
 				<label>
