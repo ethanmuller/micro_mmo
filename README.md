@@ -24,3 +24,18 @@ scp -r dist/* me@mush.network:public/mouse
 ```
 
 This will build the client statically, then copy the built files up to the server.
+
+## Multiplayer server
+
+The multiplayer server runs in Docker. On the server, from a checkout of this repo:
+
+```
+docker compose up -d --build
+```
+
+This listens on port 3000 and restarts automatically on crash or reboot. Run the same command again after pulling to deploy changes.
+
+```
+docker compose logs -f   # watch server output
+docker compose down      # stop it
+```

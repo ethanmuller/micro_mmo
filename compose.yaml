@@ -1,0 +1,7 @@
+services:
+  multiplayer-server:
+    build: .
+    init: true
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
