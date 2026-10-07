@@ -23,9 +23,15 @@ export class MultiplayerClient {
     console.log('setting up multiplayer client...')
 
     if (import.meta.env.PROD) {
-      this.connection = socket.io(window.location.hostname, { auth, query: { skin, requestedLevel } });
+      this.connection = socket.io(window.location.hostname, {
+        path: '/micro_mmo/socket/',
+        auth, query: { skin, requestedLevel }
+      });
     } else {
-      this.connection = socket.io(window.location.hostname + ':3000', { auth, query: { skin, requestedLevel } });
+      this.connection = socket.io(window.location.hostname + ':3000', {
+        path: '/micro_mmo/socket/',
+        auth, query: { skin, requestedLevel }
+      });
     }
 
     this.connection.on('connect', () => {
@@ -124,11 +130,11 @@ export class MultiplayerClient {
     this.serverTimeOffset = 0;
 
     if (Math.abs(serverMessageTime - clientTimeMs) > 5 * 60 * 1000) // if we are off more than 5 minutes something is off, maybe client is at different time zone
-    {
-      // TODO acount for people setting phones on weird years and times that are not NOW
+      {
+        // TODO acount for people setting phones on weird years and times that are not NOW
 
-      this.serverTimeOffset = serverTime.getTimezoneOffset() - clientTime.getTimezoneOffset();
-      console.log(`client is at an offset of ${this.serverTimeOffset}`);
-    }
+        this.serverTimeOffset = serverTime.getTimezoneOffset() - clientTime.getTimezoneOffset();
+        console.log(`client is at an offset of ${this.serverTimeOffset}`);
+      }
   }
 }
