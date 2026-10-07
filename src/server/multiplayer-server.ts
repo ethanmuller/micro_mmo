@@ -18,6 +18,7 @@ const io = new Server<
   ClientToServerEvents,
   ServerToClientEvents
 >(server, {
+  path: '/micro_mmo/socket/',
   cors: {}
 });
 
