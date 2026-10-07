@@ -1,10 +1,10 @@
 # done
+- orb = map
 
 # next
-- orb = map
+- turn map into gahanna building
 - fix chat framing bug
 - fix multiplayer door bug
-- turn map into gahanna building
 - add hats
 
 # later
